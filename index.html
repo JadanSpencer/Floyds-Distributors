@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floyd's Distributors | Food Packaging Solutions</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Additional styles for the hero section */
+        .hero {
+            background: linear-gradient(135deg, rgba(0, 128, 128, 0.9) 0%, rgba(0, 102, 102, 0.95) 100%);
+            color: white;
+            text-align: center;
+            padding: 8rem 0 5rem;
+            margin-top: 0;
+        }
+
+        .hero h2 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Featured products section */
+        .featured-products {
+            padding: 4rem 0;
+            background-color: var(--light-gray);
+        }
+
+        .featured-products h2 {
+            text-align: center;
+            color: var(--gray);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        /* Product slider styles */
+        .products-slider-container {
+            overflow: hidden;
+            position: relative;
+            margin: 2rem 0;
+            padding: 1rem 0;
+        }
+
+        .products-slider {
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .slider-track {
+            display: flex;
+            gap: 20px;
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+
+        .product-card {
+            width: 250px;
+            height: 420px;
+            border-radius: 10px;
+            padding: 20px;
+            flex-shrink: 0;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: linear-gradient(145deg, var(--white), var(--light-gray));
+            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), 
+                        -8px -8px 16px rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .product-card:nth-child(odd) {
+            background: linear-gradient(145deg, #00a3a3, #008080);
+            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.15), 
+                        -8px -8px 16px rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .product-card h3 {
+            color: var(--teal);
+            margin-bottom: 0.5rem;
+        }
+
+        .product-card:nth-child(odd) h3,
+        .product-card:nth-child(odd) .price {
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .product-card .price {
+            color: var(--dark-teal);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .product-image {
+            width: 70%;
+            height: 140px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin: 0 auto 1rem;
+            display: block;
+        }
+
+        .card-add-to-cart {
+            background: var(--teal);
+            color: white;
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: auto;
+            width: 100%;
+        }
+
+        .product-card:nth-child(odd) .card-add-to-cart {
+            background: white;
+            color: var(--teal);
+        }
+
+        .card-add-to-cart:hover {
+            background: var(--dark-teal);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 102, 0.3);
+        }
+
+        .product-card:nth-child(odd) .card-add-to-cart:hover {
+            background: var(--light-gray);
+            color: var(--teal-dark);
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .hero h2 {
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .product-card {
+                width: 220px;
+                height: 380px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>Floyd's Distributors</h1>
+            </div>
+            <div class="search-container">
+                <input type="text" placeholder="Search products..." class="search-input" id="searchInput">
+                <button class="search-btn" id="searchBtn">🔍</button>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li class="dropdown">
+                        <a href="products.html">Products <span class="dropdown-arrow">▼</span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="products.html">All Products</a></li>
+                            <li><a href="category.html?cat=food-containers">Food Containers</a></li>
+                            <li><a href="category.html?cat=eco-friendly">Eco-Friendly Packaging</a></li>
+                            <li><a href="category.html?cat=custom">Custom Solutions</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="delivery.html">Delivery</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <div class="cart-icon">
+                    <span class="cart-icon-symbol">🛒</span>
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="hamburger">☰</div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h2>Quality Food Packaging Solutions</h2>
+            <p>Eco-friendly, durable, and customizable packaging for your business needs.</p>
+            <div class="hero-buttons">
+                <a href="products.html" class="btn">Shop Now</a>
+                <button id="heroLoginBtn" class="btn-outline">Login</button>
+                <button id="heroSignupBtn" class="btn">Sign Up</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="featured-products">
+        <div class="container">
+            <h2>Featured Products</h2>
+            <div class="products-slider-container">
+                <div class="products-slider">
+                    <div class="slider-track">
+                        <!-- Product cards will be inserted by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login/Signup Form (from boody.html) -->
+    <div class="container" id="authContainer" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000;">
+        <div class="form-container sign-up-container">
+            <form action="#">
+                <h1>Create Account</h1>
+                <div class="social-container">
+                    <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
+                    <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+                <span>or use your email for registration</span>
+                <input type="text" placeholder="Name" id="signupName" />
+                <input type="email" placeholder="Email" id="signupEmail" />
+                <input type="password" placeholder="Password" id="signupPassword" />
+                <button id="submitSignup">Sign Up</button>
+            </form>
+        </div>
+        <div class="form-container sign-in-container">
+            <form action="#">
+                <h1>Sign in</h1>
+                <div class="social-container">
+                    <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
+                    <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+                <span>or use your account</span>
+                <input type="email" placeholder="Email" id="loginEmail" />
+                <input type="password" placeholder="Password" id="loginPassword" />
+                <a href="#">Forgot your password?</a>
+                <button id="submitLogin">Sign In</button>
+            </form>
+        </div>
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Welcome Back!</h1>
+                    <p>To keep connected with us please login with your personal info</p>
+                    <button class="ghost" id="signIn">Sign In</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>Hello, Friend!</h1>
+                    <p>Enter your personal details and start journey with us</p>
+                    <button class="ghost" id="signUp">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>Floyd's Distributors</h3>
+                    <p>Quality food packaging solutions for businesses of all sizes. Eco-friendly, durable, and customizable.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="category.html?cat=food-containers">Food Containers</a></li>
+                        <li><a href="category.html?cat=eco-friendly">Eco-Friendly Packaging</a></li>
+                        <li><a href="category.html?cat=custom">Custom Solutions</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Contact Us</h3>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Packaging Way, Portland, OR 97201</li>
+                        <li><i class="fas fa-phone"></i> (800) 555-1234</li>
+                        <li><i class="fas fa-envelope"></i> info@floydsdistributors.com</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 Floyd's Distributors. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cart Components -->
+    <div class="cart-overlay"></div>
+    <div class="cart-sidebar">
+        <div class="cart-header">
+            <h3>Your Cart (<span class="cart-count">0</span>)</h3>
+            <button class="close-cart">&times;</button>
+        </div>
+        <div class="cart-items">
+            <!-- Cart items will be added here dynamically -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span class="total-price">$0.00</span>
+            </div>
+            <button class="checkout-btn"><a href="checkout.html">Checkout</a></button>
+        </div>
+        <div class="cart-overlay"></div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+    <script>
+        // Initialize product slider
+        document.addEventListener('DOMContentLoaded', function() {
+            const sliderTrack = document.querySelector('.slider-track');
+            
+             const heroLoginBtn = document.getElementById('heroLoginBtn');
+            const heroSignupBtn = document.getElementById('heroSignupBtn');
+            
+            if (heroLoginBtn) {
+                heroLoginBtn.addEventListener('click', () => showAuthModal('login'));
+            }
+            
+            if (heroSignupBtn) {
+                heroSignupBtn.addEventListener('click', () => showAuthModal('signup'));
+            }
+            // Sample products data
+            const products = [
+                { 
+                    id: 1, 
+                    name: "Eco-Friendly Boxes", 
+                    price: "$12.99", 
+                    description: "Biodegradable food boxes perfect for takeout", 
+                    image: "https://via.placeholder.com/300x200?text=Eco+Boxes" 
+                },
+                { 
+                    id: 2, 
+                    name: "Compostable Bowls", 
+                    price: "$8.99", 
+                    description: "Sturdy compostable bowls", 
+                    image: "https://via.placeholder.com/300x200?text=Compostable+Bowls" 
+                },
+                { 
+                    id: 3, 
+                    name: "Recyclable Trays", 
+                    price: "$15.99", 
+                    description: "Multi-compartment trays", 
+                    image: "https://via.placeholder.com/300x200?text=Recyclable+Trays" 
+                },
+                { 
+                    id: 4, 
+                    name: "Paper Bags", 
+                    price: "$5.99", 
+                    description: "Durable paper bags", 
+                    image: "https://via.placeholder.com/300x200?text=Paper+Bags" 
+                },
+                { 
+                    id: 5, 
+                    name: "Eco-Cups", 
+                    price: "$7.99", 
+                    description: "Recyclable cups", 
+                    image: "https://via.placeholder.com/300x200?text=Eco+Cups" 
+                },
+                { 
+                    id: 6, 
+                    name: "Sustainable Cutlery", 
+                    price: "$9.99", 
+                    description: "Compostable utensils", 
+                    image: "https://via.placeholder.com/300x200?text=Sustainable+Cutlery" 
+                }
+            ];
+
+            // Create product cards
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.classList.add('product-card');
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3>${product.name}</h3>
+                        <img src="${product.image}" alt="${product.name}" class="product-image">
+                    </div>
+                    <div class="card-body">
+                        <p class="price">${product.price}</p>
+                        <p class="description">${product.description}</p>
+                        <button class="card-add-to-cart" data-id="${product.id}">Add to Cart</button>
+                    </div>
+                `;
+                sliderTrack.appendChild(card);
+                
+                // Add click handler for add to cart
+                card.querySelector('.card-add-to-cart').addEventListener('click', function() {
+                    addToCart(product);
+                    
+                    // Visual feedback
+                    this.textContent = "Added!";
+                    setTimeout(() => {
+                        this.textContent = "Add to Cart";
+                    }, 2000);
+                });
+            });
+
+            // Initialize slider animation
+            let position = 0;
+            let animationId;
+            const speed = 0.5;
+            
+            function animate() {
+                position -= speed;
+                if (position <= -products.length * 270) {
+                    position = 0;
+                }
+                sliderTrack.style.transform = `translateX(${position}px)`;
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+            
+            // Pause animation on hover
+            sliderTrack.addEventListener('mouseenter', () => {
+                cancelAnimationFrame(animationId);
+            });
+            
+            sliderTrack.addEventListener('mouseleave', () => {
+                animate();
+            });
+        });
+    </script>
+</body>
+</html>

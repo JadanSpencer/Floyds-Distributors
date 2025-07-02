@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Floyd's Distributors</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Checkout-specific styles */
+        .checkout-main {
+            padding: 2rem 0;
+            background-color: var(--light-gray);
+        }
+
+        .checkout-container {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .checkout-form, .order-summary {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section h3 {
+            margin-bottom: 1rem;
+            color: var(--teal);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--teal);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 128, 128, 0.1);
+        }
+
+        .payment-method {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method:hover {
+            border-color: var(--teal);
+        }
+
+        .payment-method input {
+            margin-right: 1rem;
+        }
+
+        .payment-method i {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            color: var(--teal);
+        }
+
+        .order-summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--teal);
+        }
+
+        .btn-place-order {
+            width: 100%;
+            padding: 1rem;
+            background: var(--teal);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-place-order:hover {
+            background: var(--dark-teal);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (Same as other pages) -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>Floyd's Distributors</h1>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+                <div class="cart-icon">
+                    <span class="cart-icon-symbol">🛒</span>
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="hamburger">☰</div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Checkout Main Section -->
+    <main class="checkout-main">
+        <div class="container">
+            <div class="checkout-container">
+                <!-- Checkout Form -->
+                <div class="checkout-form">
+                    <h2>Checkout</h2>
+                    
+                    <!-- Contact Information -->
+                    <div class="form-section">
+                        <h3>Contact Information</h3>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Shipping Address -->
+                    <div class="form-section">
+                        <h3>Shipping Address</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="first-name">First Name</label>
+                                <input type="text" id="first-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="last-name">Last Name</label>
+                                <input type="text" id="last-name" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <input type="text" id="address" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="apartment">Apartment, Suite, etc. (Optional)</label>
+                            <input type="text" id="apartment" class="form-control">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <input type="text" id="city" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="parish">Parish</label>
+                                <select id="parish" class="form-control" required>
+                                    <option value="">Select Parish</option>
+                                    <option value="kingston">Kingston</option>
+                                    <option value="st-andrew">St. Andrew</option>
+                                    <option value="st-catherine">St. Catherine</option>
+                                    <option value="clarendon">Clarendon</option>
+                                    <option value="manchester">Manchester</option>
+                                    <option value="st-elizabeth">St. Elizabeth</option>
+                                    <option value="westmoreland">Westmoreland</option>
+                                    <option value="hanover">Hanover</option>
+                                    <option value="st-james">St. James</option>
+                                    <option value="trelawny">Trelawny</option>
+                                    <option value="st-ann">St. Ann</option>
+                                    <option value="st-mary">St. Mary</option>
+                                    <option value="portland">Portland</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input type="tel" id="phone" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method -->
+                    <div class="form-section">
+                        <h3>Payment Method</h3>
+                        <div class="payment-method">
+                            <input type="radio" id="credit-card" name="payment" checked>
+                            <i class="far fa-credit-card"></i>
+                            <label for="credit-card">Credit Card</label>
+                        </div>
+                        <div class="payment-method">
+                            <input type="radio" id="paypal" name="payment">
+                            <i class="fab fa-paypal"></i>
+                            <label for="paypal">PayPal</label>
+                        </div>
+                        <div class="payment-method">
+                            <input type="radio" id="mobile-money" name="payment">
+                            <i class="fas fa-mobile-alt"></i>
+                            <label for="mobile-money">Mobile Money</label>
+                        </div>
+                        
+                        <!-- Credit Card Form (shown when credit card is selected) -->
+                        <div id="credit-card-form">
+                            <div class="form-group">
+                                <label for="card-number">Card Number</label>
+                                <input type="text" id="card-number" class="form-control" placeholder="1234 5678 9012 3456">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="expiry">Expiry Date</label>
+                                    <input type="text" id="expiry" class="form-control" placeholder="MM/YY">
+                                </div>
+                                <div class="form-group">
+                                    <label for="cvc">CVC</label>
+                                    <input type="text" id="cvc" class="form-control" placeholder="123">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="card-name">Name on Card</label>
+                                <input type="text" id="card-name" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Notes -->
+                    <div class="form-section">
+                        <h3>Order Notes (Optional)</h3>
+                        <textarea id="order-notes" class="form-control" rows="3" placeholder="Special instructions for your order..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h2>Order Summary</h2>
+                    <div id="order-items">
+                        <!-- Cart items will be dynamically inserted here -->
+                    </div>
+                    <div class="order-summary-item">
+                        <span>Subtotal</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="order-summary-item">
+                        <span>Shipping</span>
+                        <span id="shipping">$0.00</span>
+                    </div>
+                    <div class="order-summary-item">
+                        <span>Tax</span>
+                        <span id="tax">$0.00</span>
+                    </div>
+                    <div class="order-summary-item order-total">
+                        <span>Total</span>
+                        <span id="total">$0.00</span>
+                    </div>
+                    <button class="btn-place-order" id="place-order">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (Same as other pages) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>Floyd's Distributors</h3>
+                    <p>Quality food packaging solutions for businesses of all sizes.</p>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Contact Us</h3>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-phone"></i> (876) 123-4567</li>
+                        <li><i class="fas fa-envelope"></i> info@floydsdistributors.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Floyd's Distributors. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase and Checkout Script -->
+    <script type="module">
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { app, db, auth } from "./script.js";
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            // ... [previous checkout code] ...
+
+            async function placeOrder() {
+                // ... [previous validation code] ...
+
+                // Create order object
+                const order = {
+                    customer: {
+                        email,
+                        firstName,
+                        lastName,
+                        address: `${address}${apartment ? ', ' + apartment : ''}`,
+                        city,
+                        parish,
+                        phone
+                    },
+                    items: cart.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        image: item.image || ''
+                    })),
+                    subtotal,
+                    shipping,
+                    tax,
+                    total,
+                    status: 'pending',
+                    createdAt: new Date(),
+                    notes,
+                    paymentMethod: document.querySelector('input[name="payment"]:checked').id
+                };
+
+                try {
+                    // 1. Save order to Firestore
+                    const ordersRef = collection(db, 'orders');
+                    const docRef = await addDoc(ordersRef, order);
+                    
+                    // 2. Update product stock levels
+                    await updateProductStock(cart);
+                    
+                    // 3. Clear cart
+                    localStorage.removeItem('floydsDistributorsCart');
+                    
+                    // 4. Redirect to confirmation
+                    window.location.href = `order-confirmation.html?orderId=${docRef.id}`;
+                    
+                } catch (error) {
+                    console.error("Order failed:", error);
+                    alert("Order processing failed. Please try again.");
+                }
+            }
+
+            async function updateProductStock(cart) {
+                const batchUpdates = [];
+                
+                cart.forEach(item => {
+                    const productRef = doc(db, 'products', item.id);
+                    batchUpdates.push(
+                        updateDoc(productRef, {
+                            stock: increment(-item.quantity)
+                        })
+                    );
+                });
+                
+                await Promise.all(batchUpdates);
+            }
+        });
+    </script>
+</body>
+</html>

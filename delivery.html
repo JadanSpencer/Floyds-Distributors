@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Information | Floyd's Distributors</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="products.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Additional styles for delivery page */
+        .delivery-main {
+            padding: 3rem 0;
+            background-color: var(--light-gray);
+        }
+        
+        .delivery-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .delivery-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .delivery-step {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+        
+        .delivery-step-number {
+            width: 40px;
+            height: 40px;
+            background-color: var(--teal);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: bold;
+        }
+        
+        .delivery-step.active .delivery-step-number {
+            background-color: var(--dark-teal);
+        }
+        
+        .delivery-step.completed .delivery-step-number {
+            background-color: #4CAF50;
+        }
+        
+        .delivery-step-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #ddd;
+            z-index: 0;
+        }
+        
+        .delivery-step-line-progress {
+            height: 100%;
+            background-color: var(--teal);
+            width: 50%;
+            transition: width 0.3s ease;
+        }
+        
+        .parish-selection {
+            margin-bottom: 3rem;
+        }
+        
+        .parish-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .parish-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .parish-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .parish-card.selected {
+            border-color: var(--teal);
+            background-color: rgba(0, 128, 128, 0.05);
+        }
+        
+        .parish-icon {
+            font-size: 2.5rem;
+            color: var(--teal);
+            margin-bottom: 1rem;
+        }
+        
+        .address-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-top: 2rem;
+            display: none;
+        }
+        
+        .address-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--gray);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 2px rgba(0, 128, 128, 0.2);
+        }
+        
+        .delivery-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        
+        .btn-back {
+            background: none;
+            border: 1px solid var(--teal);
+            color: var(--teal);
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            background: rgba(0, 128, 128, 0.1);
+        }
+        
+        .delivery-summary {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-top: 2rem;
+            display: none;
+        }
+        
+        .delivery-summary.active {
+            display: block;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .delivery-fee {
+            font-weight: bold;
+            color: var(--teal);
+        }
+        
+        .delivery-time {
+            font-style: italic;
+            color: #666;
+        }
+
+        /* Delivery time estimates */
+.delivery-estimate {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+/* Interactive parish cards */
+.parish-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.parish-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--teal);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.parish-card:hover::after {
+  transform: scaleX(1);
+}
+        
+        @media (max-width: 768px) {
+            .parish-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .delivery-step {
+                font-size: 0.9rem;
+            }
+            
+            .delivery-step-number {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .delivery-step-line {
+                top: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .parish-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .delivery-step {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (same as other pages) -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>Floyd's Distributors</h1>
+            </div>
+            <div class="search-container">
+                <input type="text" placeholder="Search products..." class="search-input">
+                <button class="search-btn">🔍</button>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li class="dropdown">
+                        <a href="#">Products <span class="dropdown-arrow">▼</span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="products.html">All Products</a></li>
+                            <li><a href="category.html?cat=food-containers">Food Containers</a></li>
+                            <li><a href="category.html?cat=eco-friendly">Eco-Friendly Packaging</a></li>
+                            <li><a href="category.html?cat=custom">Custom Solutions</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <div class="cart-icon">
+                    <span class="cart-icon-symbol">🛒</span>
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="hamburger">☰</div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Delivery Main Section -->
+    <main class="delivery-main">
+        <div class="container">
+            <div class="delivery-container">
+                <h2>Delivery Information</h2>
+                <p>Please provide your delivery details to proceed with your order.</p>
+                
+                <!-- Delivery Steps -->
+                <div class="delivery-steps">
+                    <div class="delivery-step-line">
+                        <div class="delivery-step-line-progress" id="stepProgress"></div>
+                    </div>
+                    <div class="delivery-step active" id="step1">
+                        <div class="delivery-step-number">1</div>
+                        <div>Select Parish</div>
+                    </div>
+                    <div class="delivery-step" id="step2">
+                        <div class="delivery-step-number">2</div>
+                        <div>Enter Address</div>
+                    </div>
+                    <div class="delivery-step" id="step3">
+                        <div class="delivery-step-number">3</div>
+                        <div>Review & Pay</div>
+                    </div>
+                </div>
+                
+                <!-- Parish Selection Section -->
+                <div class="parish-selection" id="parishSelection">
+                    <h3>Select Your Parish</h3>
+                    <p>Choose the parish where your delivery should be sent</p>
+                    
+                    <div class="parish-grid">
+                        <!-- Kingston -->
+                        <div class="parish-card" data-parish="kingston">
+                            <div class="parish-icon">
+                                <i class="fas fa-city"></i>
+                            </div>
+                            <h4>Kingston</h4>
+                            <p>Delivery: 1-2 business days</p>
+                        </div>
+                        
+                        <!-- St. Andrew -->
+                        <div class="parish-card" data-parish="st-andrew">
+                            <div class="parish-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <h4>St. Andrew</h4>
+                            <p>Delivery: 1-2 business days</p>
+                        </div>
+                        
+                        <!-- St. Catherine -->
+                        <div class="parish-card" data-parish="st-catherine">
+                            <div class="parish-icon">
+                                <i class="fas fa-warehouse"></i>
+                            </div>
+                            <h4>St. Catherine</h4>
+                            <p>Delivery: 2-3 business days</p>
+                        </div>
+                        
+                        <!-- Clarendon -->
+                        <div class="parish-card" data-parish="clarendon">
+                            <div class="parish-icon">
+                                <i class="fas fa-tractor"></i>
+                            </div>
+                            <h4>Clarendon</h4>
+                            <p>Delivery: 3-4 business days</p>
+                        </div>
+                        
+                        <!-- Manchester -->
+                        <div class="parish-card" data-parish="manchester">
+                            <div class="parish-icon">
+                                <i class="fas fa-mountain"></i>
+                            </div>
+                            <h4>Manchester</h4>
+                            <p>Delivery: 3-4 business days</p>
+                        </div>
+                        
+                        <!-- St. Elizabeth -->
+                        <div class="parish-card" data-parish="st-elizabeth">
+                            <div class="parish-icon">
+                                <i class="fas fa-seedling"></i>
+                            </div>
+                            <h4>St. Elizabeth</h4>
+                            <p>Delivery: 3-5 business days</p>
+                        </div>
+                        
+                        <!-- Westmoreland -->
+                        <div class="parish-card" data-parish="westmoreland">
+                            <div class="parish-icon">
+                                <i class="fas fa-umbrella-beach"></i>
+                            </div>
+                            <h4>Westmoreland</h4>
+                            <p>Delivery: 4-5 business days</p>
+                        </div>
+                        
+                        <!-- Hanover -->
+                        <div class="parish-card" data-parish="hanover">
+                            <div class="parish-icon">
+                                <i class="fas fa-cocktail"></i>
+                            </div>
+                            <h4>Hanover</h4>
+                            <p>Delivery: 4-5 business days</p>
+                        </div>
+                        
+                        <!-- Trelawny -->
+                        <div class="parish-card" data-parish="trelawny">
+                            <div class="parish-icon">
+                                <i class="fas fa-ship"></i>
+                            </div>
+                            <h4>Trelawny</h4>
+                            <p>Delivery: 4-5 business days</p>
+                        </div>
+                        
+                        <!-- St. James -->
+                        <div class="parish-card" data-parish="st-james">
+                            <div class="parish-icon">
+                                <i class="fas fa-umbrella-beach"></i>
+                            </div>
+                            <h4>St. James</h4>
+                            <p>Delivery: 4-5 business days</p>
+                        </div>
+                        
+                        <!-- St. Ann -->
+                        <div class="parish-card" data-parish="st-ann">
+                            <div class="parish-icon">
+                                <i class="fas fa-swimming-pool"></i>
+                            </div>
+                            <h4>St. Ann</h4>
+                            <p>Delivery: 4-5 business days</p>
+                        </div>
+                        
+                        <!-- Portland -->
+                        <div class="parish-card" data-parish="portland">
+                            <div class="parish-icon">
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <h4>Portland</h4>
+                            <p>Delivery: 5-6 business days</p>
+                        </div>
+                        
+                        <!-- St. Mary -->
+                        <div class="parish-card" data-parish="st-mary">
+                            <div class="parish-icon">
+                                <i class="fas fa-fish"></i>
+                            </div>
+                            <h4>St. Mary</h4>
+                            <p>Delivery: 5-6 business days</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Address Form (hidden initially) -->
+                <div class="address-form" id="addressForm">
+                    <h3>Enter Your Delivery Address</h3>
+                    
+                    <div class="form-group">
+                        <label for="street">Street Address</label>
+                        <input type="text" id="street" class="form-control" placeholder="123 Main Street" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="town">Town/City</label>
+                        <input type="text" id="town" class="form-control" placeholder="e.g. Half Way Tree" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="parish">Parish</label>
+                        <input type="text" id="parish" class="form-control" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="instructions">Delivery Instructions (Optional)</label>
+                        <textarea id="instructions" class="form-control" rows="3" placeholder="Any special instructions for delivery"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" class="form-control" placeholder="876-123-4567" required>
+                    </div>
+                    
+                    <div class="delivery-actions">
+                        <button class="btn-back" id="backToParish">Back</button>
+                        <button class="btn" id="continueToSummary">Continue</button>
+                    </div>
+                </div>
+                
+                <!-- Delivery Summary (hidden initially) -->
+                <div class="delivery-summary" id="deliverySummary">
+                    <h3>Review Your Delivery Information</h3>
+                    
+                    <div class="summary-item">
+                        <span>Delivery Address:</span>
+                        <span id="summaryAddress"></span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span>Parish:</span>
+                        <span id="summaryParish"></span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span>Delivery Instructions:</span>
+                        <span id="summaryInstructions"></span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span>Contact Number:</span>
+                        <span id="summaryPhone"></span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span>Estimated Delivery:</span>
+                        <span class="delivery-time" id="summaryDeliveryTime"></span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span>Delivery Fee:</span>
+                        <span class="delivery-fee" id="summaryDeliveryFee"></span>
+                    </div>
+                    
+                    <div class="delivery-actions">
+                        <button class="btn-back" id="backToAddress">Back</button>
+                        <button class="btn" id="proceedToCheckout">Proceed to Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (same as other pages) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>Floyd's Distributors</h3>
+                    <p>Quality food packaging solutions for businesses of all sizes. Eco-friendly, durable, and customizable.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="category.html?cat=food-containers">Food Containers</a></li>
+                        <li><a href="category.html?cat=eco-friendly">Eco-Friendly Packaging</a></li>
+                        <li><a href="category.html?cat=custom">Custom Solutions</a></li>
+                        <li><a href="category.html?cat=disposable">Disposable Tableware</a></li>
+                        <li><a href="category.html?cat=specialty">Specialty Packaging</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Contact Us</h3>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Packaging Way, Suite 100, Portland, OR 97201</li>
+                        <li><i class="fas fa-phone"></i> (800) 555-1234</li>
+                        <li><i class="fas fa-envelope"></i> info@floydsdistributors.com</li>
+                        <li><i class="fas fa-clock"></i> Mon-Fri: 8AM - 5PM PST</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 Floyd's Distributors. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="sitemap.html">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Delivery page functionality
+            const parishCards = document.querySelectorAll('.parish-card');
+            const addressForm = document.getElementById('addressForm');
+            const deliverySummary = document.getElementById('deliverySummary');
+            const parishSelection = document.getElementById('parishSelection');
+            const stepProgress = document.getElementById('stepProgress');
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+            const step3 = document.getElementById('step3');
+            
+            let selectedParish = '';
+            let deliveryDays = '';
+            let deliveryFee = 0;
+            
+            // Parish selection
+            parishCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    parishCards.forEach(c => c.classList.remove('selected'));
+                    
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                    
+                    // Store selected parish info
+                    selectedParish = this.querySelector('h4').textContent;
+                    deliveryDays = this.querySelector('p').textContent.replace('Delivery: ', '');
+                    
+                    // Set delivery fee based on parish
+                    const parish = this.dataset.parish;
+                    if (parish === 'kingston' || parish === 'st-andrew') {
+                        deliveryFee = 500; // JMD
+                    } else if (parish === 'st-catherine') {
+                        deliveryFee = 800; // JMD
+                    } else if (parish === 'clarendon' || parish === 'manchester' || 
+                               parish === 'st-elizabeth' || parish === 'westmoreland') {
+                        deliveryFee = 1200; // JMD
+                    } else {
+                        deliveryFee = 1500; // JMD
+                    }
+                    
+                    // Update parish field in address form
+                    document.getElementById('parish').value = selectedParish;
+                    
+                    // Show address form
+                    parishSelection.style.display = 'none';
+                    addressForm.classList.add('active');
+                    
+                    // Update progress steps
+                    step1.classList.remove('active');
+                    step1.classList.add('completed');
+                    step2.classList.add('active');
+                    stepProgress.style.width = '50%';
+                });
+            });
+            
+            // Back to parish selection
+            document.getElementById('backToParish').addEventListener('click', function() {
+                addressForm.classList.remove('active');
+                parishSelection.style.display = 'block';
+                
+                // Update progress steps
+                step1.classList.add('active');
+                step1.classList.remove('completed');
+                step2.classList.remove('active');
+                stepProgress.style.width = '0%';
+            });
+            
+            // Continue to summary
+            document.getElementById('continueToSummary').addEventListener('click', function() {
+                // Validate form
+                const street = document.getElementById('street').value;
+                const town = document.getElementById('town').value;
+                const phone = document.getElementById('phone').value;
+                
+                if (!street || !town || !phone) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Populate summary
+                document.getElementById('summaryAddress').textContent = 
+                    `${street}, ${town}, ${selectedParish}`;
+                document.getElementById('summaryParish').textContent = selectedParish;
+                document.getElementById('summaryInstructions').textContent = 
+                    document.getElementById('instructions').value || 'None';
+                document.getElementById('summaryPhone').textContent = phone;
+                document.getElementById('summaryDeliveryTime').textContent = deliveryDays;
+                document.getElementById('summaryDeliveryFee').textContent = `JMD $${deliveryFee.toLocaleString()}`;
+                
+                // Show summary
+                addressForm.classList.remove('active');
+                deliverySummary.classList.add('active');
+                
+                // Update progress steps
+                step2.classList.remove('active');
+                step2.classList.add('completed');
+                step3.classList.add('active');
+                stepProgress.style.width = '100%';
+            });
+            
+            // Back to address form
+            document.getElementById('backToAddress').addEventListener('click', function() {
+                deliverySummary.classList.remove('active');
+                addressForm.classList.add('active');
+                
+                // Update progress steps
+                step2.classList.add('active');
+                step2.classList.remove('completed');
+                step3.classList.remove('active');
+                stepProgress.style.width = '50%';
+            });
+            
+            // Proceed to checkout
+            document.getElementById('proceedToCheckout').addEventListener('click', function() {
+                // In a real implementation, you would save the delivery info and proceed to payment
+                alert('Proceeding to checkout with your delivery information!');
+                // window.location.href = 'checkout.html';
+            });
+        });
+    </script>
+</body>
+</html>

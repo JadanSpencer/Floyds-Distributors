@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Floyd's Distributors</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Admin-specific styles */
+        .admin-main {
+            padding: 2rem 0;
+            background-color: var(--light-gray);
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .admin-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 2rem;
+        }
+
+        .admin-tab {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .admin-tab.active {
+            border-bottom-color: var(--teal);
+            color: var(--teal);
+        }
+
+        .admin-content {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th, .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .admin-table th {
+            background: var(--light-gray);
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .status-shipped {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .status-delivered {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .status-cancelled {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-weight: 600;
+        }
+
+        .btn-ship {
+            background: var(--teal);
+            color: white;
+        }
+
+        .btn-ship:hover {
+            background: var(--dark-teal);
+        }
+
+        .btn-cancel {
+            background: #F44336;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #D32F2F;
+        }
+
+        .search-filter {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .search-container {
+            width: 300px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .admin-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-full-width {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 768px) {
+            .admin-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .admin-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .admin-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-full-width {
+                grid-column: span 1;
+            }
+            
+            .search-filter {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-container {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>Admin Dashboard</h1>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-links">
+                    <li><a href="index.html">View Site</a></li>
+                </ul>
+                <button id="adminLogout" class="btn">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Admin Main Content -->
+    <main class="admin-main">
+        <div class="admin-container">
+            <!-- Admin Tabs -->
+            <div class="admin-tabs">
+                <div class="admin-tab active" data-tab="orders">Orders</div>
+                <div class="admin-tab" data-tab="products">Products</div>
+                <div class="admin-tab" data-tab="users">Users</div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div class="admin-content" id="orders-tab">
+                <div class="search-filter">
+                    <div class="search-container">
+                        <input type="text" id="orderSearch" placeholder="Search orders..." class="search-input">
+                        <button class="search-btn">🔍</button>
+                    </div>
+                    <div class="filter-group">
+                        <select id="orderStatusFilter" class="filter-select">
+                            <option value="all">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <select id="orderDateFilter" class="filter-select">
+                            <option value="all">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                </div>
+
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body">
+                        <!-- Orders will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Products Tab -->
+            <div class="admin-content" id="products-tab" style="display:none">
+                <div class="search-filter">
+                    <div class="search-container">
+                        <input type="text" id="productSearch" placeholder="Search products..." class="search-input">
+                        <button class="search-btn">🔍</button>
+                    </div>
+                    <button id="addProductBtn" class="btn">+ Add Product</button>
+                </div>
+
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Category</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body">
+                        <!-- Products will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Users Tab -->
+            <div class="admin-content" id="users-tab" style="display:none">
+                <div class="search-filter">
+                    <div class="search-container">
+                        <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
+                        <button class="search-btn">🔍</button>
+                    </div>
+                </div>
+
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Last Login</th>
+                            <th>Orders</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- Users will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Product Modal -->
+    <div id="productModal" class="modal" style="display:none">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Add New Product</h2>
+            <form id="productForm" class="admin-form">
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Price</label>
+                    <input type="number" id="productPrice" class="form-control" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="productStock">Stock</label>
+                    <input type="number" id="productStock" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Category</label>
+                    <select id="productCategory" class="form-control" required>
+                        <option value="food-containers">Food Containers</option>
+                        <option value="eco-friendly">Eco-Friendly</option>
+                        <option value="custom">Custom Solutions</option>
+                    </select>
+                </div>
+                <div class="form-group form-full-width">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productImage">Image URL</label>
+                    <input type="text" id="productImage" class="form-control">
+                </div>
+                <div class="form-group form-full-width">
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase and Admin Script -->
+    <script type="module">
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, updateDoc, doc, addDoc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { app, db, auth } from "./script.js";
+
+        // DOM Elements
+        const adminTabs = document.querySelectorAll('.admin-tab');
+        const tabContents = {
+            'orders': document.getElementById('orders-tab'),
+            'products': document.getElementById('products-tab'),
+            'users': document.getElementById('users-tab')
+        };
+        const logoutBtn = document.getElementById('adminLogout');
+        const addProductBtn = document.getElementById('addProductBtn');
+        const productModal = document.getElementById('productModal');
+        const closeModal = document.querySelector('.close-modal');
+        const productForm = document.getElementById('productForm');
+
+        // Check admin status on page load
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Verify admin status (you'll need to implement this)
+            const isAdmin = await checkAdminStatus(user.uid);
+            if (!isAdmin) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Load initial data
+            loadOrders();
+            loadProducts();
+            loadUsers();
+        });
+
+        // Tab switching
+        adminTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                adminTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                Object.values(tabContents).forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                const tabName = tab.getAttribute('data-tab');
+                tabContents[tabName].style.display = 'block';
+            });
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = 'index.html';
+            });
+        });
+
+        // Modal controls
+        addProductBtn.addEventListener('click', () => {
+            productModal.style.display = 'block';
+        });
+
+        closeModal.addEventListener('click', () => {
+            productModal.style.display = 'none';
+        });
+
+        // Product form submission
+        productForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const product = {
+                name: document.getElementById('productName').value,
+                price: parseFloat(document.getElementById('productPrice').value),
+                stock: parseInt(document.getElementById('productStock').value),
+                category: document.getElementById('productCategory').value,
+                description: document.getElementById('productDescription').value,
+                image: document.getElementById('productImage').value || 'https://via.placeholder.com/300',
+                featured: false,
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, 'products'), product);
+                alert('Product added successfully!');
+                productForm.reset();
+                productModal.style.display = 'none';
+                loadProducts();
+            } catch (error) {
+                console.error('Error adding product:', error);
+                alert('Failed to add product');
+            }
+        });
+
+        // Data loading functions
+        async function loadOrders() {
+            const ordersTable = document.getElementById('orders-table-body');
+            ordersTable.innerHTML = '<tr><td colspan="7">Loading orders...</td></tr>';
+            
+            const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            
+            ordersTable.innerHTML = '';
+            
+            if (querySnapshot.empty) {
+                ordersTable.innerHTML = '<tr><td colspan="7">No orders found</td></tr>';
+                return;
+            }
+            
+            querySnapshot.forEach(doc => {
+                const order = doc.data();
+                const orderDate = order.createdAt?.toDate().toLocaleDateString() || 'N/A';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${doc.id.substring(0, 8)}...</td>
+                    <td>${order.customer.firstName} ${order.customer.lastName}</td>
+                    <td>${orderDate}</td>
+                    <td>${order.items.reduce((sum, item) => sum + item.quantity, 0)}</td>
+                    <td>$${order.total.toFixed(2)}</td>
+                    <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                    <td>
+                        ${order.status === 'pending' ? 
+                            `<button class="action-btn btn-ship" data-id="${doc.id}">Ship</button>
+                             <button class="action-btn btn-cancel" data-id="${doc.id}">Cancel</button>` : 
+                            order.status === 'shipped' ? 
+                            `<button class="action-btn btn-ship" disabled>Shipped</button>` : 
+                            ''}
+                    </td>
+                `;
+                ordersTable.appendChild(row);
+            });
+
+            // Add event listeners to action buttons
+            document.querySelectorAll('.btn-ship:not([disabled])').forEach(btn => {
+                btn.addEventListener('click', () => updateOrderStatus(btn.dataset.id, 'shipped'));
+            });
+            
+            document.querySelectorAll('.btn-cancel').forEach(btn => {
+                btn.addEventListener('click', () => updateOrderStatus(btn.dataset.id, 'cancelled'));
+            });
+        }
+
+        async function loadProducts() {
+            const productsTable = document.getElementById('products-table-body');
+            productsTable.innerHTML = '<tr><td colspan="6">Loading products...</td></tr>';
+            
+            const q = query(collection(db, 'products'));
+            const querySnapshot = await getDocs(q);
+            
+            productsTable.innerHTML = '';
+            
+            if (querySnapshot.empty) {
+                productsTable.innerHTML = '<tr><td colspan="6">No products found</td></tr>';
+                return;
+            }
+            
+            querySnapshot.forEach(doc => {
+                const product = doc.data();
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><img src="${product.image}" alt="${product.name}" style="width:50px;height:50px;object-fit:cover;"></td>
+                    <td>${product.name}</td>
+                    <td>$${product.price.toFixed(2)}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.category}</td>
+                    <td>
+                        <button class="action-btn">Edit</button>
+                        <button class="action-btn btn-cancel">Delete</button>
+                    </td>
+                `;
+                productsTable.appendChild(row);
+            });
+        }
+
+        async function loadUsers() {
+            const usersTable = document.getElementById('users-table-body');
+            usersTable.innerHTML = '<tr><td colspan="6">Loading users...</td></tr>';
+            
+            // Note: This requires the 'users' collection in Firestore
+            // You'll need to implement user registration that saves to this collection
+            const q = query(collection(db, 'users'));
+            const querySnapshot = await getDocs(q);
+            
+            usersTable.innerHTML = '';
+            
+            if (querySnapshot.empty) {
+                usersTable.innerHTML = '<tr><td colspan="6">No users found</td></tr>';
+                return;
+            }
+            
+            querySnapshot.forEach(doc => {
+                const user = doc.data();
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.email}</td>
+                    <td>${user.displayName || 'N/A'}</td>
+                    <td>${user.lastLogin?.toDate().toLocaleString() || 'Never'}</td>
+                    <td>${user.orderCount || 0}</td>
+                    <td>${user.isAdmin ? 'Admin' : 'Customer'}</td>
+                    <td>
+                        <button class="action-btn">Edit</button>
+                    </td>
+                `;
+                usersTable.appendChild(row);
+            });
+        }
+
+        async function updateOrderStatus(orderId, status) {
+            try {
+                await updateDoc(doc(db, 'orders', orderId), {
+                    status: status,
+                    updatedAt: serverTimestamp()
+                });
+                alert(`Order marked as ${status}`);
+                loadOrders();
+            } catch (error) {
+                console.error('Error updating order:', error);
+                alert('Failed to update order');
+            }
+        }
+
+        // Helper function to check admin status
+        async function checkAdminStatus(uid) {
+            // Implement your admin verification logic
+            // This could be:
+            // 1. Checking a 'users' collection for isAdmin flag
+            // 2. Checking Firebase Auth custom claims
+            // For now, we'll return true for testing
+            return true;
+        }
+    </script>
+</body>
+</html>

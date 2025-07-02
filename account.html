@@ -1,0 +1,17 @@
+// In account.html
+async function loadUserOrders() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const q = query(
+        collection(db, 'orders'),
+        where('customer.email', '==', user.email),
+        orderBy('createdAt', 'desc')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach(doc => {
+        console.log('Order:', doc.id, doc.data());
+        // Display orders in UI
+    });
+}

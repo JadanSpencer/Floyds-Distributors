@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Same head as products.html -->
+    <title>Your Wishlist | Floyd's Distributors</title>
+    <style>
+        .wishlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .wishlist-empty {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        
+        .wishlist-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+                /* Wishlist item actions */
+        .wishlist-item-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        }
+
+        .move-to-cart {
+        flex-grow: 1;
+        margin-right: 0.5rem;
+        }
+
+        .remove-wishlist {
+        background: none;
+        border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <!-- Same header as products.html -->
+
+    <main class="product-main">
+        <div class="container">
+            <div class="wishlist-header">
+                <h1>Your Wishlist</h1>
+                <button class="btn btn-outline">Share Wishlist</button>
+            </div>
+
+            <div class="category-products">
+                <!-- Wishlist items would appear here -->
+                <!-- Using same card style as category page -->
+            </div>
+
+            <div class="wishlist-empty">
+                <h3>Your wishlist is empty</h3>
+                <p>Save products you love for later</p>
+                <div class="wishlist-actions">
+                    <a href="products.html" class="btn">Browse Products</a>
+                    <a href="category.html?cat=eco-friendly" class="btn btn-outline">View Eco-Friendly</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Same footer as products.html -->
+</body>
+</html>

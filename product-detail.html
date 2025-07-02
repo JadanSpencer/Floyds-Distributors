@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail | Floyd's Distributors</title>
+    <link rel="stylesheet" href="products.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <!-- Same header as other pages -->
+    </header>
+
+    <main class="product-detail-main">
+        <div class="container">
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a>
+                <span> > </span>
+                <a href="products.html">Products</a>
+                <span> > </span>
+                <span id="product-category">Eco-Friendly</span>
+                <span> > </span>
+                <span id="product-name">Product Name</span>
+            </nav>
+
+            <div class="product-detail-container">
+                <div class="product-gallery">
+                    <div class="main-image">
+                        <img src="" alt="" id="main-product-image">
+                    </div>
+                    <div class="thumbnail-container">
+                        <!-- Thumbnails will be added by JS -->
+                    </div>
+                </div>
+
+                <div class="product-info">
+                    <h1 id="detail-product-name">Product Name</h1>
+                    <div class="product-meta">
+                        <span class="product-sku">SKU: <span id="product-sku">FD-1001</span></span>
+                        <div class="product-rating">
+                            <div class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <span class="review-count">24 reviews</span>
+                        </div>
+                    </div>
+
+                    <div class="price-container">
+                        <span class="current-price" id="product-price">$12.99</span>
+                        <span class="original-price">$15.99</span>
+                        <span class="discount-badge">Save 20%</span>
+                    </div>
+
+                    <div class="product-description" id="product-description">
+                        <!-- Description will be filled by JS -->
+                    </div>
+
+                    <div class="product-features">
+                        <h3>Key Features</h3>
+                        <ul id="product-features">
+                            <!-- Features will be added by JS -->
+                        </ul>
+                    </div>
+
+                    <form class="product-options-form">
+                        <!-- Options will be added by JS -->
+                        <div class="option">
+                            <label for="quantity">Quantity:</label>
+                            <div class="quantity-selector">
+                                <button type="button" class="quantity-btn minus">-</button>
+                                <input type="number" id="quantity" name="quantity" value="1" min="1">
+                                <button type="button" class="quantity-btn plus">+</button>
+                            </div>
+                        </div>
+
+                        <div class="product-actions">
+                            <button type="submit" class="btn add-to-cart">Add to Cart</button>
+                            <button type="button" class="btn-outline">Save for Later</button>
+                        </div>
+                    </form>
+
+                    <div class="product-shipping">
+                        <div class="shipping-info">
+                            <i class="fas fa-truck"></i>
+                            <span>Free shipping on orders over $50</span>
+                        </div>
+                        <div class="delivery-info">
+                            <i class="fas fa-clock"></i>
+                            <span>Estimated delivery: 2-5 business days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-tabs">
+                <ul class="tabs-nav">
+                    <li class="active" data-tab="description">Description</li>
+                    <li data-tab="specifications">Specifications</li>
+                    <li data-tab="reviews">Reviews</li>
+                    <li data-tab="faq">FAQ</li>
+                </ul>
+
+                <div class="tabs-content">
+                    <div class="tab-pane active" id="description">
+                        <!-- Content will be loaded by JS -->
+                    </div>
+                    <div class="tab-pane" id="specifications">
+                        <!-- Content will be loaded by JS -->
+                    </div>
+                    <div class="tab-pane" id="reviews">
+                        <!-- Content will be loaded by JS -->
+                    </div>
+                    <div class="tab-pane" id="faq">
+                        <!-- Content will be loaded by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <section class="related-products">
+                <h2>You May Also Like</h2>
+                <div class="products-grid" id="relatedProducts">
+                    <!-- Related products will be loaded by JS -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <!-- Same footer as other pages -->
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get product ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+            
+            // Fetch product details (in a real app, this would be from an API)
+            const product = getProductById(productId);
+            
+            if (product) {
+                // Populate product details
+                document.getElementById('detail-product-name').textContent = product.name;
+                document.getElementById('product-price').textContent = product.price;
+                document.getElementById('product-description').textContent = product.description;
+                document.getElementById('main-product-image').src = product.image;
+                document.getElementById('product-name').textContent = product.name;
+                
+                // Populate features
+                const featuresList = document.getElementById('product-features');
+                product.features.forEach(feature => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<i class="fas fa-check"></i> ${feature}`;
+                    featuresList.appendChild(li);
+                });
+                
+                // Set up tabs
+                setupProductTabs();
+                
+                // Load related products
+                loadRelatedProducts(product.category, product.id);
+            }
+            
+            async function getProductById(id) {
+                try {
+                    const docRef = doc(db, "products", id.toString());
+                    const docSnap = await getDoc(docRef);
+                    
+                    if (docSnap.exists()) {
+                        return { id: docSnap.id, ...docSnap.data() };
+                    } else {
+                        console.log("No such product!");
+                        return null;
+                    }
+                } catch (error) {
+                    console.error("Error getting product:", error);
+                    return null;
+                }
+            }
+            
+            function setupProductTabs() {
+                const tabLinks = document.querySelectorAll('.tabs-nav li');
+                const tabPanes = document.querySelectorAll('.tab-pane');
+                
+                tabLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        const tabId = this.getAttribute('data-tab');
+                        
+                        // Update active tab
+                        tabLinks.forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Show corresponding pane
+                        tabPanes.forEach(pane => pane.classList.remove('active'));
+                        document.getElementById(tabId).classList.add('active');
+                    });
+                });
+            }
+            
+            function loadRelatedProducts(category, excludeId) {
+                // In a real app, this would fetch from Firebase or an API
+                // This is just a mock implementation
+                const relatedProducts = [
+                    {
+                        id: 2,
+                        name: "Compostable Bowls",
+                        price: "$8.99",
+                        image: "https://example.com/compostable-bowls.jpg",
+                        category: "eco-friendly"
+                    },
+                    {
+                        id: 3,
+                        name: "Recyclable Trays",
+                        price: "$15.99",
+                        image: "https://example.com/recyclable-trays.jpg",
+                        category: "eco-friendly"
+                    },
+                    {
+                        id: 5,
+                        name: "Eco-Cups",
+                        price: "$7.99",
+                        image: "https://example.com/eco-cups.jpg",
+                        category: "eco-friendly"
+                    }
+                ].filter(p => p.category === category && p.id !== excludeId);
+                
+                const relatedGrid = document.getElementById('relatedProducts');
+                relatedGrid.innerHTML = '';
+                
+                relatedProducts.forEach(product => {
+                    const card = document.createElement('div');
+                    card.className = 'related-product-card';
+                    card.dataset.id = product.id;
+                    card.innerHTML = `
+                        <div class="product-image-container">
+                            <img src="${product.image}" alt="${product.name}">
+                        </div>
+                        <h3>${product.name}</h3>
+                        <p class="price">${product.price}</p>
+                        <button class="btn btn-small">View Details</button>
+                    `;
+                    relatedGrid.appendChild(card);
+                    
+                    card.addEventListener('click', function() {
+                        window.location.href = `product-detail.html?id=${product.id}`;
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

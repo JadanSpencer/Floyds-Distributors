@@ -1,0 +1,1004 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Eco-Friendly Boxes",
+      "price": "$12.99",
+      "description": "Biodegradable food boxes perfect for takeout",
+      "image": "https://example.com/eco-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 100
+    },
+    {
+      "id": 2,
+      "name": "Eco-Friendly Small Boxes",
+      "price": "$8.99",
+      "description": "Small biodegradable containers for snacks",
+      "image": "https://example.com/eco-boxes-small.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 75
+    },
+    {
+      "id": 3,
+      "name": "Compostable Salad Bowls",
+      "price": "$14.99",
+      "description": "Plant-based bowls perfect for fresh salads",
+      "image": "https://example.com/salad-bowls.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 60
+    },
+    {
+      "id": 4,
+      "name": "Recycled Paper Bags",
+      "price": "$5.99",
+      "description": "Sturdy bags made from 100% recycled paper",
+      "image": "https://example.com/paper-bags.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 200
+    },
+    {
+      "id": 5,
+      "name": "Bamboo Cutlery Set",
+      "price": "$9.99",
+      "description": "Sustainable utensils for eco-conscious dining",
+      "image": "https://example.com/bamboo-cutlery.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 150
+    },
+    {
+      "id": 6,
+      "name": "Plant-Based Coffee Cups",
+      "price": "$10.99",
+      "description": "Compostable cups for hot beverages",
+      "image": "https://example.com/coffee-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 120
+    },
+    {
+      "id": 7,
+      "name": "Eco-Friendly Large Boxes",
+      "price": "$15.99",
+      "description": "Large biodegradable containers for family meals",
+      "image": "https://example.com/eco-boxes-large.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 80
+    },
+    {
+      "id": 8,
+      "name": "Sugar Cane Plates",
+      "price": "$11.99",
+      "description": "Durable plates made from sugarcane fiber",
+      "image": "https://example.com/sugarcane-plates.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 90
+    },
+    {
+      "id": 9,
+      "name": "Palm Leaf Bowls",
+      "price": "$13.99",
+      "description": "Naturally beautiful bowls from fallen palm leaves",
+      "image": "https://example.com/palm-bowls.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 65
+    },
+    {
+      "id": 10,
+      "name": "Cornstarch Containers",
+      "price": "$10.49",
+      "description": "Clear containers made from plant-based materials",
+      "image": "https://example.com/cornstarch-containers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 110
+    },
+    {
+      "id": 11,
+      "name": "Eco-Friendly Burger Boxes",
+      "price": "$9.49",
+      "description": "Specialty boxes designed for burgers and sandwiches",
+      "image": "https://example.com/burger-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 95
+    },
+    {
+      "id": 12,
+      "name": "Reusable Silicone Lids",
+      "price": "$16.99",
+      "description": "Stretchable lids to replace plastic wrap",
+      "image": "https://example.com/silicone-lids.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 70
+    },
+    {
+      "id": 13,
+      "name": "Wheat Straw Trays",
+      "price": "$14.49",
+      "description": "Lightweight trays made from wheat straw byproducts",
+      "image": "https://example.com/wheat-trays.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 85
+    },
+    {
+      "id": 14,
+      "name": "Eco-Friendly Dessert Cups",
+      "price": "$7.99",
+      "description": "Small compostable cups for sweets and desserts",
+      "image": "https://example.com/dessert-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 130
+    },
+    {
+      "id": 15,
+      "name": "Bamboo Fiber Bowls",
+      "price": "$12.49",
+      "description": "Microwave-safe bowls made from bamboo fiber",
+      "image": "https://example.com/bamboo-bowls.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 55
+    },
+    {
+      "id": 16,
+      "name": "Recycled Napkins",
+      "price": "$4.99",
+      "description": "Soft napkins made from 100% recycled paper",
+      "image": "https://example.com/recycled-napkins.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 180
+    },
+    {
+      "id": 17,
+      "name": "Plant-Based Soup Containers",
+      "price": "$11.49",
+      "description": "Leak-proof containers for liquid foods",
+      "image": "https://example.com/soup-containers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 75
+    },
+    {
+      "id": 18,
+      "name": "Eco-Friendly Pizza Boxes",
+      "price": "$13.99",
+      "description": "Grease-resistant pizza boxes that compost completely",
+      "image": "https://example.com/pizza-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 60
+    },
+    {
+      "id": 19,
+      "name": "Bagasse Clamshells",
+      "price": "$10.99",
+      "description": "Sturdy containers made from sugarcane waste",
+      "image": "https://example.com/clamshells.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 100
+    },
+    {
+      "id": 20,
+      "name": "Wooden Coffee Stirrers",
+      "price": "$3.99",
+      "description": "Natural birch wood stirrers for beverages",
+      "image": "https://example.com/wood-stirrers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 250
+    },
+    {
+      "id": 21,
+      "name": "Eco-Friendly Party Pack",
+      "price": "$24.99",
+      "description": "Assortment of plates, cups and cutlery for events",
+      "image": "https://example.com/party-pack.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 40
+    },
+    {
+      "id": 22,
+      "name": "Plant-Based Straws",
+      "price": "$6.99",
+      "description": "Biodegradable straws made from plant materials",
+      "image": "https://example.com/plant-straws.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 175
+    },
+    {
+      "id": 23,
+      "name": "Recycled Cardboard Trays",
+      "price": "$8.49",
+      "description": "Versatile trays made from recycled cardboard",
+      "image": "https://example.com/cardboard-trays.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 110
+    },
+    {
+      "id": 24,
+      "name": "Compostable Deli Containers",
+      "price": "$12.99",
+      "description": "Clear containers for deli items and prepared foods",
+      "image": "https://example.com/deli-containers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 85
+    },
+    {
+      "id": 25,
+      "name": "Bamboo Fiber Plates",
+      "price": "$11.99",
+      "description": "Durable plates that withstand hot foods",
+      "image": "https://example.com/bamboo-plates.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 70
+    },
+    {
+      "id": 26,
+      "name": "Eco-Friendly Sauce Cups",
+      "price": "$5.49",
+      "description": "Small cups for condiments and dipping sauces",
+      "image": "https://example.com/sauce-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 150
+    },
+    {
+      "id": 27,
+      "name": "Recycled Paper Trays",
+      "price": "$9.99",
+      "description": "Multi-compartment trays for varied meals",
+      "image": "https://example.com/paper-trays.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 95
+    },
+    {
+      "id": 28,
+      "name": "Plant-Based Cold Cups",
+      "price": "$7.99",
+      "description": "Compostable cups for cold beverages",
+      "image": "https://example.com/cold-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 120
+    },
+    {
+      "id": 29,
+      "name": "Bagasse Bowls",
+      "price": "$10.99",
+      "description": "Microwave-safe bowls from sugarcane fiber",
+      "image": "https://example.com/bagasse-bowls.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 80
+    },
+    {
+      "id": 30,
+      "name": "Eco-Friendly Bakery Boxes",
+      "price": "$8.99",
+      "description": "Perfect for pastries, cookies and baked goods",
+      "image": "https://example.com/bakery-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 105
+    },
+    {
+      "id": 31,
+      "name": "Bamboo Fiber Trays",
+      "price": "$13.49",
+      "description": "Stylish serving trays made from bamboo",
+      "image": "https://example.com/bamboo-trays.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 65
+    },
+    {
+      "id": 32,
+      "name": "Compostable Clear Lids",
+      "price": "$6.99",
+      "description": "Lids for various container sizes",
+      "image": "https://example.com/clear-lids.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 140
+    },
+    {
+      "id": 33,
+      "name": "Recycled Paper Plates",
+      "price": "$7.49",
+      "description": "Everyday plates made from recycled materials",
+      "image": "https://example.com/recycled-plates.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 160
+    },
+    {
+      "id": 34,
+      "name": "Eco-Friendly Sushi Trays",
+      "price": "$11.99",
+      "description": "Specialty trays for sushi presentation",
+      "image": "https://example.com/sushi-trays.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 55
+    },
+    {
+      "id": 35,
+      "name": "Plant-Based Meal Prep Containers",
+      "price": "$14.99",
+      "description": "Stackable containers for meal preparation",
+      "image": "https://example.com/meal-prep.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 70
+    },
+    {
+      "id": 36,
+      "name": "Palm Leaf Plates",
+      "price": "$12.99",
+      "description": "Elegant plates made from fallen palm leaves",
+      "image": "https://example.com/palm-plates.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 60
+    },
+    {
+      "id": 37,
+      "name": "Eco-Friendly Taco Holders",
+      "price": "$8.49",
+      "description": "Specialty containers for tacos and wraps",
+      "image": "https://example.com/taco-holders.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 90
+    },
+    {
+      "id": 38,
+      "name": "Bagasse Rectangular Containers",
+      "price": "$11.49",
+      "description": "Versatile containers for various food items",
+      "image": "https://example.com/rectangular-containers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 85
+    },
+    {
+      "id": 39,
+      "name": "Compostable Cup Carriers",
+      "price": "$5.99",
+      "description": "Carriers for multiple beverage cups",
+      "image": "https://example.com/cup-carriers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 110
+    },
+    {
+      "id": 40,
+      "name": "Eco-Friendly Noodle Boxes",
+      "price": "$10.99",
+      "description": "Specialty boxes for noodle dishes",
+      "image": "https://example.com/noodle-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 75
+    },
+    {
+      "id": 41,
+      "name": "Bamboo Fiber Cups",
+      "price": "$9.99",
+      "description": "Reusable cups made from bamboo fiber",
+      "image": "https://example.com/bamboo-cups.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 95
+    },
+    {
+      "id": 42,
+      "name": "Plant-Based Lid Set",
+      "price": "$7.49",
+      "description": "Assorted lids for various container types",
+      "image": "https://example.com/lid-set.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 125
+    },
+    {
+      "id": 43,
+      "name": "Recycled Paper Soup Cups",
+      "price": "$8.99",
+      "description": "Double-walled cups for hot soups",
+      "image": "https://example.com/soup-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 100
+    },
+    {
+      "id": 44,
+      "name": "Eco-Friendly Appetizer Trays",
+      "price": "$9.99",
+      "description": "Small trays for hors d'oeuvres and snacks",
+      "image": "https://example.com/appetizer-trays.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 85
+    },
+    {
+      "id": 45,
+      "name": "Bagasse Divided Plates",
+      "price": "$12.49",
+      "description": "Plates with compartments for different foods",
+      "image": "https://example.com/divided-plates.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 70
+    },
+    {
+      "id": 46,
+      "name": "Compostable Clear Cups",
+      "price": "$6.99",
+      "description": "Transparent cups for cold beverages",
+      "image": "https://example.com/clear-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 140
+    },
+    {
+      "id": 47,
+      "name": "Eco-Friendly Fry Cones",
+      "price": "$5.99",
+      "description": "Cones for fries and other finger foods",
+      "image": "https://example.com/fry-cones.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 150
+    },
+    {
+      "id": 48,
+      "name": "Bamboo Fiber Lunch Boxes",
+      "price": "$15.99",
+      "description": "Reusable bento-style lunch containers",
+      "image": "https://example.com/lunch-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 55
+    },
+    {
+      "id": 49,
+      "name": "Plant-Based Salad Containers",
+      "price": "$10.49",
+      "description": "Breathable containers for fresh greens",
+      "image": "https://example.com/salad-containers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 90
+    },
+    {
+      "id": 50,
+      "name": "Recycled Paper Hot Cups",
+      "price": "$7.99",
+      "description": "Insulated cups for hot beverages",
+      "image": "https://example.com/hot-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 120
+    },
+    {
+      "id": 51,
+      "name": "Eco-Friendly Cup Sleeves",
+      "price": "$4.99",
+      "description": "Protective sleeves for hot cups",
+      "image": "https://example.com/cup-sleeves.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 180
+    },
+    {
+      "id": 52,
+      "name": "Bagasse Oval Containers",
+      "price": "$11.99",
+      "description": "Elegant oval-shaped food containers",
+      "image": "https://example.com/oval-containers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 75
+    },
+    {
+      "id": 53,
+      "name": "Compostable Spoon Set",
+      "price": "$5.49",
+      "description": "Biodegradable spoons for all occasions",
+      "image": "https://example.com/spoon-set.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 200
+    },
+    {
+      "id": 54,
+      "name": "Eco-Friendly Pasta Boxes",
+      "price": "$12.49",
+      "description": "Specialty boxes for pasta dishes",
+      "image": "https://example.com/pasta-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 65
+    },
+    {
+      "id": 55,
+      "name": "Bamboo Fiber Snack Boxes",
+      "price": "$8.99",
+      "description": "Small boxes perfect for snacks and sides",
+      "image": "https://example.com/snack-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 110
+    },
+    {
+      "id": 56,
+      "name": "Plant-Based Fork Set",
+      "price": "$5.49",
+      "description": "Biodegradable forks for all occasions",
+      "image": "https://example.com/fork-set.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 200
+    },
+    {
+      "id": 57,
+      "name": "Recycled Paper Sandwich Wraps",
+      "price": "$6.99",
+      "description": "Grease-resistant wraps for sandwiches",
+      "image": "https://example.com/sandwich-wraps.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 130
+    },
+    {
+      "id": 58,
+      "name": "Eco-Friendly Cup Lids",
+      "price": "$4.49",
+      "description": "Secure lids for various cup sizes",
+      "image": "https://example.com/cup-lids.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 175
+    },
+    {
+      "id": 59,
+      "name": "Bagasse Square Containers",
+      "price": "$10.99",
+      "description": "Versatile square food containers",
+      "image": "https://example.com/square-containers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 90
+    },
+    {
+      "id": 60,
+      "name": "Compostable Knife Set",
+      "price": "$5.49",
+      "description": "Biodegradable knives for all occasions",
+      "image": "https://example.com/knife-set.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 200
+    },
+    {
+      "id": 61,
+      "name": "Eco-Friendly Wing Boxes",
+      "price": "$9.99",
+      "description": "Specialty boxes for chicken wings",
+      "image": "https://example.com/wing-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 80
+    },
+    {
+      "id": 62,
+      "name": "Bamboo Fiber Salad Bowls",
+      "price": "$11.99",
+      "description": "Large bowls perfect for salads",
+      "image": "https://example.com/salad-bowls-bamboo.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 70
+    },
+    {
+      "id": 63,
+      "name": "Plant-Based Stirrer Set",
+      "price": "$3.99",
+      "description": "Biodegradable beverage stirrers",
+      "image": "https://example.com/stirrer-set.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 250
+    },
+    {
+      "id": 64,
+      "name": "Recycled Paper Bakery Bags",
+      "price": "$5.99",
+      "description": "Bags perfect for baked goods",
+      "image": "https://example.com/bakery-bags.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 150
+    },
+    {
+      "id": 65,
+      "name": "Eco-Friendly Burrito Boxes",
+      "price": "$10.49",
+      "description": "Specialty boxes for burritos and wraps",
+      "image": "https://example.com/burrito-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 75
+    },
+    {
+      "id": 66,
+      "name": "Bagasse Dessert Plates",
+      "price": "$7.99",
+      "description": "Small plates perfect for desserts",
+      "image": "https://example.com/dessert-plates.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 120
+    },
+    {
+      "id": 67,
+      "name": "Compostable Tray Lids",
+      "price": "$6.49",
+      "description": "Secure lids for various tray sizes",
+      "image": "https://example.com/tray-lids.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 140
+    },
+    {
+      "id": 68,
+      "name": "Eco-Friendly Sushi Boats",
+      "price": "$13.99",
+      "description": "Elegant boats for sushi presentation",
+      "image": "https://example.com/sushi-boats.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 50
+    },
+    {
+      "id": 69,
+      "name": "Bamboo Fiber Appetizer Plates",
+      "price": "$8.99",
+      "description": "Small plates perfect for appetizers",
+      "image": "https://example.com/appetizer-plates.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 110
+    },
+    {
+      "id": 70,
+      "name": "Plant-Based Meal Boxes",
+      "price": "$12.99",
+      "description": "Complete meal containers with compartments",
+      "image": "https://example.com/meal-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 65
+    },
+    {
+      "id": 71,
+      "name": "Recycled Paper Hot Containers",
+      "price": "$9.99",
+      "description": "Insulated containers for hot foods",
+      "image": "https://example.com/hot-containers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 85
+    },
+    {
+      "id": 72,
+      "name": "Eco-Friendly Dip Cups",
+      "price": "$4.99",
+      "description": "Small cups perfect for dips and sauces",
+      "image": "https://example.com/dip-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 160
+    },
+    {
+      "id": 73,
+      "name": "Bagasse Round Plates",
+      "price": "$10.49",
+      "description": "Classic round plates for any occasion",
+      "image": "https://example.com/round-plates.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 95
+    },
+    {
+      "id": 74,
+      "name": "Compostable Straw Set",
+      "price": "$5.99",
+      "description": "Biodegradable straws in various sizes",
+      "image": "https://example.com/straw-set.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 180
+    },
+    {
+      "id": 75,
+      "name": "Eco-Friendly Noodle Bowls",
+      "price": "$11.99",
+      "description": "Specialty bowls for noodle dishes",
+      "image": "https://example.com/noodle-bowls.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 70
+    },
+    {
+      "id": 76,
+      "name": "Bamboo Fiber Serving Trays",
+      "price": "$14.99",
+      "description": "Large trays for serving multiple items",
+      "image": "https://example.com/serving-trays.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 60
+    },
+    {
+      "id": 77,
+      "name": "Plant-Based Condiment Cups",
+      "price": "$4.49",
+      "description": "Small cups for ketchup, mustard, etc.",
+      "image": "https://example.com/condiment-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 200
+    },
+    {
+      "id": 78,
+      "name": "Recycled Paper Salad Bowls",
+      "price": "$8.99",
+      "description": "Bowls perfect for fresh salads",
+      "image": "https://example.com/paper-salad-bowls.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 100
+    },
+    {
+      "id": 79,
+      "name": "Eco-Friendly Tray Set",
+      "price": "$15.99",
+      "description": "Assorted trays for catering needs",
+      "image": "https://example.com/tray-set.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 55
+    },
+    {
+      "id": 80,
+      "name": "Bagasse Appetizer Containers",
+      "price": "$7.99",
+      "description": "Small containers perfect for appetizers",
+      "image": "https://example.com/appetizer-containers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 120
+    },
+    {
+      "id": 81,
+      "name": "Compostable Clear Containers",
+      "price": "$10.99",
+      "description": "Transparent food containers",
+      "image": "https://example.com/clear-containers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 90
+    },
+    {
+      "id": 82,
+      "name": "Eco-Friendly Rice Bowls",
+      "price": "$9.99",
+      "description": "Specialty bowls for rice dishes",
+      "image": "https://example.com/rice-bowls.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 85
+    },
+    {
+      "id": 83,
+      "name": "Bamboo Fiber Cup Lids",
+      "price": "$5.99",
+      "description": "Lids for bamboo fiber cups",
+      "image": "https://example.com/bamboo-lids.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 150
+    },
+    {
+      "id": 84,
+      "name": "Plant-Based Baking Cups",
+      "price": "$3.99",
+      "description": "Cups for muffins and cupcakes",
+      "image": "https://example.com/baking-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 200
+    },
+    {
+      "id": 85,
+      "name": "Recycled Paper Hot Lids",
+      "price": "$4.99",
+      "description": "Lids for hot beverage cups",
+      "image": "https://example.com/hot-lids.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 180
+    },
+    {
+      "id": 86,
+      "name": "Eco-Friendly Skewer Boxes",
+      "price": "$8.49",
+      "description": "Specialty boxes for skewered foods",
+      "image": "https://example.com/skewer-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 95
+    },
+    {
+      "id": 87,
+      "name": "Bagasse Square Plates",
+      "price": "$9.99",
+      "description": "Modern square plates for presentation",
+      "image": "https://example.com/square-plates.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 105
+    },
+    {
+      "id": 88,
+      "name": "Compostable Clear Bowls",
+      "price": "$11.49",
+      "description": "Transparent bowls for food display",
+      "image": "https://example.com/clear-bowls.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 80
+    },
+    {
+      "id": 89,
+      "name": "Eco-Friendly Tasting Spoons",
+      "price": "$4.99",
+      "description": "Small spoons for samples and tastings",
+      "image": "https://example.com/tasting-spoons.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 175
+    },
+    {
+      "id": 90,
+      "name": "Bamboo Fiber Salad Containers",
+      "price": "$12.99",
+      "description": "Containers perfect for fresh salads",
+      "image": "https://example.com/salad-containers-bamboo.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 70
+    },
+    {
+      "id": 91,
+      "name": "Plant-Based Cold Lids",
+      "price": "$4.49",
+      "description": "Lids for cold beverage cups",
+      "image": "https://example.com/cold-lids.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 190
+    },
+    {
+      "id": 92,
+      "name": "Recycled Paper Pasta Bowls",
+      "price": "$9.49",
+      "description": "Bowls perfect for pasta dishes",
+      "image": "https://example.com/pasta-bowls.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 90
+    },
+    {
+      "id": 93,
+      "name": "Eco-Friendly Sample Cups",
+      "price": "$3.99",
+      "description": "Tiny cups for samples and tastings",
+      "image": "https://example.com/sample-cups.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 220
+    },
+    {
+      "id": 94,
+      "name": "Bagasse Rectangular Plates",
+      "price": "$10.99",
+      "description": "Rectangular plates for elegant presentation",
+      "image": "https://example.com/rectangular-plates.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 85
+    },
+    {
+      "id": 95,
+      "name": "Compostable Clear Trays",
+      "price": "$12.49",
+      "description": "Transparent trays for food display",
+      "image": "https://example.com/clear-trays.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 75
+    },
+    {
+      "id": 96,
+      "name": "Eco-Friendly Chopsticks",
+      "price": "$6.99",
+      "description": "Biodegradable chopsticks",
+      "image": "https://example.com/chopsticks.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 150
+    },
+    {
+      "id": 97,
+      "name": "Bamboo Fiber Serving Bowls",
+      "price": "$13.99",
+      "description": "Large bowls for serving sides and salads",
+      "image": "https://example.com/serving-bowls.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 60
+    },
+    {
+      "id": 98,
+      "name": "Plant-Based Tray Dividers",
+      "price": "$5.99",
+      "description": "Dividers for creating compartments in trays",
+      "image": "https://example.com/tray-dividers.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 130
+    },
+    {
+      "id": 99,
+      "name": "Recycled Paper Dessert Boxes",
+      "price": "$7.99",
+      "description": "Boxes perfect for cakes and pastries",
+      "image": "https://example.com/dessert-boxes.jpg",
+      "category": "eco-friendly",
+      "featured": false,
+      "stock": 110
+    },
+    {
+      "id": 100,
+      "name": "Eco-Friendly Utensil Set",
+      "price": "$8.99",
+      "description": "Complete set of biodegradable utensils",
+      "image": "https://example.com/utensil-set.jpg",
+      "category": "eco-friendly",
+      "featured": true,
+      "stock": 120
+    }
+  ]
+}

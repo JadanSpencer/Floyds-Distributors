@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation | Floyd's Distributors</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Confirmation-specific styles */
+        .confirmation-main {
+            padding: 3rem 0;
+            background-color: var(--light-gray);
+            text-align: center;
+        }
+
+        .confirmation-card {
+            background: white;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .confirmation-icon {
+            font-size: 4rem;
+            color: #4CAF50;
+            margin-bottom: 1.5rem;
+        }
+
+        .confirmation-details {
+            text-align: left;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(0, 128, 128, 0.05);
+            border-radius: 8px;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--gray);
+            min-width: 150px;
+        }
+
+        .order-items {
+            margin: 2rem 0;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--teal);
+            margin-top: 1rem;
+        }
+
+        .action-buttons {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--teal);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--dark-teal);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--teal);
+            border: 2px solid var(--teal);
+        }
+
+        .btn-outline:hover {
+            background: rgba(0, 128, 128, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .confirmation-card {
+                padding: 2rem 1rem;
+            }
+            
+            .detail-row {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (Same as other pages) -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>Floyd's Distributors</h1>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+                <div class="cart-icon">
+                    <span class="cart-icon-symbol">🛒</span>
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="hamburger">☰</div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Confirmation Main Section -->
+    <main class="confirmation-main">
+        <div class="container">
+            <div class="confirmation-card">
+                <div class="confirmation-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2>Order Confirmed!</h2>
+                <p>Thank you for your purchase. Your order has been received and is being processed.</p>
+                
+                <!-- Order Summary -->
+                <div class="confirmation-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Order Number:</span>
+                        <span id="order-id">Loading...</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Date:</span>
+                        <span id="order-date"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Email:</span>
+                        <span id="order-email"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total:</span>
+                        <span id="order-total"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Method:</span>
+                        <span id="payment-method"></span>
+                    </div>
+                </div>
+                
+                <!-- Shipping Information -->
+                <h3>Shipping Information</h3>
+                <div class="confirmation-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Name:</span>
+                        <span id="shipping-name"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Address:</span>
+                        <span id="shipping-address"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">City/Parish:</span>
+                        <span id="shipping-city"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Phone:</span>
+                        <span id="shipping-phone"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Estimated Delivery:</span>
+                        <span id="delivery-estimate">3-5 business days</span>
+                    </div>
+                </div>
+                
+                <!-- Order Items -->
+                <h3>Your Order</h3>
+                <div class="order-items" id="order-items">
+                    <!-- Items will be populated by JavaScript -->
+                </div>
+                
+                <!-- Order Total -->
+                <div class="order-total">
+                    <span>Order Total: </span>
+                    <span id="order-summary-total"></span>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="products.html" class="btn btn-primary">Continue Shopping</a>
+                    <a href="account.html" class="btn btn-outline">View Order History</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (Same as other pages) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>Floyd's Distributors</h3>
+                    <p>Quality food packaging solutions for businesses of all sizes.</p>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Contact Us</h3>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-phone"></i> (876) 123-4567</li>
+                        <li><i class="fas fa-envelope"></i> info@floydsdistributors.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Floyd's Distributors. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase and Confirmation Script -->
+    <script type="module">
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { app, db } from "./script.js";
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Get order ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('orderId');
+            
+            if (!orderId) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Fetch order details from Firestore
+            try {
+                const orderRef = doc(db, 'orders', orderId);
+                const orderSnap = await getDoc(orderRef);
+                
+                if (!orderSnap.exists()) {
+                    throw new Error('Order not found');
+                }
+                
+                const order = orderSnap.data();
+                displayOrderDetails(order, orderId);
+            } catch (error) {
+                console.error('Error loading order:', error);
+                document.querySelector('.confirmation-card h2').textContent = 'Order Not Found';
+                document.querySelector('.confirmation-card p').textContent = 'We couldn\'t find your order details. Please contact support.';
+                document.querySelector('.confirmation-icon').className = 'confirmation-icon';
+                document.querySelector('.confirmation-icon').innerHTML = '<i class="fas fa-exclamation-circle" style="color:#F44336"></i>';
+            }
+        });
+
+        function displayOrderDetails(order, orderId) {
+            // Display order info
+            document.getElementById('order-id').textContent = orderId;
+            document.getElementById('order-date').textContent = new Date(order.createdAt?.seconds * 1000).toLocaleDateString();
+            document.getElementById('order-email').textContent = order.customer.email;
+            document.getElementById('order-total').textContent = `$${order.total.toFixed(2)}`;
+            document.getElementById('payment-method').textContent = 'Credit Card'; // Would be dynamic in real app
+            
+            // Display shipping info
+            document.getElementById('shipping-name').textContent = `${order.customer.firstName} ${order.customer.lastName}`;
+            document.getElementById('shipping-address').textContent = order.customer.address;
+            document.getElementById('shipping-city').textContent = `${order.customer.city}, ${order.customer.parish}`;
+            document.getElementById('shipping-phone').textContent = order.customer.phone;
+            
+            // Set delivery estimate based on parish
+            setDeliveryEstimate(order.customer.parish);
+            
+            // Display order items
+            const orderItems = document.getElementById('order-items');
+            order.items.forEach(item => {
+                const price = parseFloat(item.price.replace('$', '')) || 0;
+                const itemEl = document.createElement('div');
+                itemEl.className = 'order-item';
+                itemEl.innerHTML = `
+                    <span>${item.name} × ${item.quantity}</span>
+                    <span>$${(price * item.quantity).toFixed(2)}</span>
+                `;
+                orderItems.appendChild(itemEl);
+            });
+            
+            // Display order summary total
+            document.getElementById('order-summary-total').textContent = `$${order.total.toFixed(2)}`;
+        }
+
+        function setDeliveryEstimate(parish) {
+            const estimateEl = document.getElementById('delivery-estimate');
+            let estimate = '';
+            
+            switch(parish.toLowerCase()) {
+                case 'kingston':
+                case 'st-andrew':
+                    estimate = '1-2 business days';
+                    break;
+                case 'st-catherine':
+                    estimate = '2-3 business days';
+                    break;
+                case 'clarendon':
+                case 'manchester':
+                case 'st-elizabeth':
+                case 'westmoreland':
+                    estimate = '3-4 business days';
+                    break;
+                default:
+                    estimate = '4-5 business days';
+            }
+            
+            estimateEl.textContent = estimate;
+        }
+    </script>
+</body>
+</html>

@@ -76,6 +76,7 @@ body {
   display: flex;
   list-style: none;
   gap: 1.8rem;
+  margin-left: 4rem;
 }
 
 .nav-links a {
@@ -119,7 +120,7 @@ body {
   position: relative;
   flex-grow: 1;
   max-width: 500px;
-  margin: 0 1rem;
+  top: -30px;
 }
 
 .search-input {
@@ -592,9 +593,6 @@ body {
 
 /* Auth Modal Styles */
 .auth-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
@@ -679,6 +677,50 @@ body {
   text-align: center;
 }
 
+/* Auth Button Styles */
+.auth-cart-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.auth-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--teal);
+    background: transparent;
+    color: var(--teal);
+}
+
+.auth-btn-primary {
+    background: var(--teal);
+    color: white;
+}
+
+.auth-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 128, 128, 0.2);
+}
+
+.auth-btn-primary:hover {
+    background: var(--dark-teal);
+}
+
+@media (max-width: 768px) {
+    .auth-buttons {
+        display: none;
+    }
+}
+
 /* Hero Section Buttons */
 .hero-buttons {
     display: flex;
@@ -726,22 +768,31 @@ body {
 
 /* Auth Form Styles (from boody.html) */
 #authContainer {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    display: none;
     background-color: #fff;
     border-radius: 10px;
-    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 
-              0 10px 10px rgba(0,0,0,0.22);
+    box-shadow: 0 14px 28px rgba(0, 102, 102, 0.15), 
+              0 10px 10px rgba(0, 102, 102, 0.12);
     position: relative;
     overflow: hidden;
     width: 768px;
-    max-width: 100%;
+    max-width: 90%;
     min-height: 480px;
 }
+
 
 .form-container {
     position: absolute;
     top: 0;
     height: 100%;
     transition: all 0.6s ease-in-out;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
 }
 
 .sign-in-container {
@@ -796,12 +847,9 @@ body {
 }
 
 .overlay {
-    background: #FF416C;
-    background: -webkit-linear-gradient(to right, #FF4B2B, #FF416C);
-    background: linear-gradient(to right, #FF4B2B, #FF416C);
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: 0 0;
+    background: var(--teal);
+    background: -webkit-linear-gradient(135deg, var(--teal-light), var(--dark-teal));
+    background: linear-gradient(135deg, var(--teal-light), var(--dark-teal));
     color: #FFFFFF;
     position: relative;
     left: -100%;
@@ -813,6 +861,18 @@ body {
 
 #authContainer.right-panel-active .overlay {
     transform: translateX(50%);
+}
+
+.auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 128, 128, 0.7); /* Teal with transparency */
+    backdrop-filter: blur(8px); /* Glass effect */
+    z-index: 1999; /* Just below the auth container */
+    display: none;
 }
 
 .overlay-panel {
@@ -863,16 +923,16 @@ body {
 }
 
 button {
-    border-radius: 20px;
-    border: 1px solid #FF4B2B;
-    background-color: #FF4B2B;
-    color: #FFFFFF;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 12px 45px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: transform 80ms ease-in;
+  border-radius: 20px;
+  border: 1px solid #FF4B2B;
+  background-color: #FF4B2B;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 12px 45px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 80ms ease-in;
 }
 
 button:active {
@@ -923,10 +983,13 @@ input {
 /* ===== CART SIDEBAR ===== */
 .cart-overlay {
   position: fixed;
-  top: 0; left: 0;
+  top: 0; 
+  left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 999;
   visibility: hidden;
   opacity: 0;
@@ -944,10 +1007,13 @@ input {
   right: -100%;
   width: 300px;
   height: 100%;
-  background: #fff;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-left: 1px solid var(--glass-border);
   box-shadow: -2px 0 8px rgba(0,0,0,0.2);
   z-index: 999;
-  transition: right 0.3s ease;
+  transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) ease;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -960,16 +1026,18 @@ input {
 
 .cart-header {
   padding: 1.5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(0, 128, 128, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .cart-header h3 {
   margin: 0;
   font-size: 1.3rem;
   color: var(--gray);
+  font-weight: 700;
 }
 
 .close-cart {
@@ -980,10 +1048,12 @@ input {
   cursor: pointer;
   padding: 0.5rem;
   line-height: 1;
+  transition: all 0.2s ease;
 }
 
 .close-cart:hover {
   color: var(--teal);
+  transform: rotate(90deg);
 }
 
 .cart-items {
@@ -997,34 +1067,61 @@ input {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 0;
-  border-bottom: 1px solid #eee;
+  padding: 1.2rem 0;
+  border-bottom: 1px solid rgba(0, 128, 128, 0.1);
 }
 
 .cart-item-info {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.2rem;
+  flex-grow: 1;
 }
 
 .cart-item-image {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 4px;
-  background: var(--light-gray);
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: white;
+  padding: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .cart-item h4 {
-  margin: 0;
+  margin: 0 0 0.3rem 0;
   font-weight: 600;
   color: var(--gray);
+  font-size: 1rem;
 }
+
 
 .cart-item-qty {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.cart-item p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.remove-item {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #999;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+  margin-left: 1rem;
+}
+
+.remove-item:hover {
+  color: #ff6b6b;
+  transform: scale(1.2);
 }
 
 .qty-btn {
@@ -1043,13 +1140,24 @@ input {
   background: var(--dark-teal);
 }
 
+.cart-footer {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-top: 1px solid rgba(0, 128, 128, 0.1);
+}
+
 .cart-total {
-  padding: 1rem 1.5rem;
-  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
   font-size: 1.2rem;
-  border-top: 1px solid #eee;
+  color: var(--gray);
+}
+
+.cart-total .total-price {
+  font-weight: 700;
   color: var(--teal);
-  text-align: right;
 }
 
 .cart-icon {
@@ -1059,16 +1167,74 @@ input {
 .checkout-btn {
   background: var(--teal);
   color: white;
-  padding: 1rem 1.5rem;
-  font-weight: 700;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 0 0 10px 10px;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 102, 102, 0.2);
 }
 
 .checkout-btn:hover {
   background: var(--dark-teal);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 102, 102, 0.3);
+}
+
+.checkout-btn:active {
+  transform: translateY(0);
+}
+
+.cart-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+/* Cart icon animation */
+.cart-icon.added {
+  animation: cartBounce 0.5s ease;
+}
+
+@keyframes cartBounce {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.2); }
+  50% { transform: scale(0.9); }
+  75% { transform: scale(1.1); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cart-sidebar {
+    width: 100%;
+    max-width: 380px;
+  }
+  
+  .cart-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .remove-item {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-item-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .cart-item-image {
+    width: 100%;
+    height: auto;
+    max-height: 120px;
+  }
 }
 
 /* ===== FOOTER ===== */
@@ -1081,6 +1247,33 @@ input {
   text-align: center;
   font-size: 0.9rem;
   color: var(--gray);
+}
+
+/* Form validation styles */
+.invalid {
+  border-color: #ff6b6b !important;
+}
+
+.error-message {
+  color: #ff6b6b;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+  display: none;
+}
+
+/* Show error when input is invalid */
+.invalid + .error-message {
+  display: block;
+}
+
+/* Loading spinner */
+.fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* ===== RESPONSIVE ===== */
@@ -1215,6 +1408,78 @@ input {
     margin-left: auto;
 }
 
+/* Add to your styles.css */
+.auth-loading {
+  padding: 0.5rem 1rem;
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+
+body.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+body.loading::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body.loading::before {
+  content: 'Loading...';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  font-size: 1.2rem;
+  color: var(--teal);
+}
+
+body.loading {
+  overflow: hidden;
+}
+
+body.loading::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body.loading::before {
+  content: 'Loading...';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  font-size: 1.2rem;
+  color: var(--teal);
+}
+
+.cart-sidebar, .products-slider-container {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
 @media (max-width: 900px) {
     .header .container {
         grid-template-columns: 1fr;
@@ -1234,4 +1499,91 @@ input {
     .logo {
         order: 1;
     }
+}
+
+/* User profile in header when logged in */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.username {
+  font-weight: 600;
+  color: var(--teal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+/* Keep existing auth button styles */
+.auth-btn {
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+}
+
+/* Login Page Specific Styles */
+body.login-page {
+    background: linear-gradient(135deg, rgba(0, 128, 128, 0.05) 0%, rgba(0, 102, 102, 0.1) 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+body.login-page .auth-overlay {
+    display: none !important;
+}
+
+body.login-page #authContainer {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    margin: 0 auto;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12);
+}
+
+body.login-page .container {
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Add to your styles.css */
+.welcome-message {
+  margin-right: 15px;
+  color: var(--teal);
+  font-weight: 500;
+}
+
+.auth-buttons .auth-btn {
+  margin-left: 10px;
+}
+
+/* Style for logout button specifically */
+#logoutBtn, .logout-btn {
+  background: none;
+  border: 1px solid var(--teal);
+  color: var(--teal);
+  cursor: pointer;
+  padding: 8px 15px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+#logoutBtn:hover, .logout-btn:hover {
+  background: var(--teal);
+  color: white;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .user-profile {
+    gap: 0.5rem;
+  }
+  .username {
+    max-width: 80px;
+  }
 }

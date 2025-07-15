@@ -1,0 +1,1065 @@
+<!--"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  Truck,
+  MapPin,
+  Phone,
+  Clock,
+  CheckCircle,
+  Navigation,
+  Plus,
+  Package,
+  Search,
+  Bell,
+  Settings,
+  LogOut,
+  Camera,
+  Upload,
+} from "lucide-react"
+import { toast } from "@/hooks/use-toast"
+
+interface Delivery {
+  id: string
+  customerName: string
+  customerPhone: string
+  deliveryAddress: string
+  notes?: string
+  status: "pending" | "enroute" | "delivered" | "failed"
+  priority: "low" | "medium" | "high"
+  estimatedTime?: string
+  actualDeliveryTime?: string
+  deliveryDate: string
+  createdAt: string
+  items: DeliveryItem[]
+  customerSignature?: string
+  deliveryPhoto?: string
+}
+
+interface DeliveryItem {
+  name: string
+  quantity: number
+  description?: string
+}
+
+interface Driver {
+  id: string
+  name: string
+  email: string
+  vehicle: string
+  phone: string
+  avatar?: string
+  status: "active" | "offline" | "busy"
+  totalDeliveries: number
+  completedToday: number
+}
+
+export default function DriverPortal() {
+  const [currentDriver, setCurrentDriver] = useState<Driver>({
+    id: "1",
+    name: "John Driver",
+    email: "john@floydsdistributors.com",
+    vehicle: "Van #FD-7892",
+    phone: "+1 (555) 123-4567",
+    status: "active",
+    totalDeliveries: 247,
+    completedToday: 8,
+  })
+
+  const [deliveries, setDeliveries] = useState<Delivery[]>([
+    {
+      id: "1",
+      customerName: "Restaurant ABC",
+      customerPhone: "+1 (555) 987-6543",
+      deliveryAddress: "123 Main St, Portland, OR 97201",
+      notes: "Use back entrance, ring doorbell twice",
+      status: "pending",
+      priority: "high",
+      estimatedTime: "2:30 PM",
+      deliveryDate: "2024-01-10",
+      createdAt: "2024-01-10T10:00:00Z",
+      items: [
+        { name: "Food Containers", quantity: 50, description: "16oz containers with lids" },
+        { name: "Paper Bags", quantity: 100, description: "Brown kraft bags" },
+      ],
+    },
+    {
+      id: "2",
+      customerName: "Cafe Downtown",
+      customerPhone: "+1 (555) 456-7890",
+      deliveryAddress: "456 Oak Ave, Portland, OR 97202",
+      status: "enroute",
+      priority: "medium",
+      estimatedTime: "3:15 PM",
+      deliveryDate: "2024-01-10",
+      createdAt: "2024-01-10T11:30:00Z",
+      items: [{ name: "Eco Cups", quantity: 200, description: "Compostable coffee cups" }],
+    },
+  ])
+
+  const [activeTab, setActiveTab] = useState("deliveries")
+  const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isAddDeliveryOpen, setIsAddDeliveryOpen] = useState(false)
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null)
+
+  const filteredDeliveries = deliveries.filter((delivery) => {
+    const matchesStatus = filterStatus === "all" || delivery.status === filterStatus
+    const matchesSearch =
+      delivery.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      delivery.deliveryAddress.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesStatus && matchesSearch
+  })
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800"
+      case "enroute":
+        return "bg-blue-100 text-blue-800"
+      case "delivered":
+        return "bg-green-100 text-green-800"
+      case "failed":
+        return "bg-red-100 text-red-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "bg-red-100 text-red-800"
+      case "medium":
+        return "bg-orange-100 text-orange-800"
+      case "low":
+        return "bg-green-100 text-green-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  const updateDeliveryStatus = (deliveryId: string, newStatus: Delivery["status"]) => {
+    setDeliveries((prev) =>
+      prev.map((delivery) =>
+        delivery.id === deliveryId
+          ? {
+              ...delivery,
+              status: newStatus,
+              actualDeliveryTime:
+                newStatus === "delivered" ? new Date().toLocaleTimeString() : delivery.actualDeliveryTime,
+            }
+          : delivery,
+      ),
+    )
+
+    toast({
+      title: "Status Updated",
+      description: `Delivery marked as ${newStatus}`,
+    })
+  }
+
+  const navigateToDelivery = (address: string) => {
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`
+    window.open(mapsUrl, "_blank")
+  }
+
+  const addNewDelivery = (deliveryData: Partial<Delivery>) => {
+    const newDelivery: Delivery = {
+      id: Date.now().toString(),
+      customerName: deliveryData.customerName || "",
+      customerPhone: deliveryData.customerPhone || "",
+      deliveryAddress: deliveryData.deliveryAddress || "",
+      notes: deliveryData.notes,
+      status: "pending",
+      priority: deliveryData.priority || "medium",
+      deliveryDate: new Date().toISOString().split("T")[0],
+      createdAt: new Date().toISOString(),
+      items: deliveryData.items || [],
+    }
+
+    setDeliveries((prev) => [newDelivery, ...prev])
+    setIsAddDeliveryOpen(false)
+
+    toast({
+      title: "Delivery Added",
+      description: "New delivery has been added to your list",
+    })
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={currentDriver.avatar || "/placeholder.svg"} />
+                <AvatarFallback className="bg-teal-600 text-white">
+                  {currentDriver.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">{currentDriver.name}</h1>
+                <p className="text-sm text-gray-500">{currentDriver.vehicle}</p>
+              </div>
+            </div>
+            <Badge variant={currentDriver.status === "active" ? "default" : "secondary"}>{currentDriver.status}</Badge>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" size="sm">
+              <Bell className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm">
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
+          <div className="p-6">
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-teal-600">{currentDriver.completedToday}</div>
+                    <div className="text-sm text-gray-500">Completed Today</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-900">{currentDriver.totalDeliveries}</div>
+                    <div className="text-sm text-gray-500">Total Deliveries</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 p-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <div className="flex items-center justify-between">
+              <TabsList>
+                <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              </TabsList>
+
+              <Dialog open={isAddDeliveryOpen} onOpenChange={setIsAddDeliveryOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Delivery
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Add New Delivery</DialogTitle>
+                  </DialogHeader>
+                  <AddDeliveryForm onSubmit={addNewDelivery} />
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <TabsContent value="deliveries" className="space-y-6">
+              {/* Filters */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          placeholder="Search deliveries..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="enroute">En Route</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="failed">Failed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Deliveries List */}
+              <div className="space-y-4">
+                {filteredDeliveries.map((delivery) => (
+                  <DeliveryCard
+                    key={delivery.id}
+                    delivery={delivery}
+                    onStatusUpdate={updateDeliveryStatus}
+                    onNavigate={navigateToDelivery}
+                    onViewDetails={setSelectedDelivery}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="profile">
+              <DriverProfile driver={currentDriver} onUpdate={setCurrentDriver} />
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              <DriverAnalytics driver={currentDriver} deliveries={deliveries} />
+            </TabsContent>
+          </Tabs>
+        </main>
+      </div>
+
+      {/* Delivery Details Modal */}
+      {selectedDelivery && (
+        <Dialog open={!!selectedDelivery} onOpenChange={() => setSelectedDelivery(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Delivery Details</DialogTitle>
+            </DialogHeader>
+            <DeliveryDetails
+              delivery={selectedDelivery}
+              onStatusUpdate={updateDeliveryStatus}
+              onClose={() => setSelectedDelivery(null)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  )
+}
+
+function DeliveryCard({
+  delivery,
+  onStatusUpdate,
+  onNavigate,
+  onViewDetails,
+}: {
+  delivery: Delivery
+  onStatusUpdate: (id: string, status: Delivery["status"]) => void
+  onNavigate: (address: string) => void
+  onViewDetails: (delivery: Delivery) => void
+}) {
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 space-y-3">
+            <div className="flex items-center space-x-3">
+              <h3 className="font-semibold text-lg">{delivery.customerName}</h3>
+              <Badge className={getStatusColor(delivery.status)}>{delivery.status}</Badge>
+              <Badge className={getPriorityColor(delivery.priority)}>{delivery.priority} priority</Badge>
+            </div>
+
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4" />
+                <span>{delivery.deliveryAddress}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Phone className="h-4 w-4" />
+                <span>{delivery.customerPhone}</span>
+              </div>
+              {delivery.estimatedTime && (
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4" />
+                  <span>Est. {delivery.estimatedTime}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Package className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-600">{delivery.items.length} item(s)</span>
+            </div>
+
+            {delivery.notes && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                <p className="text-sm text-yellow-800">
+                  <strong>Note:</strong> {delivery.notes}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col space-y-2 ml-4">
+            {delivery.status === "pending" && (
+              <Button
+                size="sm"
+                onClick={() => onStatusUpdate(delivery.id, "enroute")}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Truck className="h-4 w-4 mr-1" />
+                Start Route
+              </Button>
+            )}
+
+            {delivery.status === "enroute" && (
+              <Button
+                size="sm"
+                onClick={() => onStatusUpdate(delivery.id, "delivered")}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Mark Delivered
+              </Button>
+            )}
+
+            <Button size="sm" variant="outline" onClick={() => onNavigate(delivery.deliveryAddress)}>
+              <Navigation className="h-4 w-4 mr-1" />
+              Navigate
+            </Button>
+
+            <Button size="sm" variant="outline" onClick={() => onViewDetails(delivery)}>
+              View Details
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function AddDeliveryForm({ onSubmit }: { onSubmit: (data: Partial<Delivery>) => void }) {
+  const [formData, setFormData] = useState({
+    customerName: "",
+    customerPhone: "",
+    deliveryAddress: "",
+    notes: "",
+    priority: "medium" as Delivery["priority"],
+    items: [{ name: "", quantity: 1, description: "" }],
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit(formData)
+  }
+
+  const addItem = () => {
+    setFormData((prev) => ({
+      ...prev,
+      items: [...prev.items, { name: "", quantity: 1, description: "" }],
+    }))
+  }
+
+  const updateItem = (index: number, field: string, value: string | number) => {
+    setFormData((prev) => ({
+      ...prev,
+      items: prev.items.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+    }))
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="customerName">Customer Name *</Label>
+          <Input
+            id="customerName"
+            value={formData.customerName}
+            onChange={(e) => setFormData((prev) => ({ ...prev, customerName: e.target.value }))}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="customerPhone">Phone Number *</Label>
+          <Input
+            id="customerPhone"
+            type="tel"
+            value={formData.customerPhone}
+            onChange={(e) => setFormData((prev) => ({ ...prev, customerPhone: e.target.value }))}
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="deliveryAddress">Delivery Address *</Label>
+        <Input
+          id="deliveryAddress"
+          value={formData.deliveryAddress}
+          onChange={(e) => setFormData((prev) => ({ ...prev, deliveryAddress: e.target.value }))}
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="priority">Priority</Label>
+        <Select
+          value={formData.priority}
+          onValueChange={(value: Delivery["priority"]) => setFormData((prev) => ({ ...prev, priority: value }))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Items</Label>
+        {formData.items.map((item, index) => (
+          <div key={index} className="grid grid-cols-3 gap-2 mt-2">
+            <Input
+              placeholder="Item name"
+              value={item.name}
+              onChange={(e) => updateItem(index, "name", e.target.value)}
+            />
+            <Input
+              type="number"
+              placeholder="Quantity"
+              value={item.quantity}
+              onChange={(e) => updateItem(index, "quantity", Number.parseInt(e.target.value))}
+            />
+            <Input
+              placeholder="Description"
+              value={item.description}
+              onChange={(e) => updateItem(index, "description", e.target.value)}
+            />
+          </div>
+        ))}
+        <Button type="button" variant="outline" onClick={addItem} className="mt-2 bg-transparent">
+          <Plus className="h-4 w-4 mr-1" />
+          Add Item
+        </Button>
+      </div>
+
+      <div>
+        <Label htmlFor="notes">Special Instructions</Label>
+        <Textarea
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+          rows={3}
+        />
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline">
+          Cancel
+        </Button>
+        <Button type="submit">Add Delivery</Button>
+      </div>
+    </form>
+  )
+}
+
+function DeliveryDetails({
+  delivery,
+  onStatusUpdate,
+  onClose,
+}: {
+  delivery: Delivery
+  onStatusUpdate: (id: string, status: Delivery["status"]) => void
+  onClose: () => void
+}) {
+  const [signature, setSignature] = useState("")
+  const [photo, setPhoto] = useState<string | null>(null)
+
+  const handleCompleteDelivery = () => {
+    onStatusUpdate(delivery.id, "delivered")
+    onClose()
+    toast({
+      title: "Delivery Completed",
+      description: "Delivery has been marked as completed with signature and photo",
+    })
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <h4 className="font-semibold mb-2">Customer Information</h4>
+          <div className="space-y-1 text-sm">
+            <p>
+              <strong>Name:</strong> {delivery.customerName}
+            </p>
+            <p>
+              <strong>Phone:</strong> {delivery.customerPhone}
+            </p>
+            <p>
+              <strong>Address:</strong> {delivery.deliveryAddress}
+            </p>
+          </div>
+        </div>
+        <div>
+          <h4 className="font-semibold mb-2">Delivery Information</h4>
+          <div className="space-y-1 text-sm">
+            <p>
+              <strong>Status:</strong>
+              <Badge className={`ml-2 ${getStatusColor(delivery.status)}`}>{delivery.status}</Badge>
+            </p>
+            <p>
+              <strong>Priority:</strong>
+              <Badge className={`ml-2 ${getPriorityColor(delivery.priority)}`}>{delivery.priority}</Badge>
+            </p>
+            {delivery.estimatedTime && (
+              <p>
+                <strong>Est. Time:</strong> {delivery.estimatedTime}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 className="font-semibold mb-2">Items</h4>
+        <div className="space-y-2">
+          {delivery.items.map((item, index) => (
+            <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+              <div>
+                <span className="font-medium">{item.name}</span>
+                {item.description && <span className="text-sm text-gray-500 ml-2">({item.description})</span>}
+              </div>
+              <span className="text-sm">Qty: {item.quantity}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {delivery.notes && (
+        <div>
+          <h4 className="font-semibold mb-2">Special Instructions</h4>
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+            <p className="text-sm text-yellow-800">{delivery.notes}</p>
+          </div>
+        </div>
+      )}
+
+      {delivery.status === "enroute" && (
+        <div className="space-y-4 border-t pt-4">
+          <h4 className="font-semibold">Complete Delivery</h4>
+
+          <div>
+            <Label htmlFor="signature">Customer Signature</Label>
+            <Input
+              id="signature"
+              placeholder="Customer signature or name"
+              value={signature}
+              onChange={(e) => setSignature(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label>Delivery Photo</Label>
+            <div className="flex items-center space-x-2 mt-1">
+              <Button variant="outline" size="sm">
+                <Camera className="h-4 w-4 mr-1" />
+                Take Photo
+              </Button>
+              <Button variant="outline" size="sm">
+                <Upload className="h-4 w-4 mr-1" />
+                Upload Photo
+              </Button>
+            </div>
+          </div>
+
+          <Button onClick={handleCompleteDelivery} className="w-full">
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Complete Delivery
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DriverProfile({ driver, onUpdate }: { driver: Driver; onUpdate: (driver: Driver) => void }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Driver Profile</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center space-x-4">
+          <Avatar className="h-20 w-20">
+            <AvatarImage src={driver.avatar || "/placeholder.svg"} />
+            <AvatarFallback className="bg-teal-600 text-white text-xl">
+              {driver.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h3 className="text-xl font-semibold">{driver.name}</h3>
+            <p className="text-gray-600">{driver.email}</p>
+            <p className="text-gray-600">{driver.vehicle}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="name">Full Name</Label>
+            <Input id="name" value={driver.name} />
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input id="phone" value={driver.phone} />
+          </div>
+          <div>
+            <Label htmlFor="vehicle">Vehicle</Label>
+            <Input id="vehicle" value={driver.vehicle} />
+          </div>
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <Select value={driver.status}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="offline">Offline</SelectItem>
+                <SelectItem value="busy">Busy</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <Button>Update Profile</Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+function DriverAnalytics({ driver, deliveries }: { driver: Driver; deliveries: Delivery[] }) {
+  const todayDeliveries = deliveries.filter((d) => d.deliveryDate === new Date().toISOString().split("T")[0])
+  const completedToday = todayDeliveries.filter((d) => d.status === "delivered").length
+  const pendingToday = todayDeliveries.filter((d) => d.status === "pending").length
+  const enrouteToday = todayDeliveries.filter((d) => d.status === "enroute").length
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">{completedToday}</div>
+            <div className="text-sm text-gray-500">Completed Today</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">{enrouteToday}</div>
+            <div className="text-sm text-gray-500">En Route</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-yellow-600">{pendingToday}</div>
+            <div className="text-sm text-gray-500">Pending</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-gray-600">{driver.totalDeliveries}</div>
+            <div className="text-sm text-gray-500">Total Deliveries</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Performance Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>Completion Rate</span>
+                <span>92%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-green-600 h-2 rounded-full" style={{ width: "92%" }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>On-Time Delivery</span>
+                <span>88%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-blue-600 h-2 rounded-full" style={{ width: "88%" }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>Customer Rating</span>
+                <span>4.8/5</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-yellow-500 h-2 rounded-full" style={{ width: "96%" }}></div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Helper functions
+function getStatusColor(status: string) {
+  switch (status) {
+    case "pending":
+      return "bg-yellow-100 text-yellow-800"
+    case "enroute":
+      return "bg-blue-100 text-blue-800"
+    case "delivered":
+      return "bg-green-100 text-green-800"
+    case "failed":
+      return "bg-red-100 text-red-800"
+    default:
+      return "bg-gray-100 text-gray-800"
+  }
+}
+
+function getPriorityColor(priority: string) {
+  switch (priority) {
+    case "high":
+      return "bg-red-100 text-red-800"
+    case "medium":
+      return "bg-orange-100 text-orange-800"
+    case "low":
+      return "bg-green-100 text-green-800"
+    default:
+      return "bg-gray-100 text-gray-800"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+export default function Loading() {
+  return null
+}
+
+
+
+
+
+
+
+
+
+
+
+"use client"
+
+import * as React from "react"
+import * as ToastPrimitives from "@radix-ui/react-toast"
+import { cva } from "class-variance-authority"
+import { X } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const ToastProvider = ToastPrimitives.Provider
+
+const ToastViewport = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Viewport>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Viewport
+    ref={ref}
+    className={cn(
+      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
+      className,
+    )}
+    {...props}
+  />
+))
+ToastViewport.displayName = ToastPrimitives.Viewport.displayName
+
+const toastVariants = cva(
+  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+  {
+    variants: {
+      variant: {
+        default: "border bg-background text-foreground",
+        destructive: "destructive group border-destructive bg-destructive text-destructive-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  },
+)
+
+const Toast = React.forwardRef<HTMLDivElement, ToastProps>(({ className, variant = "default", ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all",
+        variant === "default" && "border bg-background text-foreground",
+        variant === "destructive" && "destructive group border-destructive bg-destructive text-destructive-foreground",
+        className,
+      )}
+      {...props}
+    />
+  )
+})
+Toast.displayName = "Toast"
+
+const ToastAction = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Action>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Action>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Action
+    ref={ref}
+    className={cn(
+      "inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive",
+      className,
+    )}
+    {...props}
+  />
+))
+ToastAction.displayName = ToastPrimitives.Action.displayName
+
+const ToastClose = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Close>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Close>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Close
+    ref={ref}
+    className={cn(
+      "absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
+      className,
+    )}
+    toast-close=""
+    {...props}
+  >
+    <X className="h-4 w-4" />
+  </ToastPrimitives.Close>
+))
+ToastClose.displayName = ToastPrimitives.Close.displayName
+
+const ToastTitle = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Title>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Title ref={ref} className={cn("text-sm font-semibold", className)} {...props} />
+))
+ToastTitle.displayName = ToastPrimitives.Title.displayName
+
+const ToastDescription = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Description>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Description ref={ref} className={cn("text-sm opacity-90", className)} {...props} />
+))
+ToastDescription.displayName = ToastPrimitives.Description.displayName
+
+type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
+
+type ToastActionElement = React.ReactElement<typeof ToastAction>
+
+export {
+  type ToastProps,
+  type ToastActionElement,
+  ToastProvider,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+  ToastAction,
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"use client"
+
+type ToastProps = {
+  title?: string
+  description?: string
+  variant?: "default" | "destructive"
+}
+
+function toast({ title, description, variant = "default" }: ToastProps) {
+  // Simple toast implementation
+  const toastElement = document.createElement("div")
+  toastElement.className = `fixed bottom-4 right-4 bg-white border rounded-lg shadow-lg p-4 z-50 ${
+    variant === "destructive" ? "border-red-200 bg-red-50" : "border-gray-200"
+  }`
+
+  toastElement.innerHTML = `
+    <div class="flex flex-col space-y-1">
+      ${title ? `<div class="font-semibold ${variant === "destructive" ? "text-red-800" : "text-gray-900"}">${title}</div>` : ""}
+      ${description ? `<div class="text-sm ${variant === "destructive" ? "text-red-600" : "text-gray-600"}">${description}</div>` : ""}
+    </div>
+  `
+
+  document.body.appendChild(toastElement)
+
+  setTimeout(() => {
+    toastElement.remove()
+  }, 3000)
+}
+
+function useToast() {
+  return { toast }
+}
+
+export { useToast, toast }
+
+
+
+-->

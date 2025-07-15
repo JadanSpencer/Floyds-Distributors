@@ -3,302 +3,965 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Floyd's Distributors</title>
+    <title>Admin Panel | Floyd's Distributors</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
     <style>
-        /* Admin-specific styles */
+        /* Enhanced Admin Styles */
+        :root {
+            --teal: #008080;
+            --dark-teal: #006666;
+            --light-teal: #e6f2f2;
+            --gray: #6c757d;
+            --light-gray: #f8f9fa;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --success: #28a745;
+            --glass: rgba(255, 255, 255, 0.85);
+        }
+
         .admin-main {
             padding: 2rem 0;
-            background-color: var(--light-gray);
+            min-height: calc(100vh - 80px);
+            background-color: #f5f9fa;
         }
 
         .admin-container {
-            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            max-width: 1600px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0 1.5rem;
         }
 
-        .admin-tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 2rem;
-        }
-
-        .admin-tab {
-            padding: 1rem 2rem;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .admin-tab.active {
-            border-bottom-color: var(--teal);
-            color: var(--teal);
+        .admin-sidebar {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            height: fit-content;
+            position: sticky;
+            top: 1.5rem;
         }
 
         .admin-content {
-            background: white;
-            border-radius: 8px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
             padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            min-height: 80vh;
         }
 
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
+        .admin-nav h3 {
+            color: var(--teal);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            border-bottom: 1px solid rgba(0, 128, 128, 0.15);
+            padding-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .admin-table th, .admin-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
+        .admin-nav h3 i {
+            font-size: 1.1rem;
         }
 
-        .admin-table th {
-            background: var(--light-gray);
-            font-weight: 600;
+        .admin-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 0.3rem 0.6rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
+        .admin-nav li {
+            margin-bottom: 0.5rem;
+            position: relative;
         }
 
-        .status-pending {
-            background: #FFF3E0;
-            color: #E65100;
-        }
-
-        .status-shipped {
-            background: #E3F2FD;
-            color: #1565C0;
-        }
-
-        .status-delivered {
-            background: #E8F5E9;
-            color: #2E7D32;
-        }
-
-        .status-cancelled {
-            background: #FFEBEE;
-            color: #C62828;
-        }
-
-        .action-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
+        .admin-nav a {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            color: var(--gray);
+            text-decoration: none;
+            border-radius: 8px;
             transition: all 0.3s ease;
-            border: none;
-            font-weight: 600;
+            font-weight: 500;
         }
 
-        .btn-ship {
+        .admin-nav a:hover, .admin-nav a.active {
+            background: rgba(0, 128, 128, 0.1);
+            color: var(--teal);
+            transform: translateX(4px);
+        }
+
+        .admin-nav a.active:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 3px;
             background: var(--teal);
-            color: white;
+            border-radius: 0 3px 3px 0;
         }
 
-        .btn-ship:hover {
-            background: var(--dark-teal);
+        .admin-nav i {
+            width: 24px;
+            text-align: center;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
         }
 
-        .btn-cancel {
-            background: #F44336;
-            color: white;
-        }
-
-        .btn-cancel:hover {
-            background: #D32F2F;
-        }
-
-        .search-filter {
+        .admin-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 2rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid rgba(0, 128, 128, 0.15);
+        }
+
+        .admin-header h2 {
+            color: var(--teal);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.75rem;
+        }
+
+        .admin-header h2 i {
+            font-size: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.75rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid var(--teal);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-card h3 {
+            color: var(--teal);
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .stat-card .value {
+            font-size: 2.25rem;
+            font-weight: bold;
+            color: var(--dark-teal);
+            margin: 0.75rem 0;
+            line-height: 1;
+        }
+
+        .stat-card .label {
+            color: var(--gray);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .stat-card .label i {
+            font-size: 0.8rem;
+        }
+
+        .data-table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 1.5rem;
+            background: white;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table th, .data-table td {
+            padding: 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 128, 128, 0.1);
+        }
+
+        .data-table th {
+            background: rgba(0, 128, 128, 0.08);
+            color: var(--teal);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover {
+            background: rgba(0, 128, 128, 0.05);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            gap: 0.35rem;
+        }
+
+        .badge i {
+            font-size: 0.7rem;
+        }
+
+        .badge-success {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-info {
+            background: rgba(23, 162, 184, 0.1);
+            color: #17a2b8;
+        }
+
+        .btn-admin {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: var(--teal);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-admin:hover {
+            background: var(--dark-teal);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 128, 128, 0.2);
+        }
+
+        .btn-admin:active {
+            transform: translateY(0);
+        }
+
+        .btn-admin-outline {
+            background: transparent;
+            color: var(--teal);
+            border: 1px solid var(--teal);
+        }
+
+        .btn-admin-outline:hover {
+            background: rgba(0, 128, 128, 0.1);
+            box-shadow: none;
+        }
+
+        .btn-admin-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-admin-danger {
+            background: var(--danger);
+        }
+
+        .btn-admin-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-admin-warning {
+            background: var(--warning);
+            color: #212529;
+        }
+
+        .btn-admin-warning:hover {
+            background: #e0a800;
+            color: #212529;
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.9rem;
+            border: 1px solid rgba(0, 128, 128, 0.3);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.2);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23008080' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+        }
+
+        .product-image-preview {
+            max-width: 180px;
+            max-height: 180px;
+            margin-top: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Enhanced header actions */
+        .header-actions {
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
         }
 
         .search-container {
-            width: 300px;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .search-input {
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(0, 128, 128, 0.3);
+            border-radius: 8px;
+            width: 240px;
+            padding-right: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            width: 280px;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.2);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: transparent;
+            color: var(--teal);
+            border: none;
+            padding: 0 1rem;
+            cursor: pointer;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .filter-group {
             display: flex;
             gap: 1rem;
+            align-items: center;
         }
 
-        .admin-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(0, 128, 128, 0.3);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            min-width: 180px;
         }
 
-        .form-full-width {
-            grid-column: span 2;
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.2);
+        }
+
+        /* Enhanced modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            display: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: 90%;
+            width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--teal);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .modal-header h3 i {
+            font-size: 1.3rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.75rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: color 0.3s ease;
+            padding: 0.5rem;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid rgba(0, 128, 128, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--teal);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 1100;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .toast {
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideIn 0.3s ease-out;
+            transform: translateX(0);
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+
+        .toast.hide {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .toast-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .toast-error {
+            background: var(--danger);
+            color: white;
+        }
+
+        .toast-warning {
+            background: var(--warning);
+            color: #212529;
+        }
+
+        .toast-info {
+            background: var(--teal);
+            color: white;
+        }
+
+        .toast i {
+            font-size: 1.25rem;
+        }
+
+        .toast-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+                padding: 0 1rem;
+            }
+            
+            .admin-sidebar {
+                order: 2;
+                position: static;
+            }
+
+            .admin-content {
+                padding: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+
+            .search-input {
+                width: 180px;
+            }
+
+            .search-input:focus {
+                width: 220px;
+            }
         }
 
         @media (max-width: 768px) {
-            .admin-tabs {
-                flex-wrap: wrap;
+            .header-actions {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+                width: 100%;
             }
-            
-            .admin-table {
-                display: block;
-                overflow-x: auto;
+
+            .search-container {
+                width: 100%;
             }
-            
-            .admin-form {
+
+            .search-input {
+                width: 100%;
+            }
+
+            .search-input:focus {
+                width: 100%;
+            }
+
+            .modal {
+                width: 95%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .form-full-width {
-                grid-column: span 1;
-            }
-            
-            .search-filter {
+
+            .form-actions {
                 flex-direction: column;
-                gap: 1rem;
             }
-            
-            .search-container {
+
+            .form-actions .btn-admin {
                 width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Admin Header -->
+    <!-- Header (matches main site) -->
     <header class="header">
         <div class="container">
             <div class="logo">
-                <h1>Admin Dashboard</h1>
+                <h1>Floyd's Distributors</h1>
             </div>
             <nav class="navbar">
                 <ul class="nav-links">
-                    <li><a href="index.html">View Site</a></li>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="admin.html" class="active">Admin</a></li>
                 </ul>
-                <button id="adminLogout" class="btn">Logout</button>
+                <div class="auth-cart-container">
+                    <div class="auth-buttons" id="authButtons">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    <div class="hamburger">☰</div>
+                </div>
             </nav>
         </div>
     </header>
 
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <!-- Admin Main Content -->
     <main class="admin-main">
         <div class="admin-container">
-            <!-- Admin Tabs -->
-            <div class="admin-tabs">
-                <div class="admin-tab active" data-tab="orders">Orders</div>
-                <div class="admin-tab" data-tab="products">Products</div>
-                <div class="admin-tab" data-tab="users">Users</div>
-            </div>
-
-            <!-- Orders Tab -->
-            <div class="admin-content" id="orders-tab">
-                <div class="search-filter">
-                    <div class="search-container">
-                        <input type="text" id="orderSearch" placeholder="Search orders..." class="search-input">
-                        <button class="search-btn">🔍</button>
-                    </div>
-                    <div class="filter-group">
-                        <select id="orderStatusFilter" class="filter-select">
-                            <option value="all">All Statuses</option>
-                            <option value="pending">Pending</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                        <select id="orderDateFilter" class="filter-select">
-                            <option value="all">All Dates</option>
-                            <option value="today">Today</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                        </select>
+            <!-- Admin Sidebar -->
+            <aside class="admin-sidebar">
+                <div class="admin-profile">
+                    <div class="profile-info">
+                        <div class="profile-name" id="adminProfileName">Loading...</div>
+                        <div class="profile-email" id="adminProfileEmail">admin@example.com</div>
                     </div>
                 </div>
-
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Date</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="orders-table-body">
-                        <!-- Orders will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Products Tab -->
-            <div class="admin-content" id="products-tab" style="display:none">
-                <div class="search-filter">
-                    <div class="search-container">
-                        <input type="text" id="productSearch" placeholder="Search products..." class="search-input">
-                        <button class="search-btn">🔍</button>
-                    </div>
-                    <button id="addProductBtn" class="btn">+ Add Product</button>
+                <nav class="admin-nav">
+                    <h3><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h3>
+                    <ul>
+                        <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="#" data-section="products"><i class="fas fa-box-open"></i> Products</a></li>
+                        <li><a href="#" data-section="users"><i class="fas fa-users"></i> Users</a></li>
+                        <li><a href="#" data-section="orders"><i class="fas fa-shopping-cart"></i> Orders</a></li>
+                        <li><a href="#" data-section="settings"><i class="fas fa-cog"></i> Settings</a></li>
+                    </ul>
+                </nav>
+                <div class="admin-footer">
+                    <button id="logoutBtn" class="btn-admin btn-admin-outline" style="width: 100%;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
                 </div>
+            </aside>
 
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Image</th>
-                            <th>Name</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                            <th>Category</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="products-table-body">
-                        <!-- Products will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Users Tab -->
-            <div class="admin-content" id="users-tab" style="display:none">
-                <div class="search-filter">
-                    <div class="search-container">
-                        <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
-                        <button class="search-btn">🔍</button>
+            <!-- Admin Content Area -->
+            <div class="admin-content">
+                <!-- Dashboard Section (Default View) -->
+                <section id="dashboard-section">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
+                        <div class="last-updated">Last updated: <span id="lastUpdated">Just now</span></div>
                     </div>
-                </div>
 
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Name</th>
-                            <th>Last Login</th>
-                            <th>Orders</th>
-                            <th>Role</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-table-body">
-                        <!-- Users will be loaded here -->
-                    </tbody>
-                </table>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Total Users</h3>
+                            <div class="value" id="totalUsers">0</div>
+                            <div class="label"><i class="fas fa-user-plus"></i> Registered accounts</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Active Products</h3>
+                            <div class="value" id="totalProducts">0</div>
+                            <div class="label"><i class="fas fa-boxes"></i> In inventory</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Recent Orders</h3>
+                            <div class="value" id="recentOrders">0</div>
+                            <div class="label"><i class="fas fa-chart-line"></i> Last 7 days</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Revenue</h3>
+                            <div class="value" id="totalRevenue">$0</div>
+                            <div class="label"><i class="fas fa-dollar-sign"></i> This month</div>
+                        </div>
+                    </div>
+
+                    <div class="recent-activity">
+                        <div class="activity-header">
+                            <h3><i class="fas fa-history"></i> Recent Activity</h3>
+                            <button class="btn-admin btn-admin-outline btn-admin-sm" id="refreshActivity">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="data-table-wrapper">
+                            <table class="data-table" id="activityTable">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Activity</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentActivity">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Products Management Section -->
+                <section id="products-section" style="display: none;">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-box-open"></i> Product Management</h2>
+                        <div class="header-actions">
+                            <div class="search-container">
+                                <input type="text" placeholder="Search products..." class="search-input" id="productSearch">
+                                <button class="search-btn"><i class="fas fa-search"></i></button>
+                            </div>
+                            <button class="btn-admin" id="addProductBtn"><i class="fas fa-plus"></i> Add Product</button>
+                        </div>
+                    </div>
+
+                    <div class="products-list">
+                        <div class="data-table-wrapper">
+                            <table class="data-table" id="productsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Category</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Users Management Section -->
+                <section id="users-section" style="display: none;">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-users"></i> User Management</h2>
+                        <div class="header-actions">
+                            <div class="search-container">
+                                <input type="text" placeholder="Search users..." class="search-input" id="userSearch">
+                                <button class="search-btn"><i class="fas fa-search"></i></button>
+                            </div>
+                            <button class="btn-admin" id="addAdminBtn"><i class="fas fa-user-plus"></i> Create Admin</button>
+                        </div>
+                    </div>
+
+                    <div class="users-list">
+                        <div class="data-table-wrapper">
+                            <table class="data-table" id="usersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Joined</th>
+                                        <th>Last Active</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Orders Management Section -->
+                <section id="orders-section" style="display: none;">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-shopping-cart"></i> Order Management</h2>
+                        <div class="header-actions">
+                            <div class="filter-group">
+                                <select id="orderFilter" class="filter-select">
+                                    <option value="all">All Orders</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <button class="btn-admin btn-admin-outline" id="exportOrdersBtn"><i class="fas fa-file-export"></i> Export</button>
+                        </div>
+                    </div>
+
+                    <div class="orders-list">
+                        <div class="data-table-wrapper">
+                            <table class="data-table" id="ordersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ordersTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Section -->
+                <section id="settings-section" style="display: none;">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-cog"></i> System Settings</h2>
+                    </div>
+
+                    <form id="settingsForm">
+                        <div class="form-group">
+                            <label for="siteName">Site Name</label>
+                            <input type="text" id="siteName" class="form-control" value="Floyd's Distributors">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="currency">Currency</label>
+                            <select id="currency" class="form-control">
+                                <option value="USD">US Dollar ($)</option>
+                                <option value="EUR">Euro (€)</option>
+                                <option value="GBP">British Pound (£)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taxRate">Tax Rate (%)</label>
+                            <input type="number" id="taxRate" class="form-control" min="0" max="50" step="0.1" value="7.5">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="shippingCosts">Default Shipping Costs</label>
+                            <input type="number" id="shippingCosts" class="form-control" min="0" step="0.01" value="5.99">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="adminEmail">Admin Email</label>
+                            <input type="email" id="adminEmailSettings" class="form-control" value="admin@floydsdistributors.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="maintenanceMode">Maintenance Mode</label>
+                            <select id="maintenanceMode" class="form-control">
+                                <option value="false">Disabled</option>
+                                <option value="true">Enabled</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-admin">Save Settings</button>
+                    </form>
+                </section>
             </div>
         </div>
     </main>
 
     <!-- Add Product Modal -->
-    <div id="productModal" class="modal" style="display:none">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>Add New Product</h2>
-            <form id="productForm" class="admin-form">
+    <div class="modal-overlay" id="productModalOverlay"></div>
+    <div class="modal" id="productModal">
+        <div class="modal-header">
+            <h3><i class="fas fa-box-open"></i> Add New Product</h3>
+            <button class="close-modal" id="closeProductModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="productForm">
+                <input type="hidden" id="productId">
                 <div class="form-group">
                     <label for="productName">Product Name</label>
                     <input type="text" id="productName" class="form-control" required>
@@ -308,268 +971,131 @@
                     <input type="number" id="productPrice" class="form-control" step="0.01" required>
                 </div>
                 <div class="form-group">
-                    <label for="productStock">Stock</label>
-                    <input type="number" id="productStock" class="form-control" required>
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" class="form-control" rows="3" required></textarea>
                 </div>
                 <div class="form-group">
                     <label for="productCategory">Category</label>
                     <select id="productCategory" class="form-control" required>
                         <option value="food-containers">Food Containers</option>
-                        <option value="eco-friendly">Eco-Friendly</option>
+                        <option value="eco-friendly">Eco-Friendly Packaging</option>
                         <option value="custom">Custom Solutions</option>
                     </select>
                 </div>
-                <div class="form-group form-full-width">
-                    <label for="productDescription">Description</label>
-                    <textarea id="productDescription" class="form-control" rows="3"></textarea>
+                <div class="form-group">
+                    <label for="productStock">Stock Quantity</label>
+                    <input type="number" id="productStock" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label for="productImage">Image URL</label>
-                    <input type="text" id="productImage" class="form-control">
+                    <input type="text" id="productImage" class="form-control" required>
+                    <img src="" alt="Product Preview" class="product-image-preview" id="productImagePreview">
                 </div>
-                <div class="form-group form-full-width">
-                    <button type="submit" class="btn btn-primary">Save Product</button>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="productFeatured"> Featured Product
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelProductBtn">Cancel</button>
+                    <button type="submit" class="btn-admin">Save Product</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Firebase and Admin Script -->
-    <script type="module">
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, updateDoc, doc, addDoc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { app, db, auth } from "./script.js";
+    <!-- Add Admin Modal -->
+    <div class="modal-overlay" id="adminModalOverlay"></div>
+    <div class="modal" id="adminModal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-shield"></i> Create New Admin</h3>
+            <button class="close-modal" id="closeAdminModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="adminForm">
+                <div class="form-group">
+                    <label for="adminName">Full Name</label>
+                    <input type="text" id="adminName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminEmail">Email</label>
+                    <input type="email" id="adminEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">Password</label>
+                    <input type="password" id="adminPassword" class="form-control" required minlength="6">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelAdminBtn">Cancel</button>
+                    <button type="submit" class="btn-admin">Create Admin</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        // DOM Elements
-        const adminTabs = document.querySelectorAll('.admin-tab');
-        const tabContents = {
-            'orders': document.getElementById('orders-tab'),
-            'products': document.getElementById('products-tab'),
-            'users': document.getElementById('users-tab')
-        };
-        const logoutBtn = document.getElementById('adminLogout');
-        const addProductBtn = document.getElementById('addProductBtn');
-        const productModal = document.getElementById('productModal');
-        const closeModal = document.querySelector('.close-modal');
-        const productForm = document.getElementById('productForm');
+    <!-- User Modal -->
+    <div class="modal-overlay" id="userModalOverlay"></div>
+    <div class="modal" id="userModal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user"></i> User Details</h3>
+            <button class="close-modal" id="closeUserModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <div class="form-group">
+                    <label for="userName">Full Name</label>
+                    <input type="text" id="userName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="userEmail">Email</label>
+                    <input type="email" id="userEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="userRole">Role</label>
+                    <select id="userRole" class="form-control" required>
+                        <option value="customer">Customer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="userStatus">Status</label>
+                    <select id="userStatus" class="form-control" required>
+                        <option value="active">Active</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelUserBtn">Cancel</button>
+                    <button type="submit" class="btn-admin">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        // Check admin status on page load
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'index.html';
-                return;
-            }
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmModalOverlay"></div>
+    <div class="modal" id="confirmModal">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Confirm Action</h3>
+            <button class="close-modal" id="closeConfirmModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage">Are you sure you want to perform this action?</p>
+            <div class="form-actions">
+                <button type="button" class="btn-admin btn-admin-outline" id="cancelConfirmBtn">Cancel</button>
+                <button type="button" class="btn-admin btn-admin-danger" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
 
-            // Verify admin status (you'll need to implement this)
-            const isAdmin = await checkAdminStatus(user.uid);
-            if (!isAdmin) {
-                window.location.href = 'index.html';
-                return;
-            }
-
-            // Load initial data
-            loadOrders();
-            loadProducts();
-            loadUsers();
-        });
-
-        // Tab switching
-        adminTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                adminTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                Object.values(tabContents).forEach(content => {
-                    content.style.display = 'none';
-                });
-                
-                const tabName = tab.getAttribute('data-tab');
-                tabContents[tabName].style.display = 'block';
-            });
-        });
-
-        // Logout
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth).then(() => {
-                window.location.href = 'index.html';
-            });
-        });
-
-        // Modal controls
-        addProductBtn.addEventListener('click', () => {
-            productModal.style.display = 'block';
-        });
-
-        closeModal.addEventListener('click', () => {
-            productModal.style.display = 'none';
-        });
-
-        // Product form submission
-        productForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const product = {
-                name: document.getElementById('productName').value,
-                price: parseFloat(document.getElementById('productPrice').value),
-                stock: parseInt(document.getElementById('productStock').value),
-                category: document.getElementById('productCategory').value,
-                description: document.getElementById('productDescription').value,
-                image: document.getElementById('productImage').value || 'https://via.placeholder.com/300',
-                featured: false,
-                createdAt: serverTimestamp()
-            };
-
-            try {
-                await addDoc(collection(db, 'products'), product);
-                alert('Product added successfully!');
-                productForm.reset();
-                productModal.style.display = 'none';
-                loadProducts();
-            } catch (error) {
-                console.error('Error adding product:', error);
-                alert('Failed to add product');
-            }
-        });
-
-        // Data loading functions
-        async function loadOrders() {
-            const ordersTable = document.getElementById('orders-table-body');
-            ordersTable.innerHTML = '<tr><td colspan="7">Loading orders...</td></tr>';
-            
-            const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-            const querySnapshot = await getDocs(q);
-            
-            ordersTable.innerHTML = '';
-            
-            if (querySnapshot.empty) {
-                ordersTable.innerHTML = '<tr><td colspan="7">No orders found</td></tr>';
-                return;
-            }
-            
-            querySnapshot.forEach(doc => {
-                const order = doc.data();
-                const orderDate = order.createdAt?.toDate().toLocaleDateString() || 'N/A';
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${doc.id.substring(0, 8)}...</td>
-                    <td>${order.customer.firstName} ${order.customer.lastName}</td>
-                    <td>${orderDate}</td>
-                    <td>${order.items.reduce((sum, item) => sum + item.quantity, 0)}</td>
-                    <td>$${order.total.toFixed(2)}</td>
-                    <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-                    <td>
-                        ${order.status === 'pending' ? 
-                            `<button class="action-btn btn-ship" data-id="${doc.id}">Ship</button>
-                             <button class="action-btn btn-cancel" data-id="${doc.id}">Cancel</button>` : 
-                            order.status === 'shipped' ? 
-                            `<button class="action-btn btn-ship" disabled>Shipped</button>` : 
-                            ''}
-                    </td>
-                `;
-                ordersTable.appendChild(row);
-            });
-
-            // Add event listeners to action buttons
-            document.querySelectorAll('.btn-ship:not([disabled])').forEach(btn => {
-                btn.addEventListener('click', () => updateOrderStatus(btn.dataset.id, 'shipped'));
-            });
-            
-            document.querySelectorAll('.btn-cancel').forEach(btn => {
-                btn.addEventListener('click', () => updateOrderStatus(btn.dataset.id, 'cancelled'));
-            });
-        }
-
-        async function loadProducts() {
-            const productsTable = document.getElementById('products-table-body');
-            productsTable.innerHTML = '<tr><td colspan="6">Loading products...</td></tr>';
-            
-            const q = query(collection(db, 'products'));
-            const querySnapshot = await getDocs(q);
-            
-            productsTable.innerHTML = '';
-            
-            if (querySnapshot.empty) {
-                productsTable.innerHTML = '<tr><td colspan="6">No products found</td></tr>';
-                return;
-            }
-            
-            querySnapshot.forEach(doc => {
-                const product = doc.data();
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><img src="${product.image}" alt="${product.name}" style="width:50px;height:50px;object-fit:cover;"></td>
-                    <td>${product.name}</td>
-                    <td>$${product.price.toFixed(2)}</td>
-                    <td>${product.stock}</td>
-                    <td>${product.category}</td>
-                    <td>
-                        <button class="action-btn">Edit</button>
-                        <button class="action-btn btn-cancel">Delete</button>
-                    </td>
-                `;
-                productsTable.appendChild(row);
-            });
-        }
-
-        async function loadUsers() {
-            const usersTable = document.getElementById('users-table-body');
-            usersTable.innerHTML = '<tr><td colspan="6">Loading users...</td></tr>';
-            
-            // Note: This requires the 'users' collection in Firestore
-            // You'll need to implement user registration that saves to this collection
-            const q = query(collection(db, 'users'));
-            const querySnapshot = await getDocs(q);
-            
-            usersTable.innerHTML = '';
-            
-            if (querySnapshot.empty) {
-                usersTable.innerHTML = '<tr><td colspan="6">No users found</td></tr>';
-                return;
-            }
-            
-            querySnapshot.forEach(doc => {
-                const user = doc.data();
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.email}</td>
-                    <td>${user.displayName || 'N/A'}</td>
-                    <td>${user.lastLogin?.toDate().toLocaleString() || 'Never'}</td>
-                    <td>${user.orderCount || 0}</td>
-                    <td>${user.isAdmin ? 'Admin' : 'Customer'}</td>
-                    <td>
-                        <button class="action-btn">Edit</button>
-                    </td>
-                `;
-                usersTable.appendChild(row);
-            });
-        }
-
-        async function updateOrderStatus(orderId, status) {
-            try {
-                await updateDoc(doc(db, 'orders', orderId), {
-                    status: status,
-                    updatedAt: serverTimestamp()
-                });
-                alert(`Order marked as ${status}`);
-                loadOrders();
-            } catch (error) {
-                console.error('Error updating order:', error);
-                alert('Failed to update order');
-            }
-        }
-
-        // Helper function to check admin status
-        async function checkAdminStatus(uid) {
-            // Implement your admin verification logic
-            // This could be:
-            // 1. Checking a 'users' collection for isAdmin flag
-            // 2. Checking Firebase Auth custom claims
-            // For now, we'll return true for testing
-            return true;
-        }
-    </script>
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Main Admin JavaScript -->
+    <script type="module" src="admin.js"></script>
 </body>
 </html>

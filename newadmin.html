@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Floyd's Distributors</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+    <style>
+        /* Enhanced Admin Styles */
+        :root {
+            --teal: #008080;
+            --dark-teal: #006666;
+            --light-teal: #e6f2f2;
+            --gray: #6c757d;
+            --light-gray: #f8f9fa;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --success: #28a745;
+            --glass: rgba(255, 255, 255, 0.85);
+        }
+
+        .admin-main {
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
+            background-color: #f5f9fa;
+        }
+
+        .admin-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .admin-sidebar {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            height: fit-content;
+            position: sticky;
+            top: 1.5rem;
+        }
+
+        .admin-content {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            min-height: 80vh;
+        }
+
+        .admin-nav h3 {
+            color: var(--teal);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            border-bottom: 1px solid rgba(0, 128, 128, 0.15);
+            padding-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-nav h3 i {
+            font-size: 1.1rem;
+        }
+
+        .admin-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .admin-nav li {
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .admin-nav a {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            color: var(--gray);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .admin-nav a:hover, .admin-nav a.active {
+            background: rgba(0, 128, 128, 0.1);
+            color: var(--teal);
+            transform: translateX(4px);
+        }
+
+        .admin-nav a.active:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 3px;
+            background: var(--teal);
+            border-radius: 0 3px 3px 0;
+        }
+
+        .admin-nav i {
+            width: 24px;
+            text-align: center;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid rgba(0, 128, 128, 0.15);
+        }
+
+        .admin-header h2 {
+            color: var(--teal);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.75rem;
+        }
+
+        .admin-header h2 i {
+            font-size: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.75rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid var(--teal);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-card h3 {
+            color: var(--teal);
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .stat-card .value {
+            font-size: 2.25rem;
+            font-weight: bold;
+            color: var(--dark-teal);
+            margin: 0.75rem 0;
+            line-height: 1;
+        }
+
+        .stat-card .label {
+            color: var(--gray);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .stat-card .label i {
+            font-size: 0.8rem;
+        }
+
+        .data-table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 1.5rem;
+            background: white;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table th, .data-table td {
+            padding: 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 128, 128, 0.1);
+        }
+
+        .data-table th {
+            background: rgba(0, 128, 128, 0.08);
+            color: var(--teal);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover {
+            background: rgba(0, 128, 128, 0.05);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            gap: 0.35rem;
+        }
+
+        .badge i {
+            font-size: 0.7rem;
+        }
+
+        .badge-success {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-info {
+            background: rgba(23, 162, 184, 0.1);
+            color: #17a2b8;
+        }
+
+        .btn-admin {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: var(--teal);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-admin:hover {
+            background: var(--dark-teal);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 128, 128, 0.2);
+        }
+
+        .btn-admin:active {
+            transform: translateY(0);
+        }
+
+        .btn-admin-outline {
+            background: transparent;
+            color: var(--teal);
+            border: 1px solid var(--teal);
+        }
+
+        .btn-admin-outline:hover {
+            background: rgba(0, 128, 128, 0.1);
+            box-shadow: none;
+        }
+
+        .btn-admin-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-admin-danger {
+            background: var(--danger);
+        }
+
+        .btn-admin-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-admin-warning {
+            background: var(--warning);
+            color: #212529;
+        }
+
+        .btn-admin-warning:hover {
+            background: #e0a800;
+            color: #212529;
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.9rem;
+            border: 1px solid rgba(0, 128, 128, 0.3);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.2);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23008080' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+        }
+
+        .product-image-preview {
+            max-width: 180px;
+            max-height: 180px;
+            margin-top: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Enhanced header actions */
+        .header-actions {
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .search-input {
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(0, 128, 128, 0.3);
+            border-radius: 8px;
+            width: 240px;
+            padding-right: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            width: 280px;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.2);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: transparent;
+            color: var(--teal);
+            border: none;
+            padding: 0 1rem;
+            cursor: pointer;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(0, 128, 128, 0.3);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            min-width: 180px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.2);
+        }
+
+        /* Enhanced modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            display: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: 90%;
+            width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--teal);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .modal-header h3 i {
+            font-size: 1.3rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.75rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: color 0.3s ease;
+            padding: 0.5rem;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid rgba(0, 128, 128, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--teal);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 1100;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .toast {
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideIn 0.3s ease-out;
+            transform: translateX(0);
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+
+        .toast.hide {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .toast-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .toast-error {
+            background: var(--danger);
+            color: white;
+        }
+
+        .toast-warning {
+            background: var(--warning);
+            color: #212529;
+        }
+
+        .toast-info {
+            background: var(--teal);
+            color: white;
+        }
+
+        .toast i {
+            font-size: 1.25rem;
+        }
+
+        .toast-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* DataTable enhancements */
+        .dataTables_wrapper {
+            padding: 1.5rem;
+        }
+
+        .dataTables_length select {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 128, 128, 0.3);
+        }
+
+        .dataTables_filter input {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 128, 128, 0.3);
+        }
+
+        .dataTables_paginate .paginate_button {
+            padding: 0.5rem 0.75rem;
+            margin: 0 0.25rem;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 128, 128, 0.3);
+            color: var(--teal);
+        }
+
+        .dataTables_paginate .paginate_button.current {
+            background: var(--teal);
+            color: white;
+            border-color: var(--teal);
+        }
+
+        .dataTables_paginate .paginate_button:hover {
+            background: rgba(0, 128, 128, 0.1);
+            color: var(--teal);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+                padding: 0 1rem;
+            }
+            
+            .admin-sidebar {
+                order: 2;
+                position: static;
+            }
+
+            .admin-content {
+                padding: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+
+            .search-input {
+                width: 180px;
+            }
+
+            .search-input:focus {
+                width: 220px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-actions {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+                width: 100%;
+            }
+
+            .search-container {
+                width: 100%;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .search-input:focus {
+                width: 100%;
+            }
+
+            .modal {
+                width: 95%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions .btn-admin {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (matches main site) -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>Floyd's Distributors</h1>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="admin.html" class="active">Admin</a></li>
+                </ul>
+                <div class="auth-cart-container">
+                    <div class="auth-buttons" id="authButtons">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    <div class="hamburger">☰</div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Admin Main Content -->
+    <main class="admin-main">
+        <div class="admin-container">
+            <!-- Admin Sidebar -->
+            <aside class="admin-sidebar">
+                <div class="admin-profile">
+                    <div class="profile-info">
+                        <div class="profile-name" id="adminProfileName">Loading...</div>
+                        <div class="profile-email" id="adminProfileEmail">admin@example.com</div>
+                    </div>
+                </div>
+                <nav class="admin-nav">
+                    <h3><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h3>
+                    <ul>
+                        <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="#" data-section="products"><i class="fas fa-box-open"></i> Products</a></li>
+                        <li><a href="#" data-section="users"><i class="fas fa-users"></i> Users</a></li>
+                        <li><a href="#" data-section="orders"><i class="fas fa-shopping-cart"></i> Orders</a></li>
+                        <li><a href="#" data-section="reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                        <li><a href="#" data-section="settings"><i class="fas fa-cog"></i> Settings</a></li>
+                        <li><a href="#" data-section="audit"><i class="fas fa-history"></i> Audit Logs</a></li>
+                    </ul>
+                </nav>
+                <div class="admin-footer">
+                    <button id="logoutBtn" class="btn-admin btn-admin-outline" style="width: 100%;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Admin Content Area -->
+            <div class="admin-content">
+                <!-- Dashboard Section (Default View) -->
+                <section id="dashboard-section">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
+                        <div class="last-updated">Last updated: <span id="lastUpdated">Just now</span></div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Total Users</h3>
+                            <div class="value" id="totalUsers">0</div>
+                            <div class="label"><i class="fas fa-user-plus"></i> <span id="usersChange">0%</span> from last month</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Active Products</h3>
+                            <div class="value" id="totalProducts">0</div>
+                            <div class="label"><i class="fas fa-boxes"></i> <span id="productsChange">0%</span> from last month</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Recent Orders</h3>
+                            <div class="value" id="recentOrders">0</div>
+                            <div class="label"><i class="fas fa-chart-line"></i> <span id="ordersChange">0%</span> from last week</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Revenue</h3>
+                            <div class="value" id="totalRevenue">$0</div>
+                            <div class="label"><i class="fas fa-dollar-sign"></i> <span id="revenueChange">0%</span> from last month</div>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                        <div class="actions-grid">
+                            <button class="action-card" data-action="add-product">
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Add Product</span>
+                            </button>
+                            <button class="action-card" data-action="view-orders">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span>View Orders</span>
+                            </button>
+                            <button class="action-card" data-action="generate-report">
+                                <i class="fas fa-file-alt"></i>
+                                <span>Generate Report</span>
+                            </button>
+                            <button class="action-card" data-action="manage-users">
+                                <i class="fas fa-users-cog"></i>
+                                <span>Manage Users</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="recent-activity">
+                        <div class="activity-header">
+                            <h3><i class="fas fa-history"></i> Recent Activity</h3>
+                            <button class="btn-admin btn-admin-outline btn-admin-sm" id="refreshActivity">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="data-table-wrapper">
+                            <table class="data-table" id="activityTable">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Activity</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                        <th>IP Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentActivity">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Products Management Section -->
+                <section id="products-section" style="display: none;">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-box-open"></i> Product Management</h2>
+                        <div class="header-actions">
+                            <div class="search-container">
+                                <input type="text" placeholder="Search products..." class="search-input" id="productSearch">
+                                <button class="search-btn"><i class="fas fa-search"></i></button>
+                            </div>
+                            <button class="btn-admin" id="addProductBtn"><i class="fas fa-plus"></i> Add Product</button>
+                            <button class="btn-admin btn-admin-outline" id="exportProductsBtn"><i class="fas fa-file-export"></i> Export</button>
+                        </div>
+                    </div>
+
+                    <div class="products-list">
+                        <div class="data-table-wrapper">
+                            <table class="data-table" id="productsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                        <th>SKU</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Category</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Users Management Section -->
+                <section id="users-section" style="display: none;">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-users"></i> User Management</h2>
+                        <div class="header-actions">
+                            <div class="search-container">
+                                <input type="text" placeholder="Search users..." class="search-input" id="userSearch">
+                                <button class="search-btn"><i class="fas fa-search"></i></button>
+                            </div>
+                            <div class="filter-group">
+                                <select id="userRoleFilter" class="filter-select">
+                                    <option value="all">All Roles</option>
+                                    <option value="customer">Customers</option>
+                                    <option value="admin">Admins</option>
+                                </select>
+                            </div>
+                            <button class="btn-admin" id="addAdminBtn"><i class="fas fa-user-plus"></i> Create Admin</button>
+                        </div>
+                    </div>
+
+                    <div class="users-list">
+                        <div class="data-table-wrapper">
+                            <table class="data-table" id="usersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Joined</th>
+                                        <th>Last Active</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Orders Management Section -->
+                <section id="orders-section" style="display: none;">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-shopping-cart"></i> Order Management</h2>
+                        <div class="header-actions">
+                            <div class="filter-group">
+                                <select id="orderFilter" class="filter-select">
+                                    <option value="all">All Orders</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <select id="orderDateFilter" class="filter-select">
+                                    <option value="all">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="year">This Year</option>
+                                </select>
+                            </div>
+                            <button class="btn-admin btn-admin-outline" id="exportOrdersBtn"><i class="fas fa-file-export"></i> Export</button>
+                        </div>
+                    </div>
+
+                    <div class="orders-list">
+                        <div class="data-table-wrapper">
+                            <table class="data-table" id="ordersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th>Items</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ordersTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reports Section -->
+                <section id="reports-section" style="display: none;">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-chart-bar"></i> Reports & Analytics</h2>
+                        <div class="header-actions">
+                            <div class="filter-group">
+                                <select id="reportType" class="filter-select">
+                                    <option value="sales">Sales Report</option>
+                                    <option value="products">Product Performance</option>
+                                    <option value="users">User Activity</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <select id="reportPeriod" class="filter-select">
+                                    <option value="week">Last 7 Days</option>
+                                    <option value="month">Last 30 Days</option>
+                                    <option value="quarter">Last Quarter</option>
+                                    <option value="year">Last Year</option>
+                                    <option value="custom">Custom Range</option>
+                                </select>
+                            </div>
+                            <button class="btn-admin" id="generateReportBtn"><i class="fas fa-chart-pie"></i> Generate</button>
+                            <button class="btn-admin btn-admin-outline" id="exportReportBtn"><i class="fas fa-file-export"></i> Export</button>
+                        </div>
+                    </div>
+
+                    <div class="report-content">
+                        <div class="report-chart" id="reportChart">
+                            <!-- Chart will be rendered here -->
+                            <div class="chart-placeholder">
+                                <i class="fas fa-chart-bar" style="font-size: 3rem; color: rgba(0, 128, 128, 0.2);"></i>
+                                <p>Select report parameters and click "Generate"</p>
+                            </div>
+                        </div>
+                        <div class="report-summary">
+                            <div class="summary-card">
+                                <h3>Total Sales</h3>
+                                <div class="value" id="totalSales">$0</div>
+                                <div class="label">During selected period</div>
+                            </div>
+                            <div class="summary-card">
+                                <h3>Orders</h3>
+                                <div class="value" id="totalOrders">0</div>
+                                <div class="label">Completed orders</div>
+                            </div>
+                            <div class="summary-card">
+                                <h3>Top Product</h3>
+                                <div class="value" id="topProduct">-</div>
+                                <div class="label">By revenue</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Section -->
+                <section id="settings-section" style="display: none;">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-cog"></i> System Settings</h2>
+                    </div>
+
+                    <div class="settings-tabs">
+                        <div class="tabs-header">
+                            <button class="tab-btn active" data-tab="general">General</button>
+                            <button class="tab-btn" data-tab="email">Email</button>
+                            <button class="tab-btn" data-tab="payment">Payments</button>
+                            <button class="tab-btn" data-tab="security">Security</button>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div id="general-tab" class="tab-pane active">
+                                <form id="generalSettingsForm">
+                                    <div class="form-group">
+                                        <label for="siteName">Site Name</label>
+                                        <input type="text" id="siteName" class="form-control" value="Floyd's Distributors">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="siteLogo">Site Logo</label>
+                                        <input type="file" id="siteLogo" class="form-control">
+                                        <small class="text-muted">Recommended size: 180x50 pixels</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="timezone">Timezone</label>
+                                        <select id="timezone" class="form-control form-select">
+                                            <option value="UTC">UTC</option>
+                                            <option value="America/New_York" selected>Eastern Time (ET)</option>
+                                            <option value="America/Chicago">Central Time (CT)</option>
+                                            <option value="America/Denver">Mountain Time (MT)</option>
+                                            <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="maintenanceMode">Maintenance Mode</label>
+                                        <select id="maintenanceMode" class="form-control form-select">
+                                            <option value="0">Disabled</option>
+                                            <option value="1">Enabled</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="btn-admin btn-admin-outline">Cancel</button>
+                                        <button type="submit" class="btn-admin">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div id="email-tab" class="tab-pane">
+                                <form id="emailSettingsForm">
+                                    <div class="form-group">
+                                        <label for="smtpHost">SMTP Host</label>
+                                        <input type="text" id="smtpHost" class="form-control" value="smtp.example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="smtpPort">SMTP Port</label>
+                                        <input type="number" id="smtpPort" class="form-control" value="587">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="smtpUsername">SMTP Username</label>
+                                        <input type="text" id="smtpUsername" class="form-control" value="admin@example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="smtpPassword">SMTP Password</label>
+                                        <input type="password" id="smtpPassword" class="form-control" placeholder="Enter password">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="emailFrom">From Email Address</label>
+                                        <input type="email" id="emailFrom" class="form-control" value="noreply@floydsdistributors.com">
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="btn-admin btn-admin-outline">Cancel</button>
+                                        <button type="submit" class="btn-admin">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div id="payment-tab" class="tab-pane">
+                                <form id="paymentSettingsForm">
+                                    <div class="form-group">
+                                        <label for="currency">Currency</label>
+                                        <select id="currency" class="form-control form-select">
+                                            <option value="USD" selected>US Dollar (USD)</option>
+                                            <option value="EUR">Euro (EUR)</option>
+                                            <option value="GBP">British Pound (GBP)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="paymentMethods">Enabled Payment Methods</label>
+                                        <div class="checkbox-group">
+                                            <label><input type="checkbox" name="paymentMethods" value="credit_card" checked> Credit Card</label>
+                                            <label><input type="checkbox" name="paymentMethods" value="paypal" checked> PayPal</label>
+                                            <label><input type="checkbox" name="paymentMethods" value="bank_transfer"> Bank Transfer</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="taxRate">Tax Rate (%)</label>
+                                        <input type="number" id="taxRate" class="form-control" value="7.5" step="0.1">
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="btn-admin btn-admin-outline">Cancel</button>
+                                        <button type="submit" class="btn-admin">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div id="security-tab" class="tab-pane">
+                                <form id="securitySettingsForm">
+                                    <div class="form-group">
+                                        <label for="passwordComplexity">Password Complexity</label>
+                                        <select id="passwordComplexity" class="form-control form-select">
+                                            <option value="low">Low (6+ characters)</option>
+                                            <option value="medium" selected>Medium (8+ characters with mix)</option>
+                                            <option value="high">High (12+ characters with special chars)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="loginAttempts">Max Failed Login Attempts</label>
+                                        <input type="number" id="loginAttempts" class="form-control" value="5">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sessionTimeout">Session Timeout (minutes)</label>
+                                        <input type="number" id="sessionTimeout" class="form-control" value="30">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="twoFactorAuth">Two-Factor Authentication</label>
+                                        <select id="twoFactorAuth" class="form-control form-select">
+                                            <option value="optional">Optional</option>
+                                            <option value="required_admin">Required for Admins</option>
+                                            <option value="required_all">Required for All Users</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="btn-admin btn-admin-outline">Cancel</button>
+                                        <button type="submit" class="btn-admin">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Audit Logs Section -->
+                <section id="audit-section" style="display: none;">
+                    <div class="admin-header">
+                        <h2><i class="fas fa-history"></i> Audit Logs</h2>
+                        <div class="header-actions">
+                            <div class="filter-group">
+                                <select id="auditActionFilter" class="filter-select">
+                                    <option value="all">All Actions</option>
+                                    <option value="login">Logins</option>
+                                    <option value="create">Creations</option>
+                                    <option value="update">Updates</option>
+                                    <option value="delete">Deletions</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <select id="auditDateFilter" class="filter-select">
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month" selected>This Month</option>
+                                    <option value="year">This Year</option>
+                                    <option value="all">All Time</option>
+                                </select>
+                            </div>
+                            <button class="btn-admin btn-admin-outline" id="exportAuditLogsBtn"><i class="fas fa-file-export"></i> Export</button>
+                        </div>
+                    </div>
+
+                    <div class="audit-logs">
+                        <div class="data-table-wrapper">
+                            <table class="data-table" id="auditTable">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Entity</th>
+                                        <th>Details</th>
+                                        <th>IP Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="auditTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Product Modal -->
+    <div class="modal-overlay" id="productModalOverlay"></div>
+    <div class="modal" id="productModal">
+        <div class="modal-header">
+            <h3><i class="fas fa-box-open"></i> Add New Product</h3>
+            <button class="close-modal" id="closeProductModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="productForm">
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="productSKU">SKU</label>
+                    <input type="text" id="productSKU" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="productPrice">Price ($)</label>
+                        <input type="number" id="productPrice" class="form-control" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="productStock">Stock Quantity</label>
+                        <input type="number" id="productStock" class="form-control" min="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Category</label>
+                    <select id="productCategory" class="form-control form-select" required>
+                        <option value="">Select a category</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="home">Home & Garden</option>
+                        <option value="sports">Sports & Outdoors</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="productImage">Product Image</label>
+                    <input type="file" id="productImage" class="form-control" accept="image/*">
+                    <div id="productImagePreviewContainer" style="display: none; margin-top: 1rem;">
+                        <img id="productImagePreview" class="product-image-preview" src="" alt="Preview">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="productStatus">Status</label>
+                    <select id="productStatus" class="form-control form-select" required>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelProductBtn">Cancel</button>
+                    <button type="submit" class="btn-admin">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Admin Modal -->
+    <div class="modal-overlay" id="adminModalOverlay"></div>
+    <div class="modal" id="adminModal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-shield"></i> Create New Admin</h3>
+            <button class="close-modal" id="closeAdminModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="adminForm">
+                <div class="form-group">
+                    <label for="adminFirstName">First Name</label>
+                    <input type="text" id="adminFirstName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminLastName">Last Name</label>
+                    <input type="text" id="adminLastName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminEmail">Email</label>
+                    <input type="email" id="adminEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">Password</label>
+                    <input type="password" id="adminPassword" class="form-control" required>
+                    <small class="text-muted">Minimum 8 characters with at least one number and one special character</small>
+                </div>
+                <div class="form-group">
+                    <label for="adminConfirmPassword">Confirm Password</label>
+                    <input type="password" id="adminConfirmPassword" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminRole">Admin Role</label>
+                    <select id="adminRole" class="form-control form-select" required>
+                        <option value="super_admin">Super Admin</option>
+                        <option value="content_admin">Content Admin</option>
+                        <option value="sales_admin">Sales Admin</option>
+                        <option value="support_admin">Support Admin</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelAdminBtn">Cancel</button>
+                    <button type="submit" class="btn-admin">Create Admin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmModalOverlay"></div>
+    <div class="modal" id="confirmModal">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Confirm Action</h3>
+            <button class="close-modal" id="closeConfirmModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage">Are you sure you want to perform this action?</p>
+            <div class="form-actions">
+                <button type="button" class="btn-admin btn-admin-outline" id="cancelConfirmBtn">Cancel</button>
+                <button type="button" class="btn-admin btn-admin-danger" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer (matches main site) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Floyd's Distributors</h3>
+                    <p>Quality products at competitive prices since 1995.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact Info</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Business Ave, City</p>
+                    <p><i class="fas fa-phone"></i> (555) 123-4567</p>
+                    <p><i class="fas fa-envelope"></i> info@floydsdistributors.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Floyd's Distributors. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Main Admin JavaScript -->
+    <script src="admin.js"></script>
+</body>
+</html>

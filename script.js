@@ -1,13 +1,46 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { 
+  initializeApp 
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { 
+  getAnalytics 
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc,
+  serverTimestamp,
+  query,
+  where,
+  addDoc,
+  orderBy,
+  onSnapshot,
+  limit
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { 
   getAuth, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updateProfile
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+// Export all needed functions
+export { 
+  app, db, auth, 
+  collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc,
+  serverTimestamp, query, where, orderBy, limit, onSnapshot, // Add onSnapshot here
+  addDoc,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  onAuthStateChanged
+};
+
 
 
 const firebaseConfig = {
@@ -15,17 +48,48 @@ const firebaseConfig = {
   authDomain: "floyds-489c8.firebaseapp.com",
   databaseURL: "https://floyds-489c8-default-rtdb.firebaseio.com",
   projectId: "floyds-489c8",
-  storageBucket: "floyds-489c8.firebasestorage.app",
+  storageBucket: "floyds-489c8.appspot.com",
   messagingSenderId: "467837659879",
   appId: "1:467837659879:web:8fde5b1862184183ac9042",
   measurementId: "G-32RKBL830G"
 };
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);  // Initialize Firestore
 const auth = getAuth(app);
+
+// ===== ADD THIS AUTH STATE OBSERVER RIGHT HERE =====
+const isLoginPage = window.location.pathname.includes('login.html');
+const publicPages = ['index.html', 'about.html', 'contact.html']; // Add any public pages
+const isPublicPage = publicPages.some(page => window.location.pathname.includes(page));
+
+console.log(`Page: ${window.location.pathname}, isLoginPage: ${isLoginPage}, isPublicPage: ${isPublicPage}`);
+
+// Auth state observer for protected pages
+if (!isLoginPage && !isPublicPage) {
+  console.log('Checking protected page access');
+  
+  const user = await new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe(); // Important to unsubscribe immediately
+      resolve(user);
+    });
+  });
+
+  if (!user) {
+    console.log("No user authenticated, redirecting to login...");
+    // Store current URL for post-login redirect
+    localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+    window.location.href = 'login.html';
+    // Stop execution of remaining code on this page
+    throw new Error("Redirecting to login");
+  }
+}
+// ===== END OF AUTH STATE OBSERVER =====
+
 
 // Auth Elements
 const authContainer = document.getElementById('authContainer');
@@ -36,11 +100,88 @@ const submitLogin = document.getElementById('submitLogin');
 const heroLoginBtn = document.getElementById('heroLoginBtn');
 const heroSignupBtn = document.getElementById('heroSignupBtn');
 
-// Show/hide auth form
-function toggleAuthForm(show = true) {
-    authContainer.style.display = show ? 'block' : 'none';
-    document.body.style.overflow = show ? 'hidden' : '';
+const headerLoginBtn = document.getElementById('headerLoginBtn');
+const headerSignupBtn = document.getElementById('headerSignupBtn');
+
+let currentUserRole = null;
+
+// Hardcoded admin credentials (for emergency access only)
+const HARDCODED_ADMINS = [
+  { email: 'floydplummer@gmail.com', password: 'floydplummer', name: 'Floyd Plummer' },
+  { email: 'oshane@gmail.com', password: 'oshaneshane0', name: 'oshane' },
+
+];
+
+const HARDCODED_DRIVERS = [
+  { email: 'errolcastillo@gmail.com', password: 'errolcastillo', name: 'Errol Castillo' },
+  { email: 'daryldavidson@gmail.com', password: 'daryldavidson', name: 'Daryl Davidson' }
+  // Add more as needed
+];
+
+async function checkHardcodedAdminOrDriver(email, password) {
+  // Only check against the hardcoded lists
+  const admin = HARDCODED_ADMINS.find(a => a.email === email && a.password === password);
+  if (admin) {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      window.location.href = 'admin.html';
+      return true;
+    } catch (error) {
+      console.error("Error signing in hardcoded admin:", error);
+      return false;
+    }
+  }
+  
+  const driver = HARDCODED_DRIVERS.find(d => d.email === email && d.password === password);
+  if (driver) {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      window.location.href = 'driver.html';
+      return true;
+    } catch (error) {
+      console.error("Error signing in hardcoded driver:", error);
+      return false;
+    }
+  }
+  
+  return false;
 }
+
+
+// Single event delegation for all auth-related buttons
+document.addEventListener('click', function(e) {
+  // Handle header login button
+  if (e.target.closest('#headerLoginBtn')) {
+    e.preventDefault();
+    showAuthModal('login');
+    return;
+  }
+  
+  // Handle header signup button
+  if (e.target.closest('#headerSignupBtn')) {
+    e.preventDefault();
+    showAuthModal('signup');
+    return;
+  }
+  
+  // Handle logout button
+  if (e.target.closest('#logoutBtn')) {
+    e.preventDefault();
+    handleLogout();
+    return;
+  }
+  
+  // Close form when clicking outside
+  // Close form when clicking outside
+if (authContainer && authContainer.style.display === 'block' && 
+    !authContainer.contains(e.target) && 
+    !e.target.closest('#headerLoginBtn') && 
+    !e.target.closest('#headerSignupBtn') &&
+    !e.target.closest('#heroLoginBtn') && 
+    !e.target.closest('#heroSignupBtn')) {
+  toggleAuthForm(false);
+}
+});
 
 // Event listeners for the new form
 if (signUpButton) signUpButton.addEventListener('click', () => {
@@ -51,25 +192,8 @@ if (signInButton) signInButton.addEventListener('click', () => {
     authContainer.classList.remove("right-panel-active");
 });
 
-if (heroLoginBtn) heroLoginBtn.addEventListener('click', () => {
-    toggleAuthForm(true);
-    authContainer.classList.remove("right-panel-active");
-});
-
-if (heroSignupBtn) heroSignupBtn.addEventListener('click', () => {
-    toggleAuthForm(true);
-    authContainer.classList.add("right-panel-active");
-});
-
-// Close form when clicking outside
-document.addEventListener('click', (e) => {
-    if (authContainer.style.display === 'block' && 
-        !authContainer.contains(e.target) && 
-        e.target !== heroLoginBtn && 
-        e.target !== heroSignupBtn) {
-        toggleAuthForm(false);
-    }
-});
+if (heroLoginBtn) heroLoginBtn.addEventListener('click', () => showAuthModal('login'));
+if (heroSignupBtn) heroSignupBtn.addEventListener('click', () => showAuthModal('signup'));
 
 // Form submissions
 if (submitLogin) submitLogin.addEventListener('click', (e) => {
@@ -82,33 +206,177 @@ if (submitSignup) submitSignup.addEventListener('click', (e) => {
     handleSignup();
 });
 
-// Updated handleLogin and handleSignup functions
 async function handleLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
+  console.log('Login initiated');
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const submitBtn = document.getElementById('submitLogin');
+  
+  if (!email || !password) {
+    showAuthError('Please fill in all fields');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Signing in...`;
+  
+  try {
+    // 1. Check hardcoded admins/drivers first
+    const hardcodedUser = HARDCODED_ADMINS.find(a => a.email === email && a.password === password) || 
+                         HARDCODED_DRIVERS.find(d => d.email === email && d.password === password);
     
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-        toggleAuthForm(false);
-    } catch (error) {
-        alert(getAuthErrorMessage(error.code));
-        console.error('Login error:', error);
+    if (hardcodedUser) {
+      await signInWithEmailAndPassword(auth, email, password);
+      return;
     }
+
+    // 2. Regular Firebase authentication
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    
+    // 3. Get user document
+    const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+    
+    if (!userDoc.exists()) {
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        email: email,
+        name: email.split('@')[0],
+        role: 'customer',
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp(),
+        status: 'active'
+      });
+    } else {
+      await updateDoc(doc(db, "users", userCredential.user.uid), {
+        lastLogin: serverTimestamp()
+      });
+    }
+    
+    // Get the role and redirect
+    const role = userDoc.exists() ? userDoc.data().role : 'customer';
+    redirectBasedOnRole(role);
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    showAuthError(getAuthErrorMessage(error.code));
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Sign In';
+  }
+}
+
+// Add this helper function
+function updateUserUI(userName) {
+  const authButtons = document.getElementById('authButtons');
+  if (authButtons) {
+    authButtons.innerHTML = `
+      <span class="welcome-message">Welcome, ${userName}</span>
+      <button id="logoutBtn" class="auth-btn">Logout</button>
+    `;
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+  }
+  
+  // Also update any other headers that might exist
+  document.querySelectorAll('.auth-buttons').forEach(container => {
+    if (container.id !== 'authButtons') {
+      container.innerHTML = `
+        <span class="welcome-message">Welcome, ${userName}</span>
+        <button class="auth-btn logout-btn">Logout</button>
+      `;
+      container.querySelector('.logout-btn').addEventListener('click', handleLogout);
+    }
+  });
+}
+
+function resetAuthUI() {
+  const authButtons = document.getElementById('authButtons');
+  if (authButtons) {
+    authButtons.innerHTML = `
+      <a href="login.html" class="auth-btn">Login</a>
+      <a href="login.html?signup=true" class="auth-btn auth-btn-primary">Sign Up</a>
+    `;
+  }
+  
+  // Reset any other headers
+  document.querySelectorAll('.auth-buttons').forEach(container => {
+    if (container.id !== 'authButtons') {
+      container.innerHTML = `
+        <a href="login.html" class="auth-btn">Login</a>
+        <a href="login.html?signup=true" class="auth-btn auth-btn-primary">Sign Up</a>
+      `;
+    }
+  });
 }
 
 async function handleSignup() {
-    const name = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
+  console.log('Signup initiated');
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const submitBtn = document.getElementById('submitSignup');
+  const role = document.getElementById('signupRole')?.value || 'customer';
+
+  if (!name || !email || !password) {
+    showAuthError('Please fill in all fields');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Creating account...`;
+
+  try {
+    // Create auth account
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
-    try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        console.log('New user created:', name, email);
-        toggleAuthForm(false);
-    } catch (error) {
-        alert(getAuthErrorMessage(error.code));
-        console.error('Signup error:', error);
-    }
+    // Update profile with name
+    await updateProfile(userCredential.user, {
+      displayName: name
+    });
+
+    // Create user document with customer role
+    await setDoc(doc(db, "users", userCredential.user.uid), {
+      name: name,
+      email: email,
+      role: role,
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp(),
+      status: 'active'
+    });
+
+    // Update UI and redirect
+    updateUserUI(name);
+    redirectBasedOnRole(role);
+    
+  } catch (error) {
+    console.error('Signup error:', error);
+    showAuthError(getAuthErrorMessage(error.code));
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Sign Up';
+  }
+}
+
+// Add these with your other utility functions
+export async function getUserRole(uid) {
+  const userDoc = await getDoc(doc(db, "users", uid));
+  return userDoc.exists() ? userDoc.data().role : null;
+}
+
+export async function isUserAdmin() {
+  const user = auth.currentUser;
+  if (!user) return false;
+  return await getUserRole(user.uid) === 'admin';
+}
+
+async function handlePasswordReset() {
+  const email = prompt('Please enter your email address for password reset:');
+  if (!email) return;
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert('Password reset email sent. Please check your inbox.');
+  } catch (error) {
+    alert(getAuthErrorMessage(error.code));
+  }
 }
 
 function getAuthErrorMessage(code) {
@@ -121,35 +389,322 @@ function getAuthErrorMessage(code) {
             return 'No account found with this email';
         case 'auth/wrong-password':
             return 'Incorrect password';
-        case 'auth/email-already-in-use':
-            return 'Email already in use';
-        case 'auth/weak-password':
-            return 'Password should be at least 6 characters';
+        case 'auth/too-many-requests':
+            return 'Too many attempts. Account temporarily locked.';
         default:
-            return 'An error occurred. Please try again.';
+            return 'Login failed. Please try again.';
+    }
+}
+// Admin Signup Functionality
+function initAdminSignup() {
+    const adminSignupBtn = document.getElementById('adminSignupBtn'); // You'll need to add this button somewhere
+    const adminSignupOverlay = document.getElementById('adminSignupOverlay');
+    const adminSignupContainer = document.getElementById('adminSignupContainer') || 
+                                document.getElementById('adminSignupModal');
+    const closeAdminSignup = document.getElementById('closeAdminSignup') || 
+                           document.querySelector('#adminSignupContainer .close-auth') ||
+                           document.querySelector('#adminSignupModal .close-modal');
+    
+    // Show admin signup form (you can trigger this from a secret button/link)
+    if (adminSignupBtn) {
+        adminSignupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            adminSignupOverlay.style.display = 'block';
+            adminSignupContainer.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    
+    // Close admin signup form
+    if (closeAdminSignup) {
+        closeAdminSignup.addEventListener('click', () => {
+            adminSignupOverlay.style.display = 'none';
+            adminSignupContainer.style.display = 'none';
+            document.body.style.overflow = '';
+        });
+    }
+    
+    // Handle admin signup form submission
+    const adminSignupForm = document.getElementById('adminSignupForm');
+    if (adminSignupForm) {
+        adminSignupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('adminName').value.trim();
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            const role = document.getElementById('adminRole').value;
+            
+            if (!name || !email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                
+                // Update user profile
+                await updateProfile(userCredential.user, {
+                    displayName: name
+                });
+                
+                // Create user document with admin role
+                await setDoc(doc(db, "users", userCredential.user.uid), {
+                    name: name,
+                    email: email,
+                    role: role,
+                    createdAt: serverTimestamp(),
+                    lastLogin: serverTimestamp(),
+                    isAdmin: true,
+                    adminApproved: true // You might want to set this to false and require approval
+                });
+                
+                // Close the form
+                adminSignupOverlay.style.display = 'none';
+                adminSignupContainer.style.display = 'none';
+                document.body.style.overflow = '';
+                
+                alert('Admin account created successfully!');
+                
+                // Clear form
+                adminSignupForm.reset();
+                
+            } catch (error) {
+                console.error('Admin signup error:', error);
+                alert(getAuthErrorMessage(error.code));
+            }
+        });
     }
 }
 
-// Auth State Observer
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // User is signed in
-        console.log('User logged in:', user.email);
-    } else {
-        // User is signed out
-        console.log('User logged out');
+export async function ensureAdminStatus() {
+  console.log('Checking admin status');
+  const user = auth.currentUser;
+  
+  if (!user) {
+    console.log("No user logged in");
+    return false;
+  }
+  
+  console.log("Current user:", user.email);
+  
+  try {
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    
+    if (!userDoc.exists()) {
+      console.log("User document doesn't exist");
+      return false;
     }
+    
+    const userData = userDoc.data();
+    console.log("User data:", userData);
+    
+    const isAdmin = userData.role === 'admin';
+    console.log("Admin status:", isAdmin);
+    return isAdmin;
+  } catch (error) {
+    console.error("Admin check error:", error);
+    return false;
+  }
+}
+
+let authInitialized = false;
+
+onAuthStateChanged(auth, async (user) => {
+  if (!authInitialized) {
+    authInitialized = true;
+    return; // Skip first automatic fire
+  }
+
+  console.log('Auth state changed. User:', user ? user.uid : 'none');
+  
+  // Skip auth checks if we're on login page
+  if (isLoginPage) return;
+  
+  if (user) {
+    console.log('User authenticated:', user.email);
+    
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      let role = 'customer';
+      
+      if (userDoc.exists()) {
+        role = userDoc.data().role || 'customer';
+      } else {
+        // Create new customer document
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          name: user.displayName || user.email.split('@')[0],
+          role: 'customer',
+          createdAt: serverTimestamp(),
+          lastLogin: serverTimestamp(),
+          status: 'active'
+        });
+      }
+
+      // Only redirect if we have a returnUrl
+      const returnUrl = localStorage.getItem('returnUrl');
+      if (returnUrl) {
+        localStorage.removeItem('returnUrl');
+        window.location.href = returnUrl;
+      }
+    } catch (error) {
+      console.error("Error in auth observer:", error);
+    }
+  } else {
+    // Only redirect to login if we're not on a public page
+    const currentPage = window.location.pathname.split('/').pop();
+    if (!publicPages.includes(currentPage)) {
+      localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+      window.location.href = 'login.html';
+    }
+  }
 });
 
+function redirectBasedOnRole(role) {
+  const returnUrl = localStorage.getItem('returnUrl');
+  localStorage.removeItem('returnUrl');
+  
+  console.log(`Redirecting based on role: ${role}`);
+  
+  switch(role) {
+    case 'admin':
+      console.log('Redirecting to admin.html');
+      window.location.href = returnUrl || 'admin.html';
+      break;
+    case 'driver':
+      console.log('Redirecting to driver.html');
+      window.location.href = returnUrl || 'driver.html';
+      break;
+    default:
+      const redirectUrl = returnUrl || 'index.html';
+      console.log(`Redirecting to: ${redirectUrl}`);
+      window.location.href = redirectUrl;
+  }
+}
+
+function showAuthError(message, container = null) {
+  // Remove any existing error messages
+  const errorContainer = container || document.querySelector('.auth-container');
+  errorContainer.querySelectorAll('.auth-error').forEach(el => el.remove());
+  
+  // Create and display new error message
+  const errorElement = document.createElement('div');
+  errorElement.className = 'auth-error';
+  errorElement.style.color = '#ff6b6b';
+  errorElement.style.margin = '1rem 0';
+  errorElement.style.textAlign = 'center';
+  errorElement.textContent = message;
+  
+  // Insert after the submit button or at the end of the form
+  const submitBtn = errorContainer.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.insertAdjacentElement('afterend', errorElement);
+  } else {
+    errorContainer.appendChild(errorElement);
+  }
+}
+
+
+async function handleLogout() {
+  try {
+    await signOut(auth);
+    resetAuthUI();
+    // Optional: Redirect to home page after logout
+    window.location.href = 'index.html';
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+}
+
+async function checkAuthState() {
+  const auth = getAuth();
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // User is signed in
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const userName = userDoc.exists() ? userDoc.data().name : user.email;
+      updateUserUI(userName);
+    } else {
+      // User is signed out
+      resetAuthUI();
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    
+    if (!window.location.pathname.includes('login.html')) {
+        initCartFunctionality();
+        initProductSlider();
+        checkAuthState();
+    }
+
+    if (!window.location.pathname.includes('login.html')) {
+        initCartFunctionality();
+        initProductSlider();
+    }
+
+
+
+    const forgotPasswordLink = document.getElementById('forgotPassword');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            handlePasswordReset();
+        });
+    }
+
     // Initialize all functionality
+    initCartFunctionality();
     initMobileMenu();
     initDropdownMenu();
-    initCartFunctionality();
     initSearchFunctionality();
     initProductSlider();
     initProductDetailTiles();
     initQuickView();
+    initAdminSignup();
+    debugFirestoreConnection();
+
+    const loginEmail = document.getElementById('loginEmail');
+    const signupEmail = document.getElementById('signupEmail');
+    
+    if (loginEmail) {
+        loginEmail.addEventListener('blur', function() {
+            if (this.value && !validateEmail(this.value)) {
+                this.classList.add('invalid');
+            } else {
+                this.classList.remove('invalid');
+            }
+        });
+    }
+    
+    if (signupEmail) {
+        signupEmail.addEventListener('blur', function() {
+            if (this.value && !validateEmail(this.value)) {
+                this.classList.add('invalid');
+            } else {
+                this.classList.remove('invalid');
+            }
+        });
+    }
+
+    const loginForm = document.querySelector('.sign-in-container form');
+    const signupForm = document.querySelector('.sign-up-container form');
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleLogin();
+        });
+    }
+    
+    if (signupForm) {
+        signupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleSignup();
+        });
+    }
 });
 
 /*****************************
@@ -209,31 +764,50 @@ function initCartFunctionality() {
     const closeCart = document.querySelector('.close-cart');
     const checkoutBtn = document.querySelector('.checkout-btn');
 
+    // Make sure these elements exist
+    if (!cartIcon || !cartSidebar || !cartOverlay) {
+        console.error('Cart elements not found!');
+        return;
+    }
+
     // Initialize cart from storage
     loadCartFromStorage();
     updateAllCartCounts();
 
-    // Event Listeners
+    // Event Listeners - Modified to ensure proper event delegation
     document.addEventListener('click', function(e) {
         // Handle clicks on cart icon or its children
         if (e.target.closest('.cart-icon, .cart-icon-symbol, .cart-count')) {
+            e.preventDefault();
             toggleCart();
+            return;
+        }
+        
+        // Handle remove item clicks
+        if (e.target.closest('.remove-item')) {
+            const productId = e.target.closest('.remove-item').dataset.id;
+            removeFromCart(productId);
         }
     });
+    
     if (cartOverlay) cartOverlay.addEventListener('click', toggleCart);
     if (closeCart) closeCart.addEventListener('click', toggleCart);
     
     function toggleCart() {
+        const cartSidebar = document.querySelector('.cart-sidebar');
+        const cartOverlay = document.querySelector('.cart-overlay');
+        
+        if (!cartSidebar || !cartOverlay) return;
+        
         cartSidebar.classList.toggle('active');
         cartOverlay.classList.toggle('active');
         
-        // Update cart UI when opening
         if (cartSidebar.classList.contains('active')) {
             updateCartUI();
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
         }
-        
-        // Prevent body scroll when cart is open
-        document.body.style.overflow = cartSidebar.classList.contains('active') ? 'hidden' : '';
     }
 
     if (checkoutBtn) {
@@ -257,15 +831,15 @@ function initCartFunctionality() {
         
         if (existingItem) {
             if (existingItem.quantity >= product.stock) {
-            alert(`Only ${product.stock} available in stock`);
-            return;
+                alert(`Only ${product.stock} available in stock`);
+                return;
             }
             existingItem.quantity += 1;
         } else {
             cart.push({
-            ...product,
-            quantity: 1
-        });
+                ...product,
+                quantity: 1
+            });
         }
         
         updateAllCartCounts();
@@ -273,10 +847,12 @@ function initCartFunctionality() {
         
         // Visual feedback
         const cartIcon = document.querySelector('.cart-icon');
-        cartIcon.classList.add('added');
-        setTimeout(() => {
-            cartIcon.classList.remove('added');
-        }, 500);
+        if (cartIcon) {
+            cartIcon.classList.add('added');
+            setTimeout(() => {
+                cartIcon.classList.remove('added');
+            }, 500);
+        }
     }
 
     function updateAllCartCounts() {
@@ -291,10 +867,7 @@ function initCartFunctionality() {
         cart = cart.filter(item => item.id !== productId);
         updateAllCartCounts();
         saveCartToStorage();
-
-        if (typeof showRemovedFromCartFeedback === 'function') {
-            showRemovedFromCartFeedback(productId);
-        }
+        updateCartUI();
     }
 
     function updateCartUI() {
@@ -332,12 +905,6 @@ function initCartFunctionality() {
         
         cartCountElement.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
         totalPriceElement.textContent = `$${total.toFixed(2)}`;
-        
-        document.querySelectorAll('.remove-item').forEach(button => {
-            button.addEventListener('click', (e) => {
-                removeFromCart(e.target.dataset.id);
-            });
-        });
     }
 
     function saveCartToStorage() {
@@ -353,10 +920,7 @@ function initCartFunctionality() {
     }
 
     function initiateCheckout() {
-        alert('Proceeding to checkout!');
-        console.log('Checkout items:', cart);
-        // In a real implementation, redirect to checkout page
-        // window.location.href = 'checkout.html';
+        window.location.href = 'checkout.html';
     }
 
     // Make functions available globally
@@ -378,6 +942,13 @@ function filterProducts(query) {
         }
     });
 }
+
+// Add to script.js
+function validateEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
 
 /*****************************
  * SEARCH FUNCTIONALITY
@@ -492,13 +1063,31 @@ function initSearchSuggestions() {
 }
 
 async function fetchProducts() {
-  const productsCol = collection(db, 'products');
-  const productSnapshot = await getDocs(productsCol);
-  const productList = productSnapshot.docs.map(doc => {
-    return { id: doc.id, ...doc.data() };
-  });
-  return productList;
+  try {
+    const productsCol = collection(db, 'products');
+    const productSnapshot = await getDocs(productsCol);
+    
+    return productSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.name || 'Unnamed Product',
+        price: `$${data.price || '0.00'}`, // Format price
+        description: data.description || 'No description',
+        image: data.image || 'https://via.placeholder.com/300',
+        category: data.category || 'uncategorized',
+        featured: data.featured || false,
+        stock: data.stock || 0
+      };
+    });
+  } catch (error) {
+    console.error("Firestore error:", error);
+    return []; // Return empty array if error
+  }
 }
+
+const testProducts = await fetchProducts();
+console.log("Firestore products:", testProducts);
 
 function performSearch(query) {
     // Store the search query in localStorage
@@ -520,30 +1109,89 @@ function handleProductsPageSearch(query) {
     }
 }
 
+async function debugFirestoreConnection() {
+  try {
+    const testDoc = await getDoc(doc(db, "test", "test"));
+    console.log("Firestore connection test:", testDoc.exists() ? "Success" : "Test doc doesn't exist");
+    
+    const productsCol = collection(db, 'products');
+    const productSnapshot = await getDocs(productsCol);
+    console.log("Products collection size:", productSnapshot.size);
+    
+    productSnapshot.forEach((doc) => {
+      console.log(`Product ${doc.id}:`, doc.data());
+    });
+  } catch (error) {
+    console.error("Firestore debug error:", error);
+  }
+}
+
 /*****************************
  * PRODUCT SLIDER FUNCTIONALITY
  *****************************/
-function initProductSlider() {
-    const sliderTrack = document.querySelector('.slider-track');
-    if (!sliderTrack) return;
-    
-    // Sample products data
-    const products = [
-        { id: 1, name: "Eco-Friendly Boxes", price: "$12.99", description: "Biodegradable food boxes", image: "images/eco-box-large.png" },
-        { id: 2, name: "Compostable Bowls", price: "$8.99", description: "Sturdy compostable bowls", image: "images/compostable-bowls.png" },
-        { id: 3, name: "Recyclable Trays", price: "$15.99", description: "Multi-compartment trays", image: "images/recyclable-trays.png" },
-        { id: 4, name: "Paper Bags", price: "$5.99", description: "Durable paper bags", image: "images/paper-bags.png" },
-        { id: 5, name: "Eco-Cups", price: "$7.99", description: "Recyclable cups", image: "images/eco-cups.png" },
-        { id: 6, name: "Sustainable Cutlery", price: "$9.99", description: "Compostable utensils", image: "images/sustainable-cutlery.png" },
-        { id: 7, name: "Eco-Straws", price: "$4.99", description: "Biodegradable straws", image: "images/eco-straws.png" }
-    ];
+async function initProductSlider() {
+    console.log("Initializing product slider...");
 
+    const sliderTrack = document.querySelector('.slider-track');
+    if (!sliderTrack) {
+        console.error("Slider track element not found");
+        return;
+    }
+
+    // Show loading state
+    sliderTrack.innerHTML = `
+        <div class="loading-placeholder">
+            <div class="loading-spinner large"></div>
+            <p>Loading products...</p>
+        </div>
+    `;
+    console.log("Showing loading state");
+
+    let products = [];
+    try {
+        console.log("Fetching products from Firestore...");
+        // First try to fetch from Firestore
+        products = await fetchProducts();
+        console.log("Products fetched:", products);
+        
+        // If no products from Firestore, use fallback
+        if (products.length === 0) {
+            console.log("Using fallback products");
+            products = [
+                { id: 1, name: "Eco-Friendly Boxes", price: "$12.99", description: "Biodegradable food boxes", image: "images/eco-box-large.png" },
+                { id: 2, name: "Compostable Bowls", price: "$8.99", description: "Sturdy compostable bowls", image: "images/compostable-bowls.png" },
+                { id: 3, name: "Recyclable Trays", price: "$15.99", description: "Multi-compartment trays", image: "images/recyclable-trays.png" },
+                { id: 4, name: "Paper Bags", price: "$5.99", description: "Durable paper bags", image: "images/paper-bags.png" },
+                { id: 5, name: "Eco-Cups", price: "$7.99", description: "Recyclable cups", image: "images/eco-cups.png" },
+                { id: 6, name: "Sustainable Cutlery", price: "$9.99", description: "Compostable utensils", image: "images/sustainable-cutlery.png" }
+            ];
+            console.log("Using fallback products due to error");
+        }
+    } catch (error) {
+        console.error('Error loading products:', error);
+        // Use fallback products if Firestore fails
+        products = [
+            { id: 1, name: "Eco-Friendly Boxes", price: "$12.99", description: "Biodegradable food boxes", image: "images/eco-box-large.png" },
+            { id: 2, name: "Compostable Bowls", price: "$8.99", description: "Sturdy compostable bowls", image: "images/compostable-bowls.png" },
+            { id: 3, name: "Recyclable Trays", price: "$15.99", description: "Multi-compartment trays", image: "images/recyclable-trays.png" },
+            { id: 4, name: "Paper Bags", price: "$5.99", description: "Durable paper bags", image: "images/paper-bags.png" },
+            { id: 5, name: "Eco-Cups", price: "$7.99", description: "Recyclable cups", image: "images/eco-cups.png" },
+            { id: 6, name: "Sustainable Cutlery", price: "$9.99", description: "Compostable utensils", image: "images/sustainable-cutlery.png" }
+        ];
+        console.log("Using fallback products due to error");
+    }
+
+    // Clear loading state
+    sliderTrack.innerHTML = '';
+    console.log("Creating product cards");
+    
     // Create product cards
-    createProductCards();
+    createProductCards(products, sliderTrack);
+    console.log("Product cards created");
 
     // Animation variables
     let animationId;
-    let speed = 0.4;
+    let speed = 0.1;
     let position = 0;
     let isPaused = false;
     let hoverPauseTimeout;
@@ -573,55 +1221,7 @@ function initProductSlider() {
     sliderTrack.addEventListener('mouseenter', originalMouseEnter);
     sliderTrack.addEventListener('mouseleave', originalMouseLeave);
 
-    // Functions
-    function createProductCards() {
-        const duplicatedProducts = [...products, ...products, ...products];
-    
-        duplicatedProducts.forEach((product) => {
-            const card = document.createElement('div');
-            card.classList.add('product-card');
-            card.dataset.id = product.id;
-            card.innerHTML = `
-                <div class="card-header">
-                    <h3>${product.name}</h3>
-                    <img src="${product.image}" alt="${product.name}" class="product-image">
-                </div>
-                <div class="card-body">
-                    <p class="price">${product.price}</p>
-                    <p class="description">${product.description}</p>
-                    <button class="view-btn">View Details</button>
-                    <button class="card-add-to-cart">Add to Cart</button>
-                </div>
-            `;
-            sliderTrack.appendChild(card);
-
-            card.querySelector('.view-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                showProductDetail(product);
-            });
-        
-            // Add click handler for product detail
-            card.addEventListener('click', function(e) {
-                if (!e.target.closest('.card-add-to-cart')) {
-                    showProductDetail(product);
-                }
-            });
-            
-            // Add to cart functionality
-            card.querySelector('.card-add-to-cart').addEventListener('click', (e) => {
-                e.stopPropagation();
-                addToCart(product);
-                
-                // Visual feedback
-                const btn = e.target;
-                btn.textContent = "Added!";
-                setTimeout(() => {
-                    btn.textContent = "Add to Cart";
-                }, 2000);
-            });
-        });
-    }
-
+    // Animation function
     function animate() {
         if (!isPaused && !isDragging) {
             position -= speed;
@@ -635,6 +1235,7 @@ function initProductSlider() {
         animationId = requestAnimationFrame(animate);
     }
 
+    // Event handler functions
     function handleMouseDown(e) {
         isDragging = true;
         startX = e.pageX - sliderTrack.offsetLeft;
@@ -726,6 +1327,68 @@ function initProductSlider() {
     });
 }
 
+function createProductCards(products, sliderTrack) {
+    console.log(`Creating ${products.length} product cards`); // Debug log
+
+
+    if (!products || !Array.isArray(products) || products.length === 0) {
+        sliderTrack.innerHTML = '<div class="no-products">No products available</div>';
+        return;
+    }
+
+    sliderTrack.innerHTML = "";
+    const duplicatedProducts = [...products, ...products, ...products];
+    console.log(`Displaying ${duplicatedProducts.length} cards (with duplication)`); // Debug log
+
+
+    duplicatedProducts.forEach((product) => {
+        const card = document.createElement('div');
+        card.classList.add('product-card');
+        card.dataset.id = product.id;
+        card.innerHTML = `
+            <div class="card-header">
+                <h3>${product.name}</h3>
+                <img src="${product.image}" alt="${product.name}" class="product-image">
+            </div>
+            <div class="card-body">
+                <p class="price">${product.price}</p>
+                <p class="description">${product.description}</p>
+                <button class="view-btn">View Details</button>
+                <button class="card-add-to-cart">Add to Cart</button>
+            </div>
+        `;
+        sliderTrack.appendChild(card);
+
+        console.log(`Created card for product: ${product.name}`); // Debug log
+
+        card.querySelector('.view-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            showProductDetail(product);
+        });
+    
+        // Add click handler for product detail
+        card.addEventListener('click', function(e) {
+            if (!e.target.closest('.card-add-to-cart')) {
+                showProductDetail(product);
+            }
+        });
+        
+        // Add to cart functionality
+        card.querySelector('.card-add-to-cart').addEventListener('click', (e) => {
+            e.stopPropagation();
+            addToCart(product);
+            
+            // Visual feedback
+            const btn = e.target;
+            btn.textContent = "Added!";
+            setTimeout(() => {
+                btn.textContent = "Add to Cart";
+            }, 2000);
+        });
+    });
+}
+
+
 /*****************************
  * PRODUCT DETAIL TILES
  *****************************/
@@ -760,11 +1423,12 @@ function initProductDetailTiles() {
         }
     });
 
-    window.showProductDetail = function(product) {
-    // Create overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'tile-overlay active';
-        document.body.appendChild(overlay);
+    async function showProductDetail(product) {
+        // If product is just an ID, fetch the full details
+        if (typeof product === 'string') {
+            product = await getProductById(product);
+            if (!product) return;
+        }
         
         // Create detail tile
         const detailTile = document.createElement('div');
@@ -908,23 +1572,23 @@ function initQuickView() {
         });
     });
     
-    function showQuickView(productId) {
-        // In a real implementation, fetch product data
-        const product = getProductById(productId);
-        
+    async function showQuickView(productId) {
+        const product = await getProductById(productId);
+        if (!product) return;
+
         quickViewModal.innerHTML = `
             <div class="quick-view-content">
-                <span class="close-quick-view">×</span>
-                <div class="quick-view-image">
-                    <img src="${product.image}" alt="${product.name}">
-                </div>
-                <div class="quick-view-info">
-                    <h3>${product.name}</h3>
-                    <p class="price">${product.price}</p>
-                    <p>${product.description}</p>
-                    <button class="btn add-to-cart">Add to Cart</button>
-                    <a href="products.html" class="btn btn-outline">View Full Details</a>
-                </div>
+            <span class="close-quick-view">×</span>
+            <div class="quick-view-image">
+                <img src="${product.image}" alt="${product.name}">
+            </div>
+            <div class="quick-view-info">
+                <h3>${product.name}</h3>
+                <p class="price">${product.price}</p>
+                <p>${product.description}</p>
+                <button class="btn add-to-cart">Add to Cart</button>
+                <a href="product-detail.html?id=${product.id}" class="btn btn-outline">View Full Details</a>
+            </div>
             </div>
         `;
         
@@ -940,15 +1604,44 @@ function initQuickView() {
             quickViewModal.style.display = 'none';
         });
     }
+
     
-    function getProductById(id) {
-        // Mock function - replace with real data fetching
-        return {
-            id: id,
-            name: "Sample Product",
-            price: "$9.99",
-            description: "This is a sample product description.",
-            image: "images/sample-product.png"
-        };
+    async function getProductById(id) {
+        try {
+            const productRef = doc(db, 'products', id);
+            const productSnap = await getDoc(productRef);
+            
+            if (productSnap.exists()) {
+            return { id: productSnap.id, ...productSnap.data() };
+            } else {
+            console.log('No such product!');
+            return null;
+            }
+        } catch (error) {
+            console.error('Error getting product:', error);
+            return null;
+        }
     }
 }
+
+async function handleUserRedirect(role) {
+    const returnUrl = localStorage.getItem('returnUrl');
+    localStorage.removeItem('returnUrl');
+
+    switch(role) {
+        case 'admin':
+            window.location.href = 'admin.html';
+            break;
+        case 'driver':
+            window.location.href = 'driver.html';
+            break;
+        default:
+            window.location.href = returnUrl || 'index.html';
+    }
+}
+
+
+
+console.log("DOM fully loaded, initializing functions...");
+initCartFunctionality();
+initProductSlider();

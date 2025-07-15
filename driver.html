@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Portal | Floyd's Distributors</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="driver.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="driver-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="driver-profile">
+                <div class="driver-avatar" id="driverAvatar">JD</div>
+                <h3 class="driver-name" id="driverName">John Driver</h3>
+                <div class="driver-vehicle" id="driverVehicle">Van #FD-7892</div>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-section="deliveries">
+                    <i class="fas fa-truck"></i>
+                    Daily Deliveries
+                </a>
+                <a href="#" class="menu-item" data-section="schedule">
+                    <i class="fas fa-calendar-alt"></i>
+                    Schedule
+                </a>
+                <a href="#" class="menu-item" data-section="vehicle">
+                    <i class="fas fa-truck-pickup"></i>
+                    Vehicle Info
+                </a>
+                <a href="#" class="menu-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Deliveries Section -->
+            <div id="deliveriesSection" class="content-section active">
+                <h1>Daily Deliveries</h1>
+                <div class="deliveries-container">
+                    <!-- Delivery Form -->
+                    <div class="delivery-form-container">
+                        <h2>Add New Delivery</h2>
+                        <form id="deliveryForm">
+                            <div class="form-group">
+                                <label for="customerName">Customer Name</label>
+                                <input type="text" id="customerName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="deliveryAddress">Delivery Address</label>
+                                <input type="text" id="deliveryAddress" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="deliveryTime">Estimated Delivery Time</label>
+                                <input type="time" id="deliveryTime" required>
+                            </div>
+                            <div class="form-group">
+                                <label>GPS Location</label>
+                                <div class="map-container" id="mapContainer" style="display: none;">
+                                    <div id="map" style="height: 300px; width: 100%;"></div>
+                                </div>
+                                <div class="gps-group">
+                                    <input type="text" id="gpsCoordinates" readonly>
+                                    <button type="button" id="getLocationBtn" class="gps-btn">
+                                        <i class="fas fa-map-marker-alt"></i> Get Location
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="reset" class="cancel-btn">Clear</button>
+                                <button type="submit" class="submit-btn">Save Delivery</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Deliveries List -->
+                    <div class="deliveries-list">
+                        <h2>Today's Deliveries</h2>
+                        <div id="deliveriesList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Section -->
+            <div id="scheduleSection" class="content-section">
+                <h1>Delivery Schedule</h1>
+                <p>Your weekly schedule will appear here.</p>
+            </div>
+
+            <!-- Vehicle Info Section -->
+            <div id="vehicleSection" class="content-section">
+                <h1>Vehicle Information</h1>
+                <div id="vehicleInfo"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Change this line at the bottom of driver.html -->
+    <script type="module" src="driver.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</body>
+</html>

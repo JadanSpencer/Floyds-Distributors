@@ -15,8 +15,13 @@ import {
     createUserWithEmailAndPassword,
     updateProfile,
     ensureAdminStatus,
-    onAuthStateChanged
+    onAuthStateChanged,
+    addDoc,
+    orderBy,
+    limit
 } from './script.js';
+
+console.log("✅ admin.js is now running");
 
 // DOM Elements
 const lastUpdated = document.getElementById('lastUpdated');
@@ -30,7 +35,7 @@ const usersTableBody = document.getElementById('usersTableBody');
 const ordersTableBody = document.getElementById('ordersTableBody');
 
 // Initialize admin panel
-document.addEventListener('DOMContentLoaded', async () => {
+/*document.addEventListener('DOMContentLoaded', async () => {
   console.log('Admin panel loading');
   document.body.classList.add('loading');
 
@@ -48,6 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     console.log("✅ Admin access granted");
+    console.log('loadDashboardData running...');
     initAdminPanel();
     await Promise.all([
       loadDashboardData(),
@@ -66,7 +72,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   } finally {
     document.body.classList.remove('loading');
   }
-});
+});*/
+
+(async () => {
+    console.log('✅ admin.js IIFE starting, DOM is already loaded');
+    
+    try {
+        console.log('✅ Test log BEFORE admin check');
+
+        const isAdmin = true; // override for testing
+        console.log('✅ Test log AFTER admin check');
+
+        initAdminPanel();
+        console.log('✅ Test log AFTER initAdminPanel');
+
+        await Promise.all([
+            loadDashboardData(),
+            loadProducts(),
+            loadUsers(),
+            loadOrders()
+        ]);
+        console.log('✅ Test log AFTER loading data');
+
+        setupAdminNavigation();
+        setupModals();
+        setupEventListeners();
+        console.log('✅ All setup done');
+    } catch (error) {
+        console.error('❌ Error during admin initialization:', error);
+    }
+})();
+
+
 
 // Initialize admin panel components
 function initAdminPanel() {
@@ -77,6 +114,7 @@ function initAdminPanel() {
   // Initialize user search
   initUserSearch();
   
+  initProductSearch();
   // Initialize order filter
   initOrderFilter();
 }
@@ -89,14 +127,28 @@ function updateLastUpdated() {
 
 // Load dashboard data
 async function loadDashboardData() {
+    console.log('✅ loadDashboardData started');
+
     try {
-        // Get counts from Firestore
-        const usersCount = await getCollectionCount('users');
-        const productsCount = await getCollectionCount('products');
+        //Check DOM Elements
+        console.log('totaUsers element: ', totalUsers);
+        console.log('totalProducts element: ', totalProducts);
+        console.log('recentOrders element: ', recentOrders);
+        console.log('totalRevenue element: ', totalRevenue);
         
+        // Get counts from Firestore
+        console.log('Fetching users count...');
+        const usersCount = await getCollectionCount('users');
+        console.log('Users count fetched: ', usersCount);
+
+        console.log('Fetch products count...');
+        const productsCount = await getCollectionCount('products');
+        console.log('Products count fetched: ', productsCount);
+                
         // Get recent orders (last 7 days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        console.log('Fetching recent orders since: ', sevenDaysAgo);
         
         const ordersQuery = query(
             collection(db, "orders"),
@@ -105,33 +157,93 @@ async function loadDashboardData() {
         );
         
         const ordersSnapshot = await getDocs(ordersQuery);
-        const recentOrdersCount = ordersSnapshot.size;
         
-        // Calculate revenue
+        let recentOrdersCount = 0;
         let revenue = 0;
-        ordersSnapshot.forEach(doc => {
-            revenue += doc.data().totalAmount || 0;
-        });
+        
+        try {
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            
+            const ordersQuery = query(
+                collection(db, "orders"),
+                where("createdAt", ">=", sevenDaysAgo),
+                where("status", "in", ["completed", "delivered"])
+            );
+            
+            const ordersSnapshot = await getDocs(ordersQuery);
+            recentOrdersCount = ordersSnapshot.size;
+            
+            ordersSnapshot.forEach(doc => {
+                const amount = parseFloat(doc.data().totalAmount) || 0;
+                revenue += amount;
+            });
+        } catch (error) {
+            console.error("Error loading orders:", error);
+            showToast("Error loading recent orders data", "error");
+        }
         
         // Update dashboard stats
-        totalUsers.textContent = usersCount;
-        totalProducts.textContent = productsCount;
-        recentOrders.textContent = recentOrdersCount;
-        totalRevenue.textContent = `$${revenue.toFixed(2)}`;
+        if (totalUsers) totalUsers.textContent = usersCount;
+        if (totalProducts) totalProducts.textContent = productsCount;
+        if (recentOrders) recentOrders.textContent = recentOrdersCount;
+        if (totalRevenue) totalRevenue.textContent = `$${revenue.toFixed(2)}`;
         
         // Load recent activity
         await loadRecentActivity();
-        
     } catch (error) {
         console.error("Error loading dashboard data:", error);
-        alert("Error loading dashboard data. Please try again.");
+        showToast("Error loading dashboard data", "error");
     }
 }
 
 // Get count of documents in a collection
 async function getCollectionCount(collectionName) {
-    const snapshot = await getDocs(collection(db, collectionName));
-    return snapshot.size;
+    try {
+        console.log(`Attempting to count documents in ${collectionName} collection`);
+
+        const snapshot = await getDocs(collection(db, collectionName));
+        console.log(`Found ${snapshot.size} documents in ${collectionName}`);
+        
+        snapshot.forEach((doc, index) => {
+            if (index < 3) { //Only log first 3 to avoid cluttero
+                console.log(`Document ${index + 1}:`, doc.id, doc.data());
+            }
+        });
+
+        return snapshot.size;
+    } catch (error) {
+        console.error(`Error counting ${collectionName}:`, error);
+        showToast(`Error loading ${collectionName} count`, 'error')
+        return 0;
+    }
+}
+
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <i class="fas ${type === 'error' ? 'fa-exclamation-circle' :
+                        type === 'success' ? 'fa-check-circle' :
+                        'fa-info-circle'}"></i>
+        <span>${message}</span>
+        <button class="toast-close">&times;</button>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    //Auto remove after five seconds
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+
+    //Manual Close
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300)
+    });
 }
 
 // Load recent activity
@@ -182,9 +294,11 @@ async function loadProducts(searchTerm = '') {
         const productsRef = collection(db, "products");
         
         if (searchTerm) {
+            // Convert search term to lowercase for case-insensitive search
+            const term = searchTerm.toLowerCase();
             productsQuery = query(productsRef, 
-                where("name", ">=", searchTerm),
-                where("name", "<=", searchTerm + '\uf8ff')
+                where("name_lowercase", ">=", term),
+                where("name_lowercase", "<=", term + '\uf8ff')
             );
         } else {
             productsQuery = query(productsRef);
@@ -192,6 +306,15 @@ async function loadProducts(searchTerm = '') {
 
         const productsSnapshot = await getDocs(productsQuery);
         productsTableBody.innerHTML = '';
+        
+        if (productsSnapshot.empty) {
+            productsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center;">No products found</td>
+                </tr>
+            `;
+            return;
+        }
         
         productsSnapshot.forEach(doc => {
             const product = doc.data();
@@ -285,6 +408,31 @@ async function deleteProduct(productId) {
     }
 }
 
+//handle product search
+function initProductSearch() {
+    const productSearch = document.getElementById('productSearch');
+    const searchBtn = document.querySelector('#productSearch + .search-btn');
+    
+    if (productSearch && searchBtn) {
+        // Handle search on button click
+        searchBtn.addEventListener('click', () => {
+            loadProducts(productSearch.value.trim());
+        });
+        
+        // Handle search on Enter key
+        productSearch.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loadProducts(productSearch.value.trim());
+            }
+        });
+        
+        // Handle search with debounce on input
+        productSearch.addEventListener('input', debounce(() => {
+            loadProducts(productSearch.value.trim());
+        }, 300));
+    }
+}
+
 // Load users with search functionality
 async function loadUsers(searchTerm = '') {
     try {
@@ -313,13 +461,15 @@ async function loadUsers(searchTerm = '') {
                 <td>${user.createdAt ? new Date(user.createdAt.toDate()).toLocaleDateString() : 'N/A'}</td>
                 <td>${user.lastLogin ? new Date(user.lastLogin.toDate()).toLocaleString() : 'Never'}</td>
                 <td>
-                    <span class="badge ${user.status === 'suspended' ? 'badge-danger' : 'badge-success'}">
-                        ${user.status || 'active'}
+                    <span class="badge ${user.status === 'suspended' ? 'badge-danger' : 
+                                      user.role === 'admin' ? 'badge-info' : 
+                                      user.role === 'driver' ? 'badge-warning' : 'badge-success'}">
+                        ${user.role || 'customer'}
                     </span>
                 </td>
                 <td>
                     <button class="btn-admin btn-admin-outline edit-user" data-id="${doc.id}">Edit</button>
-                    ${user.role !== 'admin' ? 
+                    ${user.role !== 'admin' && user.role !== 'driver' ? 
                         `<button class="btn-admin btn-admin-outline delete-user" data-id="${doc.id}">Delete</button>` : 
                         ''}
                 </td>
@@ -866,20 +1016,39 @@ function hideModal(modal) {
 }
 
 // Log activity
-async function logActivity(action, details = '') {
+async function logActivity(action, details = '', status = 'success') {
     const user = auth.currentUser;
     
     try {
-        await addDoc(collection(db, "activity"), {
+        const activityData = {
             action: action,
             details: details,
             userId: user?.uid || 'system',
             userName: user?.displayName || 'System',
             timestamp: serverTimestamp(),
-            status: 'success'
-        });
+            status: status
+        };
+        
+        await addDoc(collection(db, "activity"), activityData);
+        return true;
     } catch (error) {
         console.error('Error logging activity:', error);
+        
+        // Fallback - try to log the error itself
+        try {
+            await addDoc(collection(db, "activity"), {
+                action: "Activity Log Failed",
+                details: `Original action: ${action}. Error: ${error.message}`,
+                userId: 'system',
+                userName: 'System',
+                timestamp: serverTimestamp(),
+                status: 'error'
+            });
+        } catch (fallbackError) {
+            console.error('Fallback activity log also failed:', fallbackError);
+        }
+        
+        return false;
     }
 }
 

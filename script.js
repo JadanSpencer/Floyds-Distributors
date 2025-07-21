@@ -34,11 +34,12 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase
 export { 
   app, db, auth, 
   collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc,
-  serverTimestamp, query, where, orderBy, limit, onSnapshot, // Add onSnapshot here
+  serverTimestamp, query, where, orderBy, limit, onSnapshot,
   addDoc,
   createUserWithEmailAndPassword,
   updateProfile,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signOut
 };
 
 
@@ -221,22 +222,28 @@ async function handleLogin() {
   submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Signing in...`;
   
   try {
-    // 1. Check hardcoded admins/drivers first
-    const hardcodedUser = HARDCODED_ADMINS.find(a => a.email === email && a.password === password) || 
-                         HARDCODED_DRIVERS.find(d => d.email === email && d.password === password);
+    const hardcodedUser = [...HARDCODED_ADMINS, ...HARDCODED_DRIVERS].find(u => 
+      u.email === email && u.password === password);
     
     if (hardcodedUser) {
       await signInWithEmailAndPassword(auth, email, password);
+      const role = HARDCODED_ADMINS.some(a => a.email === email) ? 'admin' : 'driver';
+      redirectBasedOnRole(role);
       return;
     }
 
-    // 2. Regular Firebase authentication
+    // Normal Firebase auth flow
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    
-    // 3. Get user document
     const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-    
-    if (!userDoc.exists()) {
+
+    let role = 'customer';
+    if (userDoc.exists()) {
+      role = userDoc.data().role || 'customer';
+      await updateDoc(doc(db, "users", userCredential.user.uid), {
+        lastLogin: serverTimestamp()
+      });
+    } else {
+      // Create new customer document
       await setDoc(doc(db, "users", userCredential.user.uid), {
         email: email,
         name: email.split('@')[0],
@@ -245,16 +252,10 @@ async function handleLogin() {
         lastLogin: serverTimestamp(),
         status: 'active'
       });
-    } else {
-      await updateDoc(doc(db, "users", userCredential.user.uid), {
-        lastLogin: serverTimestamp()
-      });
     }
     
-    // Get the role and redirect
-    const role = userDoc.exists() ? userDoc.data().role : 'customer';
     redirectBasedOnRole(role);
-    
+
   } catch (error) {
     console.error('Login error:', error);
     showAuthError(getAuthErrorMessage(error.code));
@@ -605,7 +606,6 @@ function showAuthError(message, container = null) {
   }
 }
 
-
 async function handleLogout() {
   try {
     await signOut(auth);
@@ -766,7 +766,7 @@ function initCartFunctionality() {
 
     // Make sure these elements exist
     if (!cartIcon || !cartSidebar || !cartOverlay) {
-        console.error('Cart elements not found!');
+        //console.error('Cart elements not found!');
         return;
     }
 
@@ -943,7 +943,6 @@ function filterProducts(query) {
     });
 }
 
-// Add to script.js
 function validateEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
@@ -1109,6 +1108,24 @@ function handleProductsPageSearch(query) {
     }
 }
 
+export function getCurrentPosition() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocation is not supported by your browser'));
+        } else {
+            navigator.geolocation.getCurrentPosition(
+                position => resolve(position),
+                error => reject(error),
+                {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                }
+            );
+        }
+    });
+}
+
 async function debugFirestoreConnection() {
   try {
     const testDoc = await getDoc(doc(db, "test", "test"));
@@ -1134,7 +1151,7 @@ async function initProductSlider() {
 
     const sliderTrack = document.querySelector('.slider-track');
     if (!sliderTrack) {
-        console.error("Slider track element not found");
+        //console.error("Slider track element not found");
         return;
     }
 

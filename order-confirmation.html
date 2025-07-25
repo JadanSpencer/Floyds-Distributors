@@ -325,10 +325,27 @@
         </div>
     </footer>
 
-    <script type="module">
-        import { initOrderConfirmation } from './script.js';
-        document.addEventListener('DOMContentLoaded', () => {
-            initOrderConfirmation().catch(error => {
+    <!-- <script type="module">
+    import { initOrderConfirmation, auth, onAuthStateChanged } from './script.js';
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log("DOMContentLoaded fired on order-confirmation.html");
+        const user = await new Promise((resolve) => {
+            const unsubscribe = onAuthStateChanged(auth, (user) => {
+                unsubscribe();
+                resolve(user);
+            });
+        });
+
+        if (!user) {
+            console.error("User not authenticated, redirecting to login.");
+            localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            await initOrderConfirmation();
+        } catch (error) {
             console.error('Order confirmation error:', error);
             // Show error to user
             const confirmationCard = document.querySelector('.confirmation-card');
@@ -339,8 +356,10 @@
                 confirmationCard.querySelector('p').textContent = 
                 'Could not load your order details. Please contact support.';
             }
-            });
-        });
-</script>
+        }
+    });
+</script> -->
+
+
 </body>
 </html>

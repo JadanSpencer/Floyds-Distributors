@@ -1938,185 +1938,90 @@ function initQuickView() {
  *****************************/
 
 export async function initOrderConfirmation() {
-    console.log('Initializing order confirmation...');
-    
-    const confirmationCard = document.querySelector('.confirmation-card');
-    if (!confirmationCard) {
-        console.error('Confirmation card element not found');
-        return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('orderId');
+
+    console.log("initOrderConfirmation running...");
+
+    if (!orderId) {
+        throw new Error("No orderId found in URL.");
     }
 
-    // Show loading state
-    const loadingSpinner = document.createElement('div');
-    loadingSpinner.className = 'loading-spinner';
-    confirmationCard.querySelector('.confirmation-icon').appendChild(loadingSpinner);
+    const orderDocRef = doc(db, 'orders', orderId);
+    const orderSnap = await getDoc(orderDocRef);
 
-    try {
-        // Get order ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('orderId');
-        
-        if (!orderId) {
-            throw new Error('No order ID found in URL parameters');
-        }
-
-        console.log('Fetching order:', orderId);
-        
-        // Fetch from Firestore
-        const orderRef = doc(db, 'orders', orderId);
-        const orderSnap = await getDoc(orderRef);
-        
-        if (!orderSnap.exists()) {
-            throw new Error('Order not found in database');
-        }
-        
-        const order = orderSnap.data();
-        console.log('Order data:', order);
-        
-        // Remove loading spinner
-        loadingSpinner.remove();
-        
-        // Display order details
-        displayOrderDetails(order, orderId);
-        
-    } catch (error) {
-        console.error('Error loading order:', error);
-        showError(error.message);
-        throw error; // Re-throw for the calling code to handle
+    if (!orderSnap.exists()) {
+        throw new Error("Order not found in Firestore.");
     }
-    
-    function showError(message) {
-        const confirmationIcon = document.querySelector('.confirmation-icon');
-        if (confirmationIcon) {
-            confirmationIcon.innerHTML = '<i class="fas fa-exclamation-circle" style="color:#F44336"></i>';
-        }
-        
-        const errorDetails = document.createElement('div');
-        errorDetails.className = 'error-details';
-        errorDetails.innerHTML = `
-            <p>${message}</p>
-            <p>Please contact our support team:</p>
-            <ul class="contact-info">
-                <li><i class="fas fa-phone"></i> (876) 123-4567</li>
-                <li><i class="fas fa-envelope"></i> support@floydsdistributors.com</li>
-            </ul>
+
+    const orderData = orderSnap.data();
+
+    document.getElementById('order-id').textContent = orderData.orderNumber || orderId;
+    document.getElementById('order-date').textContent = orderData.createdAt?.toDate().toLocaleDateString() || 'N/A';
+    document.getElementById('order-email').textContent = orderData.customerEmail || 'N/A';
+    document.getElementById('order-total').textContent = `$${orderData.total.toFixed(2)}`;
+    document.getElementById('payment-method').textContent = orderData.paymentMethod || 'N/A';
+
+    document.getElementById('shipping-name').textContent = orderData.customerName || 'N/A';
+    document.getElementById('shipping-address').textContent = orderData.deliveryAddress || 'N/A';
+    document.getElementById('shipping-city').textContent = `${orderData.deliveryCity || ''}, ${orderData.deliveryParish || ''}`;
+    document.getElementById('shipping-phone').textContent = orderData.customerPhone || 'N/A';
+
+    const orderItemsContainer = document.getElementById('order-items');
+    orderItemsContainer.innerHTML = '';
+
+    orderData.items.forEach(item => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'order-item';
+        itemElement.innerHTML = `
+            <img src="${item.image}" alt="${item.name}" class="order-item-image" />
+            <div class="order-item-info">
+                <h4>${item.name}</h4>
+                <p>Price: $${item.price.toFixed(2)}</p>
+                <p>Quantity: ${item.quantity}</p>
+            </div>
         `;
-        
-        const detailsContainer = document.querySelector('.confirmation-details');
-        if (detailsContainer) {
-            detailsContainer.appendChild(errorDetails);
-        }
-    }
-    
-    function displayOrderDetails(order, orderId) {
-        // Format dates
-        const orderDate = order.createdAt?.toDate?.() || new Date();
-        const formattedDate = orderDate.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        orderItemsContainer.appendChild(itemElement);
+    });
 
-        // Helper function to safely set text content
-        const setText = (id, text) => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = text || 'Not provided';
-        };
-
-        // Display order info
-        setText('order-id', order.orderNumber || orderId);
-        setText('order-date', formattedDate);
-        setText('order-email', order.customerEmail);
-        
-        // Format total amount
-        const totalAmount = order.total ? 
-            `$${parseFloat(order.total).toFixed(2)}` : '$0.00';
-        setText('order-total', totalAmount);
-        
-        // Format payment method for display
-        let paymentMethod = 'Unknown';
-        if (order.paymentMethod) {
-            switch(order.paymentMethod) {
-                case 'cod': paymentMethod = 'Cash on Delivery (COD)'; break;
-                case 'bank-transfer': paymentMethod = 'Bank Account Transfer'; break;
-                case 'deposit': paymentMethod = 'Deposit to Our Account'; break;
-                case 'net14': paymentMethod = 'Net 14 Days (Credit Account)'; break;
-                default: paymentMethod = order.paymentMethod;
-            }
-        }
-        setText('payment-method', paymentMethod);
-        
-        // Display shipping info
-        setText('shipping-name', order.customerName);
-        setText('shipping-address', order.deliveryAddress);
-        setText('shipping-city', 
-            [order.deliveryCity, order.deliveryParish].filter(Boolean).join(', '));
-        setText('shipping-phone', order.customerPhone);
-        
-        // Set delivery estimate
-        setDeliveryEstimate(order.deliveryParish);
-        
-        // Display order items
-        const orderItemsContainer = document.getElementById('order-items');
-        if (orderItemsContainer) {
-            orderItemsContainer.innerHTML = '';
-            
-            if (order.items && order.items.length > 0) {
-                order.items.forEach(item => {
-                    const price = typeof item.price === 'number' ? item.price : 0;
-                    const quantity = item.quantity || 1;
-                    const itemEl = document.createElement('div');
-                    itemEl.className = 'order-item';
-                    itemEl.innerHTML = `
-                        <div style="display: flex; align-items: center;">
-                            <img src="${item.image || 'https://placehold.co/60x60?text=Product'}" 
-                                 alt="${item.name || 'Product'}" 
-                                 class="order-item-image">
-                            <div class="order-item-info">
-                                <div>${item.name || 'Unnamed Product'}</div>
-                                <div>Qty: ${quantity}</div>
-                            </div>
-                        </div>
-                        <div>$${(price * quantity).toFixed(2)}</div>
-                    `;
-                    orderItemsContainer.appendChild(itemEl);
-                });
-            } else {
-                orderItemsContainer.innerHTML = '<div class="no-items">No items in this order</div>';
-            }
-        }
-        
-        // Display order summary total
-        setText('order-summary-total', totalAmount);
-    }
-
-    function setDeliveryEstimate(parish) {
-        const estimateEl = document.getElementById('delivery-estimate');
-        if (!estimateEl) return;
-        
-        let estimate = '3-5 business days';
-        
-        if (parish) {
-            const parishLower = parish.toLowerCase();
-            
-            if (parishLower.includes('kingston') || parishLower.includes('st andrew')) {
-                estimate = '1-2 business days';
-            } else if (parishLower.includes('st catherine')) {
-                estimate = '2-3 business days';
-            }
-        }
-        
-        estimateEl.textContent = estimate;
-    }
+    document.getElementById('order-summary-total').textContent = `$${orderData.total.toFixed(2)}`;
 }
+
 
 if (window.location.pathname.includes('order-confirmation.html')) {
     document.addEventListener('DOMContentLoaded', async () => {
-        await initOrderConfirmation();
+        console.log("DOMContentLoaded fired on order-confirmation.html");
+        const user = await new Promise((resolve) => {
+            const unsubscribe = onAuthStateChanged(auth, (user) => {
+                unsubscribe();
+                resolve(user);
+            });
+        });
+
+        if (!user) {
+            console.error("User not authenticated, redirecting to login.");
+            localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            console.log("Calling initOrderConfirmation...");
+            await initOrderConfirmation();
+        } catch (error) {
+            console.error('Order confirmation error:', error);
+            const confirmationCard = document.querySelector('.confirmation-card');
+            if (confirmationCard) {
+                confirmationCard.querySelector('.confirmation-icon').innerHTML =
+                    '<i class="fas fa-exclamation-circle" style="color:#F44336"></i>';
+                confirmationCard.querySelector('h2').textContent = 'Error Loading Order';
+                confirmationCard.querySelector('p').textContent =
+                    'Could not load your order details. Please contact support.';
+            }
+        }
     });
 }
+
 
 console.log("DOM fully loaded, initializing functions...");
 initCartFunctionality();

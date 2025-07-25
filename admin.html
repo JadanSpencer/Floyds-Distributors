@@ -961,6 +961,23 @@
     background-color: #f8f9fa;
 }
 
+@media (max-width: 992px) {
+    .admin-container {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+    }
+    
+    .admin-sidebar {
+        order: 2;
+        position: static;
+    }
+
+    /* Change the order to put admin-content first */
+    .admin-content {
+        order: 1;
+    }
+}
+
     /* html {
         opacity: 0;
         transition: opacity 0.3s ease;

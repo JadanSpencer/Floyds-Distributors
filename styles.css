@@ -272,7 +272,7 @@ body {
 
 .product-card {
   width: 250px;
-  height: 420px;
+  height: 550px;
   border-radius: 10px;
   padding: 20px;
   flex-shrink: 0;
@@ -1587,3 +1587,151 @@ body.login-page .container {
     max-width: 80px;
   }
 }
+
+/* Page Transition Styles */
+.page-transition {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #008080; /* Teal color */
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 2s ease;
+}
+
+.page-transition.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.page-transition-logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #008080;
+    transform: scale(0);
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.page-transition.active .page-transition-logo {
+    transform: scale(1);
+}
+
+.page-transition.completing .page-transition-logo {
+    transform: scale(1.2);
+    opacity: 0;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+/* New animation for the logo */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    75% {transform: scale(0.9)}
+    100% { transform: scale(1); }
+}
+
+.page-transition.active .page-transition-logo {
+    animation: pulse 1.5s infinite;
+}
+
+/* Add to your styles.css */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+body.page-transitioning {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Responsive Styles for Login/Signup */
+@media (max-width: 768px) {
+  body.login-page #authContainer {
+    width: 100%;
+    min-height: 100vh;
+    border-radius: 0;
+    flex-direction: column;
+  }
+
+  body.login-page .form-container {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+
+  body.login-page .sign-in-container,
+  body.login-page .sign-up-container {
+    width: 100%;
+    height: auto;
+    padding: 2rem 1rem;
+  }
+
+  body.login-page .overlay-container {
+    display: none;
+  }
+
+  body.login-page #authContainer.right-panel-active .sign-in-container,
+  body.login-page #authContainer.right-panel-active .sign-up-container {
+    transform: none;
+  }
+
+  body.login-page form {
+    padding: 0 20px;
+  }
+
+  body.login-page h1 {
+    font-size: 1.8rem;
+  }
+
+  body.login-page .social-container {
+    margin: 15px 0;
+  }
+
+  body.login-page input {
+    padding: 10px 12px;
+    margin: 6px 0;
+  }
+
+  body.login-page button {
+    padding: 10px 30px;
+    margin-top: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  body.login-page {
+    padding: 0;
+  }
+
+  body.login-page #authContainer {
+    max-width: 100%;
+    box-shadow: none;
+  }
+
+  body.login-page h1 {
+    font-size: 1.5rem;
+  }
+
+  body.login-page span {
+    font-size: 0.9rem;
+  }
+}
+

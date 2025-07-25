@@ -30,6 +30,24 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyBk4oAO4LVlrwgBgrdk9m2waZaeiB1nrqY",
+  authDomain: "floyds-489c8.firebaseapp.com",
+  databaseURL: "https://floyds-489c8-default-rtdb.firebaseio.com",
+  projectId: "floyds-489c8",
+  storageBucket: "floyds-489c8.appspot.com",
+  messagingSenderId: "467837659879",
+  appId: "1:467837659879:web:8fde5b1862184183ac9042",
+  measurementId: "G-32RKBL830G"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+
 // Export all needed functions
 export { 
   app, db, auth, 
@@ -42,25 +60,6 @@ export {
   signOut
 };
 
-
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBk4oAO4LVlrwgBgrdk9m2waZaeiB1nrqY",
-  authDomain: "floyds-489c8.firebaseapp.com",
-  databaseURL: "https://floyds-489c8-default-rtdb.firebaseio.com",
-  projectId: "floyds-489c8",
-  storageBucket: "floyds-489c8.appspot.com",
-  messagingSenderId: "467837659879",
-  appId: "1:467837659879:web:8fde5b1862184183ac9042",
-  measurementId: "G-32RKBL830G"
-};
-
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const db = getFirestore(app);  // Initialize Firestore
-const auth = getAuth(app);
 
 // ===== ADD THIS AUTH STATE OBSERVER RIGHT HERE =====
 const isLoginPage = window.location.pathname.includes('login.html');
@@ -106,47 +105,34 @@ const headerSignupBtn = document.getElementById('headerSignupBtn');
 
 let currentUserRole = null;
 
-// Hardcoded admin credentials (for emergency access only)
-const HARDCODED_ADMINS = [
-  { email: 'floydplummer@gmail.com', password: 'floydplummer', name: 'Floyd Plummer' },
-  { email: 'oshane@gmail.com', password: 'oshaneshane0', name: 'oshane' },
-
-];
-
-const HARDCODED_DRIVERS = [
-  { email: 'errolcastillo@gmail.com', password: 'errolcastillo', name: 'Errol Castillo' },
-  { email: 'daryldavidson@gmail.com', password: 'daryldavidson', name: 'Daryl Davidson' }
-  // Add more as needed
-];
-
-async function checkHardcodedAdminOrDriver(email, password) {
-  // Only check against the hardcoded lists
-  const admin = HARDCODED_ADMINS.find(a => a.email === email && a.password === password);
-  if (admin) {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      window.location.href = 'admin.html';
-      return true;
-    } catch (error) {
-      console.error("Error signing in hardcoded admin:", error);
-      return false;
-    }
-  }
+// async function checkHardcodedAdminOrDriver(email, password) {
+//   // Only check against the hardcoded lists
+//   const admin = HARDCODED_ADMINS.find(a => a.email === email && a.password === password);
+//   if (admin) {
+//     try {
+//       await signInWithEmailAndPassword(auth, email, password);
+//       window.location.href = 'admin.html';
+//       return true;
+//     } catch (error) {
+//       console.error("Error signing in hardcoded admin:", error);
+//       return false;
+//     }
+//   }
   
-  const driver = HARDCODED_DRIVERS.find(d => d.email === email && d.password === password);
-  if (driver) {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      window.location.href = 'driver.html';
-      return true;
-    } catch (error) {
-      console.error("Error signing in hardcoded driver:", error);
-      return false;
-    }
-  }
+//   const driver = HARDCODED_DRIVERS.find(d => d.email === email && d.password === password);
+//   if (driver) {
+//     try {
+//       await signInWithEmailAndPassword(auth, email, password);
+//       window.location.href = 'driver.html';
+//       return true;
+//     } catch (error) {
+//       console.error("Error signing in hardcoded driver:", error);
+//       return false;
+//     }
+//   }
   
-  return false;
-}
+//   return false;
+// }
 
 
 // Single event delegation for all auth-related buttons
@@ -182,6 +168,17 @@ if (authContainer && authContainer.style.display === 'block' &&
     !e.target.closest('#heroSignupBtn')) {
   toggleAuthForm(false);
 }
+});
+
+// Mobile toggle functionality
+document.getElementById('mobileToggleSignup')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('authContainer').classList.add('right-panel-active');
+});
+
+document.getElementById('mobileToggleLogin')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('authContainer').classList.remove('right-panel-active');
 });
 
 // Event listeners for the new form
@@ -524,6 +521,8 @@ onAuthStateChanged(auth, async (user) => {
   
   if (user) {
     console.log('User authenticated:', user.email);
+    loadCartFromStorage();
+    updateCartUI();
     
     try {
       const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -531,7 +530,19 @@ onAuthStateChanged(auth, async (user) => {
       
       if (userDoc.exists()) {
         role = userDoc.data().role || 'customer';
+
+        if (window.location.pathname.includes('driver.html')) {
+            if (!canAccessDriverPortal(role)) {
+                window.location.href = 'index.html';
+                return;
+            }
+            // Clear the admin access flag after successful check
+            sessionStorage.removeItem('adminAccessingDriverPortal');
+        }
       } else {
+        loadCartFromStorage(); // Load guest cart
+        updateCartUI();
+
         // Create new customer document
         await setDoc(doc(db, "users", user.uid), {
           email: user.email,
@@ -584,6 +595,12 @@ function redirectBasedOnRole(role) {
   }
 }
 
+export function canAccessDriverPortal(role) {
+    // Allow access if user is admin and specifically accessing from admin panel
+    const adminAccessing = sessionStorage.getItem('adminAccessingDriverPortal') === 'true';
+    return role === 'driver' || (role === 'admin' && adminAccessing);
+}
+
 function showAuthError(message, container = null) {
   // Remove any existing error messages
   const errorContainer = container || document.querySelector('.auth-container');
@@ -607,14 +624,16 @@ function showAuthError(message, container = null) {
 }
 
 async function handleLogout() {
-  try {
-    await signOut(auth);
-    resetAuthUI();
-    // Optional: Redirect to home page after logout
-    window.location.href = 'index.html';
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
+    try {
+        await signOut(auth);
+        resetAuthUI();
+        // Switch to guest cart
+        loadCartFromStorage();
+        updateCartUI();
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
 }
 
 async function checkAuthState() {
@@ -640,13 +659,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checkAuthState();
     }
 
-    if (!window.location.pathname.includes('login.html')) {
-        initCartFunctionality();
-        initProductSlider();
-    }
-
-
-
     const forgotPasswordLink = document.getElementById('forgotPassword');
     if (forgotPasswordLink) {
         forgotPasswordLink.addEventListener('click', (e) => {
@@ -665,6 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initQuickView();
     initAdminSignup();
     debugFirestoreConnection();
+    initPageTransitions();
 
     const loginEmail = document.getElementById('loginEmail');
     const signupEmail = document.getElementById('signupEmail');
@@ -693,16 +706,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupForm = document.querySelector('.sign-up-container form');
     
     if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        handleLogin();
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleLogin();
         });
     }
     
     if (signupForm) {
-        signupForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        handleSignup();
+        signupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleSignup();
         });
     }
 });
@@ -766,7 +779,6 @@ function initCartFunctionality() {
 
     // Make sure these elements exist
     if (!cartIcon || !cartSidebar || !cartOverlay) {
-        //console.error('Cart elements not found!');
         return;
     }
 
@@ -774,9 +786,9 @@ function initCartFunctionality() {
     loadCartFromStorage();
     updateAllCartCounts();
 
-    // Event Listeners - Modified to ensure proper event delegation
+    // Event Listeners
     document.addEventListener('click', function(e) {
-        // Handle clicks on cart icon or its children
+        // Handle cart icon clicks
         if (e.target.closest('.cart-icon, .cart-icon-symbol, .cart-count')) {
             e.preventDefault();
             toggleCart();
@@ -785,6 +797,7 @@ function initCartFunctionality() {
         
         // Handle remove item clicks
         if (e.target.closest('.remove-item')) {
+            e.preventDefault();
             const productId = e.target.closest('.remove-item').dataset.id;
             removeFromCart(productId);
         }
@@ -793,6 +806,11 @@ function initCartFunctionality() {
     if (cartOverlay) cartOverlay.addEventListener('click', toggleCart);
     if (closeCart) closeCart.addEventListener('click', toggleCart);
     
+    function getCartStorageKey() {
+        const user = auth.currentUser;
+        return user ? `cart_${user.uid}` : 'guest_cart';
+    }
+
     function toggleCart() {
         const cartSidebar = document.querySelector('.cart-sidebar');
         const cartOverlay = document.querySelector('.cart-overlay');
@@ -884,21 +902,23 @@ function initCartFunctionality() {
             cartItemsElement.innerHTML = '<div class="cart-empty">Your cart is empty</div>';
         } else {
             cart.forEach(item => {
+                const price = parseFloat(item.price) || 0;
                 const cartItemElement = document.createElement('div');
                 cartItemElement.className = 'cart-item';
                 cartItemElement.innerHTML = `
                     <div class="cart-item-info">
-                        <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+                        <img src="${item.image}" alt="${item.name}" class="cart-item-image"
+                            onerror="this.src='https://placehold.co/100?text=Product'">
                         <div>
                             <h4>${item.name}</h4>
-                            <p>${item.price} x ${item.quantity}</p>
+                            <p>$${price.toFixed(2)} x ${item.quantity}</p>
+                            ${item.options ? `<p class="cart-item-options">${formatOptions(item.options)}</p>` : ''}
                         </div>
                     </div>
                     <button class="remove-item" data-id="${item.id}">×</button>
                 `;
                 cartItemsElement.appendChild(cartItemElement);
                 
-                const price = parseFloat(item.price.replace('$', '')) || 0;
                 total += price * item.quantity;
             });
         }
@@ -908,25 +928,190 @@ function initCartFunctionality() {
     }
 
     function saveCartToStorage() {
-        localStorage.setItem('floydsDistributorsCart', JSON.stringify(cart));
+        localStorage.setItem(getCartStorageKey(), JSON.stringify(cart));
     }
 
     function loadCartFromStorage() {
-        const savedCart = localStorage.getItem('floydsDistributorsCart');
-        if (savedCart) {
-            cart = JSON.parse(savedCart);
-            updateAllCartCounts();
-        }
+        const savedCart = localStorage.getItem(getCartStorageKey());
+        cart = savedCart ? JSON.parse(savedCart) : [];
+        updateAllCartCounts();
+    }
+
+    function formatOptions(options) {
+        return Object.entries(options)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(', ');
     }
 
     function initiateCheckout() {
-        window.location.href = 'checkout.html';
-    }
+    // Calculate totals
+    const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+    const tax = subtotal * 0.15; // 15% tax
+    const total = subtotal + tax;
+    
+    // Prepare order data
+    const orderData = {
+        items: cart,
+        subtotal: subtotal,
+        tax: tax,
+        total: total
+    };
+    
+    // Save order data temporarily
+    localStorage.setItem('currentOrder', JSON.stringify(orderData));
+    
+    // Redirect to checkout
+    window.location.href = 'checkout.html';
+}
 
     // Make functions available globally
     window.addToCart = addToCart;
     window.toggleCart = toggleCart;
     window.updateCartUI = updateCartUI;
+}
+
+window.validateDeliveryInfo = function() {
+    const requiredFields = ['email', 'first-name', 'last-name', 'phone', 'address', 'city'];
+    let isValid = true;
+    
+    // Validate required fields
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (!field || !field.value.trim()) {
+            isValid = false;
+            field.classList.add('invalid');
+        } else {
+            field.classList.remove('invalid');
+        }
+    });
+    
+    // Validate email format if email field exists and has value
+    const emailField = document.getElementById('email');
+    if (emailField && emailField.value.trim() && !validateEmail(emailField.value.trim())) {
+        isValid = false;
+        emailField.classList.add('invalid');
+    }
+    
+    if (!isValid) {
+        alert('Please fill in all required fields correctly');
+    }
+    
+    return isValid;
+}
+
+window.validatePaymentInfo = function() {
+    const selectedPayment = document.querySelector('input[name="payment"]:checked');
+    if (!selectedPayment) {
+        alert('Please select a payment method');
+        return false;
+    }
+    return true;
+}
+
+window.updateReviewSection= function() {
+    const reviewDeliveryInfo = document.getElementById('reviewDeliveryInfo');
+    if (reviewDeliveryInfo) {
+        reviewDeliveryInfo.innerHTML = `
+            <p>${document.getElementById('first-name').value} ${document.getElementById('last-name').value}</p>
+            <p>${document.getElementById('address').value}</p>
+            <p>${document.getElementById('city').value}, ${document.getElementById('parish').value}</p>
+            <p>${document.getElementById('phone').value}</p>
+            <p>${document.getElementById('email').value}</p>
+        `;
+    }
+    
+    const reviewPaymentMethod = document.getElementById('reviewPaymentMethod');
+    if (reviewPaymentMethod) {
+        const selectedPayment = document.querySelector('input[name="payment"]:checked');
+        if (selectedPayment) {
+            const paymentLabel = selectedPayment.nextElementSibling.nextElementSibling.textContent;
+            reviewPaymentMethod.innerHTML = `<p>${paymentLabel}</p>`;
+        }
+    }
+}
+
+window.showStep = function(stepNumber) {
+    const progress = document.getElementById('stepProgress');
+    if (progress) {
+        progress.style.width = `${(stepNumber - 1) * 50}%`;
+    }
+    
+    for (let i = 1; i <= 3; i++) {
+        const step = document.getElementById(`step${i}`);
+        if (step) {
+            step.classList.toggle('active', i === stepNumber);
+            step.classList.toggle('completed', i < stepNumber);
+        }
+    }
+    
+    const sections = ['deliveryInfoSection', 'paymentMethodSection', 'reviewOrderSection'];
+    sections.forEach((sectionId, index) => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.classList.toggle('active', index + 1 === stepNumber);
+        }
+    });
+}
+
+// Top of script.js (after Firebase initialization)
+window.processOrder = async function(orderData) {
+    const user = auth.currentUser;
+    if (!user) {
+        alert('Please log in to complete your order');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    try {
+        // Create order document with all required fields
+        const orderDoc = {
+            userId: user.uid,
+            customerName: `${document.getElementById('first-name').value} ${document.getElementById('last-name').value}`,
+            customerEmail: document.getElementById('email').value,
+            customerPhone: document.getElementById('phone').value,
+            deliveryAddress: document.getElementById('address').value,
+            deliveryCity: document.getElementById('city').value,
+            deliveryParish: document.getElementById('parish').value,
+            deliveryInstructions: document.getElementById('instructions').value,
+            items: orderData.items.map(item => ({
+                productId: item.id,
+                name: item.name,
+                price: parseFloat(item.price),
+                quantity: item.quantity,
+                image: item.image
+            })),
+            paymentMethod: document.querySelector('input[name="payment"]:checked').id,
+            status: "pending",
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            subtotal: orderData.subtotal,
+            tax: orderData.tax,
+            total: orderData.total,
+            orderNumber: generateOrderNumber() // Make sure this function exists
+        };
+        
+        // Add order to Firestore
+        const docRef = await addDoc(collection(db, "orders"), orderDoc);
+        
+        // Clear cart and redirect
+        localStorage.removeItem('currentOrder');
+        const cartStorageKey = user ? `cart_${user.uid}` : 'guest_cart';
+        localStorage.removeItem(cartStorageKey);
+        
+        // Redirect with the new document ID
+        window.location.href = `order-confirmation.html?orderId=${docRef.id}`;
+        
+    } catch (error) {
+        console.error("Error processing order:", error);
+        alert("Error processing order. Please try again.");
+    }
+};
+
+// Helper function (also global)
+function generateOrderNumber() {
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `ORD-${timestamp}-${random}`;
 }
 
 function filterProducts(query) {
@@ -1405,6 +1590,80 @@ function createProductCards(products, sliderTrack) {
     });
 }
 
+// Page Transition Functionality
+function initPageTransitions() {
+    // Create transition overlay if it doesn't exist
+    let transitionOverlay = document.querySelector('.page-transition');
+    
+    if (!transitionOverlay) {
+        transitionOverlay = document.createElement('div');
+        transitionOverlay.className = 'page-transition';
+        transitionOverlay.innerHTML = '<div class="page-transition-logo">FD</div>';
+        document.body.appendChild(transitionOverlay);
+    }
+
+    // Show transition immediately when page loads
+    transitionOverlay.classList.add('active');
+    
+    // Hide transition after page is fully loaded
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            transitionOverlay.classList.remove('active');
+            document.body.classList.remove('page-transitioning');
+        }, 1000);
+    });
+
+    // Handle navigation clicks
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (!link) return;
+        
+        // Skip special links
+        if (link.href.includes('#') || 
+            link.href.startsWith('javascript:') || 
+            link.href.startsWith('mailto:') || 
+            !link.href.includes(window.location.hostname)) {
+            return;
+        }
+        
+        // Skip if target is blank
+        if (link.target === '_blank') return;
+        
+        // Skip if it's a download link
+        if (link.hasAttribute('download')) return;
+        
+        e.preventDefault();
+        document.body.classList.add('page-transitioning');
+        transitionOverlay.classList.add('active');
+        
+        setTimeout(() => {
+            window.location.href = link.href;
+        }, 3000);
+    });
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', initPageTransitions);
+
+// Add this near your other event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  const mobileToggleLogin = document.getElementById('mobileToggleLogin');
+  const mobileToggleSignup = document.getElementById('mobileToggleSignup');
+  
+  if (mobileToggleLogin) {
+    mobileToggleLogin.addEventListener('click', function(e) {
+      e.preventDefault();
+      authContainer.classList.remove("right-panel-active");
+    });
+  }
+  
+  if (mobileToggleSignup) {
+    mobileToggleSignup.addEventListener('click', function(e) {
+      e.preventDefault();
+      authContainer.classList.add("right-panel-active");
+    });
+  }
+});
 
 /*****************************
  * PRODUCT DETAIL TILES
@@ -1571,6 +1830,16 @@ window.addEventListener('scroll', () => {
     }
 });
 
+// Handle back/forward navigation
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        const transitionOverlay = document.querySelector('.page-transition');
+        if (transitionOverlay) {
+            transitionOverlay.classList.remove('active');
+            document.body.classList.remove('page-transitioning');
+        }
+    }
+});
 /*****************************
  * QUICK VIEW MODAL
  *****************************/
@@ -1641,24 +1910,206 @@ function initQuickView() {
     }
 }
 
-async function handleUserRedirect(role) {
-    const returnUrl = localStorage.getItem('returnUrl');
-    localStorage.removeItem('returnUrl');
+// async function handleUserRedirect(role) {
+//     const returnUrl = localStorage.getItem('returnUrl');
+//     localStorage.removeItem('returnUrl');
 
-    switch(role) {
-        case 'admin':
-            window.location.href = 'admin.html';
-            break;
-        case 'driver':
-            window.location.href = 'driver.html';
-            break;
-        default:
-            window.location.href = returnUrl || 'index.html';
+//     switch(role) {
+//         case 'admin':
+//             window.location.href = 'admin.html';
+//             break;
+//         case 'driver':
+//             window.location.href = 'driver.html';
+//             break;
+//         default:
+//             window.location.href = returnUrl || 'index.html';
+//     }
+// }
+
+/*****************************
+ * ORDER CONFIRMATION FUNCTIONALITY
+ *****************************/
+
+export async function initOrderConfirmation() {
+    console.log('Initializing order confirmation...');
+    
+    const confirmationCard = document.querySelector('.confirmation-card');
+    if (!confirmationCard) {
+        console.error('Confirmation card element not found');
+        return;
+    }
+
+    // Show loading state
+    const loadingSpinner = document.createElement('div');
+    loadingSpinner.className = 'loading-spinner';
+    confirmationCard.querySelector('.confirmation-icon').appendChild(loadingSpinner);
+
+    try {
+        // Get order ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+        
+        if (!orderId) {
+            throw new Error('No order ID found in URL parameters');
+        }
+
+        console.log('Fetching order:', orderId);
+        
+        // Fetch from Firestore
+        const orderRef = doc(db, 'orders', orderId);
+        const orderSnap = await getDoc(orderRef);
+        
+        if (!orderSnap.exists()) {
+            throw new Error('Order not found in database');
+        }
+        
+        const order = orderSnap.data();
+        console.log('Order data:', order);
+        
+        // Remove loading spinner
+        loadingSpinner.remove();
+        
+        // Display order details
+        displayOrderDetails(order, orderId);
+        
+    } catch (error) {
+        console.error('Error loading order:', error);
+        showError(error.message);
+        throw error; // Re-throw for the calling code to handle
+    }
+    
+    function showError(message) {
+        const confirmationIcon = document.querySelector('.confirmation-icon');
+        if (confirmationIcon) {
+            confirmationIcon.innerHTML = '<i class="fas fa-exclamation-circle" style="color:#F44336"></i>';
+        }
+        
+        const errorDetails = document.createElement('div');
+        errorDetails.className = 'error-details';
+        errorDetails.innerHTML = `
+            <p>${message}</p>
+            <p>Please contact our support team:</p>
+            <ul class="contact-info">
+                <li><i class="fas fa-phone"></i> (876) 123-4567</li>
+                <li><i class="fas fa-envelope"></i> support@floydsdistributors.com</li>
+            </ul>
+        `;
+        
+        const detailsContainer = document.querySelector('.confirmation-details');
+        if (detailsContainer) {
+            detailsContainer.appendChild(errorDetails);
+        }
+    }
+    
+    function displayOrderDetails(order, orderId) {
+        // Format dates
+        const orderDate = order.createdAt?.toDate?.() || new Date();
+        const formattedDate = orderDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        // Helper function to safely set text content
+        const setText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text || 'Not provided';
+        };
+
+        // Display order info
+        setText('order-id', order.orderNumber || orderId);
+        setText('order-date', formattedDate);
+        setText('order-email', order.customerEmail);
+        
+        // Format total amount
+        const totalAmount = order.total ? 
+            `$${parseFloat(order.total).toFixed(2)}` : '$0.00';
+        setText('order-total', totalAmount);
+        
+        // Format payment method for display
+        let paymentMethod = 'Unknown';
+        if (order.paymentMethod) {
+            switch(order.paymentMethod) {
+                case 'cod': paymentMethod = 'Cash on Delivery (COD)'; break;
+                case 'bank-transfer': paymentMethod = 'Bank Account Transfer'; break;
+                case 'deposit': paymentMethod = 'Deposit to Our Account'; break;
+                case 'net14': paymentMethod = 'Net 14 Days (Credit Account)'; break;
+                default: paymentMethod = order.paymentMethod;
+            }
+        }
+        setText('payment-method', paymentMethod);
+        
+        // Display shipping info
+        setText('shipping-name', order.customerName);
+        setText('shipping-address', order.deliveryAddress);
+        setText('shipping-city', 
+            [order.deliveryCity, order.deliveryParish].filter(Boolean).join(', '));
+        setText('shipping-phone', order.customerPhone);
+        
+        // Set delivery estimate
+        setDeliveryEstimate(order.deliveryParish);
+        
+        // Display order items
+        const orderItemsContainer = document.getElementById('order-items');
+        if (orderItemsContainer) {
+            orderItemsContainer.innerHTML = '';
+            
+            if (order.items && order.items.length > 0) {
+                order.items.forEach(item => {
+                    const price = typeof item.price === 'number' ? item.price : 0;
+                    const quantity = item.quantity || 1;
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'order-item';
+                    itemEl.innerHTML = `
+                        <div style="display: flex; align-items: center;">
+                            <img src="${item.image || 'https://placehold.co/60x60?text=Product'}" 
+                                 alt="${item.name || 'Product'}" 
+                                 class="order-item-image">
+                            <div class="order-item-info">
+                                <div>${item.name || 'Unnamed Product'}</div>
+                                <div>Qty: ${quantity}</div>
+                            </div>
+                        </div>
+                        <div>$${(price * quantity).toFixed(2)}</div>
+                    `;
+                    orderItemsContainer.appendChild(itemEl);
+                });
+            } else {
+                orderItemsContainer.innerHTML = '<div class="no-items">No items in this order</div>';
+            }
+        }
+        
+        // Display order summary total
+        setText('order-summary-total', totalAmount);
+    }
+
+    function setDeliveryEstimate(parish) {
+        const estimateEl = document.getElementById('delivery-estimate');
+        if (!estimateEl) return;
+        
+        let estimate = '3-5 business days';
+        
+        if (parish) {
+            const parishLower = parish.toLowerCase();
+            
+            if (parishLower.includes('kingston') || parishLower.includes('st andrew')) {
+                estimate = '1-2 business days';
+            } else if (parishLower.includes('st catherine')) {
+                estimate = '2-3 business days';
+            }
+        }
+        
+        estimateEl.textContent = estimate;
     }
 }
 
-
+if (window.location.pathname.includes('order-confirmation.html')) {
+    document.addEventListener('DOMContentLoaded', async () => {
+        await initOrderConfirmation();
+    });
+}
 
 console.log("DOM fully loaded, initializing functions...");
 initCartFunctionality();
-initProductSlider();

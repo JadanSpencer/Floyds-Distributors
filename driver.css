@@ -903,3 +903,114 @@ body {
     align-items: center;
     gap: 0.5rem;
 }
+
+/* Route line styling */
+.leaflet-interactive {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Driver location marker */
+.driver-location-icon {
+    background-color: var(--primary);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.3);
+}
+
+/* Delivery point marker */
+.delivery-icon.in-progress {
+    background-color: white;
+    color: var(--secondary);
+    border-radius: 50%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.3);
+}
+
+/* Delivery Details Modal */
+#deliveryDetailsModal {
+    width: 90%;
+    max-width: 800px;
+}
+
+.delivery-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 0.5rem;
+}
+
+.info-label {
+    font-weight: 600;
+    min-width: 100px;
+    color: #555;
+}
+
+.info-value {
+    flex: 1;
+}
+
+.delivery-map {
+    height: 300px;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+
+.delivery-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.delivery-marker-icon {
+    background: transparent;
+    border: none;
+    color: #e74c3c;
+    font-size: 24px;
+    text-align: center;
+    animation: pulse 2s infinite;
+}
+
+/* Add to driver.css */
+.customer-icon {
+    background-color: white;
+    color: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.3);
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .delivery-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .delivery-actions {
+        flex-direction: column;
+    }
+    
+    .delivery-actions button {
+        width: 100%;
+    }
+}

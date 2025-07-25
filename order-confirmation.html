@@ -7,25 +7,54 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Confirmation-specific styles */
+        /* Dark theme variables */
+        :root {
+            --dark-bg: #121212;
+            --darker-bg: #1e1e1e;
+            --dark-text: #e0e0e0;
+            --dark-border: #333;
+            --dark-accent: #00bcd4;
+            --dark-accent-hover: #008ba3;
+            --dark-success: #4caf50;
+            --dark-card-bg: #252525;
+            --dark-input-bg: #2d2d2d;
+            --dark-shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        
+
+        /* Confirmation styles */
         .confirmation-main {
             padding: 3rem 0;
-            background-color: var(--light-gray);
-            text-align: center;
         }
 
         .confirmation-card {
-            background: white;
+            background: var(--dark-card-bg);
             max-width: 800px;
             margin: 0 auto;
             padding: 3rem;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px var(--dark-shadow);
+            border: 1px solid var(--dark-border);
         }
 
         .confirmation-icon {
             font-size: 4rem;
-            color: #4CAF50;
+            color: var(--dark-success);
             margin-bottom: 1.5rem;
         }
 
@@ -33,8 +62,9 @@
             text-align: left;
             margin: 2rem 0;
             padding: 1.5rem;
-            background: rgba(0, 128, 128, 0.05);
+            background: var(--darker-bg);
             border-radius: 8px;
+            border: 1px solid var(--dark-border);
         }
 
         .detail-row {
@@ -44,7 +74,7 @@
 
         .detail-label {
             font-weight: 600;
-            color: var(--gray);
+            color: var(--dark-accent);
             min-width: 150px;
         }
 
@@ -56,14 +86,30 @@
             display: flex;
             justify-content: space-between;
             padding: 1rem 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .order-item-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 1rem;
+        }
+
+        .order-item-info {
+            flex: 1;
         }
 
         .order-total {
             font-weight: bold;
             font-size: 1.2rem;
-            color: var(--teal);
+            color: var(--dark-accent);
             margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--dark-accent);
+            display: flex;
+            justify-content: space-between;
         }
 
         .action-buttons {
@@ -82,24 +128,58 @@
         }
 
         .btn-primary {
-            background: var(--teal);
+            background: var(--dark-accent);
             color: white;
             border: none;
         }
 
         .btn-primary:hover {
-            background: var(--dark-teal);
+            background: var(--dark-accent-hover);
             transform: translateY(-2px);
         }
 
         .btn-outline {
-            background: white;
-            color: var(--teal);
-            border: 2px solid var(--teal);
+            background: transparent;
+            color: var(--dark-accent);
+            border: 2px solid var(--dark-accent);
         }
 
         .btn-outline:hover {
-            background: rgba(0, 128, 128, 0.1);
+            background: rgba(0, 188, 212, 0.1);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: var(--dark-accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-details {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(244, 67, 54, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #F44336;
+        }
+
+        .error-details .contact-info {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .error-details .contact-info li {
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         @media (max-width: 768px) {
@@ -118,7 +198,7 @@
     </style>
 </head>
 <body>
-    <!-- Header (Same as other pages) -->
+    <!-- Header -->
     <header class="header">
         <div class="container">
             <div class="logo">
@@ -130,10 +210,6 @@
                     <li><a href="products.html">Products</a></li>
                     <li><a href="about.html">About Us</a></li>
                 </ul>
-                <div class="cart-icon">
-                    <span class="cart-icon-symbol">🛒</span>
-                    <span class="cart-count">0</span>
-                </div>
                 <div class="hamburger">☰</div>
             </nav>
         </div>
@@ -146,7 +222,7 @@
                 <div class="confirmation-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <h2>Order Confirmed!</h2>
+                <h2>Order Received!</h2>
                 <p>Thank you for your purchase. Your order has been received and is being processed.</p>
                 
                 <!-- Order Summary -->
@@ -206,7 +282,7 @@
                 
                 <!-- Order Total -->
                 <div class="order-total">
-                    <span>Order Total: </span>
+                    <span>Order Total:</span>
                     <span id="order-summary-total"></span>
                 </div>
                 
@@ -219,7 +295,7 @@
         </div>
     </main>
 
-    <!-- Footer (Same as other pages) -->
+    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-grid">
@@ -249,99 +325,22 @@
         </div>
     </footer>
 
-    <!-- Firebase and Confirmation Script -->
     <script type="module">
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { app, db } from "./script.js";
-
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Get order ID from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const orderId = urlParams.get('orderId');
-            
-            if (!orderId) {
-                window.location.href = 'index.html';
-                return;
+        import { initOrderConfirmation } from './script.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            initOrderConfirmation().catch(error => {
+            console.error('Order confirmation error:', error);
+            // Show error to user
+            const confirmationCard = document.querySelector('.confirmation-card');
+            if (confirmationCard) {
+                confirmationCard.querySelector('.confirmation-icon').innerHTML = 
+                '<i class="fas fa-exclamation-circle" style="color:#F44336"></i>';
+                confirmationCard.querySelector('h2').textContent = 'Error Loading Order';
+                confirmationCard.querySelector('p').textContent = 
+                'Could not load your order details. Please contact support.';
             }
-            
-            // Fetch order details from Firestore
-            try {
-                const orderRef = doc(db, 'orders', orderId);
-                const orderSnap = await getDoc(orderRef);
-                
-                if (!orderSnap.exists()) {
-                    throw new Error('Order not found');
-                }
-                
-                const order = orderSnap.data();
-                displayOrderDetails(order, orderId);
-            } catch (error) {
-                console.error('Error loading order:', error);
-                document.querySelector('.confirmation-card h2').textContent = 'Order Not Found';
-                document.querySelector('.confirmation-card p').textContent = 'We couldn\'t find your order details. Please contact support.';
-                document.querySelector('.confirmation-icon').className = 'confirmation-icon';
-                document.querySelector('.confirmation-icon').innerHTML = '<i class="fas fa-exclamation-circle" style="color:#F44336"></i>';
-            }
-        });
-
-        function displayOrderDetails(order, orderId) {
-            // Display order info
-            document.getElementById('order-id').textContent = orderId;
-            document.getElementById('order-date').textContent = new Date(order.createdAt?.seconds * 1000).toLocaleDateString();
-            document.getElementById('order-email').textContent = order.customer.email;
-            document.getElementById('order-total').textContent = `$${order.total.toFixed(2)}`;
-            document.getElementById('payment-method').textContent = 'Credit Card'; // Would be dynamic in real app
-            
-            // Display shipping info
-            document.getElementById('shipping-name').textContent = `${order.customer.firstName} ${order.customer.lastName}`;
-            document.getElementById('shipping-address').textContent = order.customer.address;
-            document.getElementById('shipping-city').textContent = `${order.customer.city}, ${order.customer.parish}`;
-            document.getElementById('shipping-phone').textContent = order.customer.phone;
-            
-            // Set delivery estimate based on parish
-            setDeliveryEstimate(order.customer.parish);
-            
-            // Display order items
-            const orderItems = document.getElementById('order-items');
-            order.items.forEach(item => {
-                const price = parseFloat(item.price.replace('$', '')) || 0;
-                const itemEl = document.createElement('div');
-                itemEl.className = 'order-item';
-                itemEl.innerHTML = `
-                    <span>${item.name} × ${item.quantity}</span>
-                    <span>$${(price * item.quantity).toFixed(2)}</span>
-                `;
-                orderItems.appendChild(itemEl);
             });
-            
-            // Display order summary total
-            document.getElementById('order-summary-total').textContent = `$${order.total.toFixed(2)}`;
-        }
-
-        function setDeliveryEstimate(parish) {
-            const estimateEl = document.getElementById('delivery-estimate');
-            let estimate = '';
-            
-            switch(parish.toLowerCase()) {
-                case 'kingston':
-                case 'st-andrew':
-                    estimate = '1-2 business days';
-                    break;
-                case 'st-catherine':
-                    estimate = '2-3 business days';
-                    break;
-                case 'clarendon':
-                case 'manchester':
-                case 'st-elizabeth':
-                case 'westmoreland':
-                    estimate = '3-4 business days';
-                    break;
-                default:
-                    estimate = '4-5 business days';
-            }
-            
-            estimateEl.textContent = estimate;
-        }
-    </script>
+        });
+</script>
 </body>
 </html>

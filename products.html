@@ -77,6 +77,7 @@
                       <option value="lunchBoxes">Lunch Boxes</option>
                       <option value="eco-friendly">Eco-Friendly</option>
                       <option value="household-supplies">Household Supplies</option>
+                      <option value="other">Other</option>
                   </select>
                 </div>
                 <div class="filter-group">
@@ -180,1372 +181,382 @@
         </div>
     </div>
 
-    <script type="module" src="script.js"></script>
-    <script>
-        // Product data (in a real app, this would come from an API)
-        const products = [
-            {
-      "id": 1,
-      "name": "Eco-Friendly Boxes",
-      "price": "$12.99",
-      "description": "Biodegradable food boxes perfect for takeout",
-      "image": "https://example.com/eco-boxes.jpg",
-      "category": "bags",
-      "featured": true,
-      "stock": 100
-    },
-    {
-      "id": 2,
-      "name": "Eco-Friendly Small Boxes",
-      "price": "$8.99",
-      "description": "Small biodegradable containers for snacks",
-      "image": "https://example.com/eco-boxes-small.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 75
-    },
-    {
-      "id": 3,
-      "name": "Compostable Salad Bowls",
-      "price": "$14.99",
-      "description": "Plant-based bowls perfect for fresh salads",
-      "image": "https://example.com/salad-bowls.jpg",
-      "category": "bags",
-      "featured": true,
-      "stock": 60
-    },
-    {
-      "id": 4,
-      "name": "Recycled Paper Bags",
-      "price": "$5.99",
-      "description": "Sturdy bags made from 100% recycled paper",
-      "image": "https://example.com/paper-bags.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 200
-    },
-    {
-      "id": 5,
-      "name": "Bamboo Cutlery Set",
-      "price": "$9.99",
-      "description": "Sustainable utensils for eco-conscious dining",
-      "image": "https://example.com/bamboo-cutlery.jpg",
-      "category": "bags",
-      "featured": true,
-      "stock": 150
-    },
-    {
-      "id": 6,
-      "name": "Plant-Based Coffee Cups",
-      "price": "$10.99",
-      "description": "Compostable cups for hot beverages",
-      "image": "https://example.com/coffee-cups.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 120
-    },
-    {
-      "id": 7,
-      "name": "Eco-Friendly Large Boxes",
-      "price": "$15.99",
-      "description": "Large biodegradable containers for family meals",
-      "image": "https://example.com/eco-boxes-large.jpg",
-      "category": "bags",
-      "featured": true,
-      "stock": 80
-    },
-    {
-      "id": 8,
-      "name": "Sugar Cane Plates",
-      "price": "$11.99",
-      "description": "Durable plates made from sugarcane fiber",
-      "image": "https://example.com/sugarcane-plates.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 90
-    },
-    {
-      "id": 9,
-      "name": "Palm Leaf Bowls",
-      "price": "$13.99",
-      "description": "Naturally beautiful bowls from fallen palm leaves",
-      "image": "https://example.com/palm-bowls.jpg",
-      "category": "bags",
-      "featured": true,
-      "stock": 65
-    },
-    {
-      "id": 10,
-      "name": "Cornstarch Containers",
-      "price": "$10.49",
-      "description": "Clear containers made from plant-based materials",
-      "image": "https://example.com/cornstarch-containers.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 110
-    },
-    {
-      "id": 11,
-      "name": "Eco-Friendly Burger Boxes",
-      "price": "$9.49",
-      "description": "Specialty boxes designed for burgers and sandwiches",
-      "image": "https://example.com/burger-boxes.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 95
-    },
-    {
-      "id": 12,
-      "name": "Reusable Silicone Lids",
-      "price": "$16.99",
-      "description": "Stretchable lids to replace plastic wrap",
-      "image": "https://example.com/silicone-lids.jpg",
-      "category": "bags",
-      "featured": true,
-      "stock": 70
-    },
-    {
-      "id": 13,
-      "name": "Wheat Straw Trays",
-      "price": "$14.49",
-      "description": "Lightweight trays made from wheat straw byproducts",
-      "image": "https://example.com/wheat-trays.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 85
-    },
-    {
-      "id": 14,
-      "name": "Eco-Friendly Dessert Cups",
-      "price": "$7.99",
-      "description": "Small compostable cups for sweets and desserts",
-      "image": "https://example.com/dessert-cups.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 130
-    },
-    {
-      "id": 15,
-      "name": "Bamboo Fiber Bowls",
-      "price": "$12.49",
-      "description": "Microwave-safe bowls made from bamboo fiber",
-      "image": "https://example.com/bamboo-bowls.jpg",
-      "category": "bags",
-      "featured": true,
-      "stock": 55
-    },
-    {
-      "id": 16,
-      "name": "Recycled Napkins",
-      "price": "$4.99",
-      "description": "Soft napkins made from 100% recycled paper",
-      "image": "https://example.com/recycled-napkins.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 180
-    },
-    {
-      "id": 17,
-      "name": "Plant-Based Soup Containers",
-      "price": "$11.49",
-      "description": "Leak-proof containers for liquid foods",
-      "image": "https://example.com/soup-containers.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 75
-    },
-    {
-      "id": 18,
-      "name": "Eco-Friendly Pizza Boxes",
-      "price": "$13.99",
-      "description": "Grease-resistant pizza boxes that compost completely",
-      "image": "https://example.com/pizza-boxes.jpg",
-      "category": "bags",
-      "featured": true,
-      "stock": 60
-    },
-    {
-      "id": 19,
-      "name": "Bagasse Clamshells",
-      "price": "$10.99",
-      "description": "Sturdy containers made from sugarcane waste",
-      "image": "https://example.com/clamshells.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 100
-    },
-    {
-      "id": 20,
-      "name": "Wooden Coffee Stirrers",
-      "price": "$3.99",
-      "description": "Natural birch wood stirrers for beverages",
-      "image": "https://example.com/wood-stirrers.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 250
-    },
-    {
-      "id": 21,
-      "name": "Eco-Friendly Party Pack",
-      "price": "$24.99",
-      "description": "Assortment of plates, cups and cutlery for events",
-      "image": "https://example.com/party-pack.jpg",
-      "category": "bags",
-      "featured": true,
-      "stock": 40
-    },
-    {
-      "id": 22,
-      "name": "Plant-Based Straws",
-      "price": "$6.99",
-      "description": "Biodegradable straws made from plant materials",
-      "image": "https://example.com/plant-straws.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 175
-    },
-    {
-      "id": 23,
-      "name": "Recycled Cardboard Trays",
-      "price": "$8.49",
-      "description": "Versatile trays made from recycled cardboard",
-      "image": "https://example.com/cardboard-trays.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 110
-    },
-    {
-      "id": 24,
-      "name": "Compostable Deli Containers",
-      "price": "$12.99",
-      "description": "Clear containers for deli items and prepared foods",
-      "image": "https://example.com/deli-containers.jpg",
-      "category": "bags",
-      "featured": false,
-      "stock": 85
-    },
-    {
-      "id": 25,
-      "name": "Bamboo Fiber Plates",
-      "price": "$11.99",
-      "description": "Durable plates that withstand hot foods",
-      "image": "https://example.com/bamboo-plates.jpg",
-      "category": "bags",
-      "featured": true,
-      "stock": 70
-    },
-    {
-      "id": 26,
-      "name": "Eco-Friendly Sauce Cups",
-      "price": "$5.49",
-      "description": "Small cups for condiments and dipping sauces",
-      "image": "https://example.com/sauce-cups.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 150
-    },
-    {
-      "id": 27,
-      "name": "Recycled Paper Trays",
-      "price": "$9.99",
-      "description": "Multi-compartment trays for varied meals",
-      "image": "https://example.com/paper-trays.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 95
-    },
-    {
-      "id": 28,
-      "name": "Plant-Based Cold Cups",
-      "price": "$7.99",
-      "description": "Compostable cups for cold beverages",
-      "image": "https://example.com/cold-cups.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 120
-    },
-    {
-      "id": 29,
-      "name": "Bagasse Bowls",
-      "price": "$10.99",
-      "description": "Microwave-safe bowls from sugarcane fiber",
-      "image": "https://example.com/bagasse-bowls.jpg",
-      "category": "foodContainers",
-      "featured": true,
-      "stock": 80
-    },
-    {
-      "id": 30,
-      "name": "Eco-Friendly Bakery Boxes",
-      "price": "$8.99",
-      "description": "Perfect for pastries, cookies and baked goods",
-      "image": "https://example.com/bakery-boxes.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 105
-    },
-    {
-      "id": 31,
-      "name": "Bamboo Fiber Trays",
-      "price": "$13.49",
-      "description": "Stylish serving trays made from bamboo",
-      "image": "https://example.com/bamboo-trays.jpg",
-      "category": "foodContainers",
-      "featured": true,
-      "stock": 65
-    },
-    {
-      "id": 32,
-      "name": "Compostable Clear Lids",
-      "price": "$6.99",
-      "description": "Lids for various container sizes",
-      "image": "https://example.com/clear-lids.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 140
-    },
-    {
-      "id": 33,
-      "name": "Recycled Paper Plates",
-      "price": "$7.49",
-      "description": "Everyday plates made from recycled materials",
-      "image": "https://example.com/recycled-plates.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 160
-    },
-    {
-      "id": 34,
-      "name": "Eco-Friendly Sushi Trays",
-      "price": "$11.99",
-      "description": "Specialty trays for sushi presentation",
-      "image": "https://example.com/sushi-trays.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 55
-    },
-    {
-      "id": 35,
-      "name": "Plant-Based Meal Prep Containers",
-      "price": "$14.99",
-      "description": "Stackable containers for meal preparation",
-      "image": "https://example.com/meal-prep.jpg",
-      "category": "foodContainers",
-      "featured": true,
-      "stock": 70
-    },
-    {
-      "id": 36,
-      "name": "Palm Leaf Plates",
-      "price": "$12.99",
-      "description": "Elegant plates made from fallen palm leaves",
-      "image": "https://example.com/palm-plates.jpg",
-      "category": "foodContainers",
-      "featured": true,
-      "stock": 60
-    },
-    {
-      "id": 37,
-      "name": "Eco-Friendly Taco Holders",
-      "price": "$8.49",
-      "description": "Specialty containers for tacos and wraps",
-      "image": "https://example.com/taco-holders.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 90
-    },
-    {
-      "id": 38,
-      "name": "Bagasse Rectangular Containers",
-      "price": "$11.49",
-      "description": "Versatile containers for various food items",
-      "image": "https://example.com/rectangular-containers.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 85
-    },
-    {
-      "id": 39,
-      "name": "Compostable Cup Carriers",
-      "price": "$5.99",
-      "description": "Carriers for multiple beverage cups",
-      "image": "https://example.com/cup-carriers.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 110
-    },
-    {
-      "id": 40,
-      "name": "Eco-Friendly Noodle Boxes",
-      "price": "$10.99",
-      "description": "Specialty boxes for noodle dishes",
-      "image": "https://example.com/noodle-boxes.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 75
-    },
-    {
-      "id": 41,
-      "name": "Bamboo Fiber Cups",
-      "price": "$9.99",
-      "description": "Reusable cups made from bamboo fiber",
-      "image": "https://example.com/bamboo-cups.jpg",
-      "category": "foodContainers",
-      "featured": true,
-      "stock": 95
-    },
-    {
-      "id": 42,
-      "name": "Plant-Based Lid Set",
-      "price": "$7.49",
-      "description": "Assorted lids for various container types",
-      "image": "https://example.com/lid-set.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 125
-    },
-    {
-      "id": 43,
-      "name": "Recycled Paper Soup Cups",
-      "price": "$8.99",
-      "description": "Double-walled cups for hot soups",
-      "image": "https://example.com/soup-cups.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 100
-    },
-    {
-      "id": 44,
-      "name": "Eco-Friendly Appetizer Trays",
-      "price": "$9.99",
-      "description": "Small trays for hors d'oeuvres and snacks",
-      "image": "https://example.com/appetizer-trays.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 85
-    },
-    {
-      "id": 45,
-      "name": "Bagasse Divided Plates",
-      "price": "$12.49",
-      "description": "Plates with compartments for different foods",
-      "image": "https://example.com/divided-plates.jpg",
-      "category": "foodContainers",
-      "featured": true,
-      "stock": 70
-    },
-    {
-      "id": 46,
-      "name": "Compostable Clear Cups",
-      "price": "$6.99",
-      "description": "Transparent cups for cold beverages",
-      "image": "https://example.com/clear-cups.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 140
-    },
-    {
-      "id": 47,
-      "name": "Eco-Friendly Fry Cones",
-      "price": "$5.99",
-      "description": "Cones for fries and other finger foods",
-      "image": "https://example.com/fry-cones.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 150
-    },
-    {
-      "id": 48,
-      "name": "Bamboo Fiber Lunch Boxes",
-      "price": "$15.99",
-      "description": "Reusable bento-style lunch containers",
-      "image": "https://example.com/lunch-boxes.jpg",
-      "category": "foodContainers",
-      "featured": true,
-      "stock": 55
-    },
-    {
-      "id": 49,
-      "name": "Plant-Based Salad Containers",
-      "price": "$10.49",
-      "description": "Breathable containers for fresh greens",
-      "image": "https://example.com/salad-containers.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 90
-    },
-    {
-      "id": 50,
-      "name": "Recycled Paper Hot Cups",
-      "price": "$7.99",
-      "description": "Insulated cups for hot beverages",
-      "image": "https://example.com/hot-cups.jpg",
-      "category": "foodContainers",
-      "featured": false,
-      "stock": 120
-    },
-    {
-      "id": 51,
-      "name": "Eco-Friendly Cup Sleeves",
-      "price": "$4.99",
-      "description": "Protective sleeves for hot cups",
-      "image": "https://example.com/cup-sleeves.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 180
-    },
-    {
-      "id": 52,
-      "name": "Bagasse Oval Containers",
-      "price": "$11.99",
-      "description": "Elegant oval-shaped food containers",
-      "image": "https://example.com/oval-containers.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 75
-    },
-    {
-      "id": 53,
-      "name": "Compostable Spoon Set",
-      "price": "$5.49",
-      "description": "Biodegradable spoons for all occasions",
-      "image": "https://example.com/spoon-set.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 200
-    },
-    {
-      "id": 54,
-      "name": "Eco-Friendly Pasta Boxes",
-      "price": "$12.49",
-      "description": "Specialty boxes for pasta dishes",
-      "image": "https://example.com/pasta-boxes.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 65
-    },
-    {
-      "id": 55,
-      "name": "Bamboo Fiber Snack Boxes",
-      "price": "$8.99",
-      "description": "Small boxes perfect for snacks and sides",
-      "image": "https://example.com/snack-boxes.jpg",
-      "category": "cups",
-      "featured": true,
-      "stock": 110
-    },
-    {
-      "id": 56,
-      "name": "Plant-Based Fork Set",
-      "price": "$5.49",
-      "description": "Biodegradable forks for all occasions",
-      "image": "https://example.com/fork-set.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 200
-    },
-    {
-      "id": 57,
-      "name": "Recycled Paper Sandwich Wraps",
-      "price": "$6.99",
-      "description": "Grease-resistant wraps for sandwiches",
-      "image": "https://example.com/sandwich-wraps.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 130
-    },
-    {
-      "id": 58,
-      "name": "Eco-Friendly Cup Lids",
-      "price": "$4.49",
-      "description": "Secure lids for various cup sizes",
-      "image": "https://example.com/cup-lids.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 175
-    },
-    {
-      "id": 59,
-      "name": "Bagasse Square Containers",
-      "price": "$10.99",
-      "description": "Versatile square food containers",
-      "image": "https://example.com/square-containers.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 90
-    },
-    {
-      "id": 60,
-      "name": "Compostable Knife Set",
-      "price": "$5.49",
-      "description": "Biodegradable knives for all occasions",
-      "image": "https://example.com/knife-set.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 200
-    },
-    {
-      "id": 61,
-      "name": "Eco-Friendly Wing Boxes",
-      "price": "$9.99",
-      "description": "Specialty boxes for chicken wings",
-      "image": "https://example.com/wing-boxes.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 80
-    },
-    {
-      "id": 62,
-      "name": "Bamboo Fiber Salad Bowls",
-      "price": "$11.99",
-      "description": "Large bowls perfect for salads",
-      "image": "https://example.com/salad-bowls-bamboo.jpg",
-      "category": "cups",
-      "featured": true,
-      "stock": 70
-    },
-    {
-      "id": 63,
-      "name": "Plant-Based Stirrer Set",
-      "price": "$3.99",
-      "description": "Biodegradable beverage stirrers",
-      "image": "https://example.com/stirrer-set.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 250
-    },
-    {
-      "id": 64,
-      "name": "Recycled Paper Bakery Bags",
-      "price": "$5.99",
-      "description": "Bags perfect for baked goods",
-      "image": "https://example.com/bakery-bags.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 150
-    },
-    {
-      "id": 65,
-      "name": "Eco-Friendly Burrito Boxes",
-      "price": "$10.49",
-      "description": "Specialty boxes for burritos and wraps",
-      "image": "https://example.com/burrito-boxes.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 75
-    },
-    {
-      "id": 66,
-      "name": "Bagasse Dessert Plates",
-      "price": "$7.99",
-      "description": "Small plates perfect for desserts",
-      "image": "https://example.com/dessert-plates.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 120
-    },
-    {
-      "id": 67,
-      "name": "Compostable Tray Lids",
-      "price": "$6.49",
-      "description": "Secure lids for various tray sizes",
-      "image": "https://example.com/tray-lids.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 140
-    },
-    {
-      "id": 68,
-      "name": "Eco-Friendly Sushi Boats",
-      "price": "$13.99",
-      "description": "Elegant boats for sushi presentation",
-      "image": "https://example.com/sushi-boats.jpg",
-      "category": "cups",
-      "featured": true,
-      "stock": 50
-    },
-    {
-      "id": 69,
-      "name": "Bamboo Fiber Appetizer Plates",
-      "price": "$8.99",
-      "description": "Small plates perfect for appetizers",
-      "image": "https://example.com/appetizer-plates.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 110
-    },
-    {
-      "id": 70,
-      "name": "Plant-Based Meal Boxes",
-      "price": "$12.99",
-      "description": "Complete meal containers with compartments",
-      "image": "https://example.com/meal-boxes.jpg",
-      "category": "cups",
-      "featured": true,
-      "stock": 65
-    },
-    {
-      "id": 71,
-      "name": "Recycled Paper Hot Containers",
-      "price": "$9.99",
-      "description": "Insulated containers for hot foods",
-      "image": "https://example.com/hot-containers.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 85
-    },
-    {
-      "id": 72,
-      "name": "Eco-Friendly Dip Cups",
-      "price": "$4.99",
-      "description": "Small cups perfect for dips and sauces",
-      "image": "https://example.com/dip-cups.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 160
-    },
-    {
-      "id": 73,
-      "name": "Bagasse Round Plates",
-      "price": "$10.49",
-      "description": "Classic round plates for any occasion",
-      "image": "https://example.com/round-plates.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 95
-    },
-    {
-      "id": 74,
-      "name": "Compostable Straw Set",
-      "price": "$5.99",
-      "description": "Biodegradable straws in various sizes",
-      "image": "https://example.com/straw-set.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 180
-    },
-    {
-      "id": 75,
-      "name": "Eco-Friendly Noodle Bowls",
-      "price": "$11.99",
-      "description": "Specialty bowls for noodle dishes",
-      "image": "https://example.com/noodle-bowls.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 70
-    },
-    {
-      "id": 76,
-      "name": "Bamboo Fiber Serving Trays",
-      "price": "$14.99",
-      "description": "Large trays for serving multiple items",
-      "image": "https://example.com/serving-trays.jpg",
-      "category": "cups",
-      "featured": true,
-      "stock": 60
-    },
-    {
-      "id": 77,
-      "name": "Plant-Based Condiment Cups",
-      "price": "$4.49",
-      "description": "Small cups for ketchup, mustard, etc.",
-      "image": "https://example.com/condiment-cups.jpg",
-      "category": "cups",
-      "featured": false,
-      "stock": 200
-    },
-    {
-      "id": 78,
-      "name": "Recycled Paper Salad Bowls",
-      "price": "$8.99",
-      "description": "Bowls perfect for fresh salads",
-      "image": "https://example.com/paper-salad-bowls.jpg",
-      "category": "lunchBoxes",
-      "featured": false,
-      "stock": 100
-    },
-    {
-      "id": 79,
-      "name": "Eco-Friendly Tray Set",
-      "price": "$15.99",
-      "description": "Assorted trays for catering needs",
-      "image": "https://example.com/tray-set.jpg",
-      "category": "lunchBoxes",
-      "featured": true,
-      "stock": 55
-    },
-    {
-      "id": 80,
-      "name": "Bagasse Appetizer Containers",
-      "price": "$7.99",
-      "description": "Small containers perfect for appetizers",
-      "image": "https://example.com/appetizer-containers.jpg",
-      "category": "lunchBoxes",
-      "featured": false,
-      "stock": 120
-    },
-    {
-      "id": 81,
-      "name": "Compostable Clear Containers",
-      "price": "$10.99",
-      "description": "Transparent food containers",
-      "image": "https://example.com/clear-containers.jpg",
-      "category": "lunchBoxes",
-      "featured": false,
-      "stock": 90
-    },
-    {
-      "id": 82,
-      "name": "Eco-Friendly Rice Bowls",
-      "price": "$9.99",
-      "description": "Specialty bowls for rice dishes",
-      "image": "https://example.com/rice-bowls.jpg",
-      "category": "lunchBoxes",
-      "featured": false,
-      "stock": 85
-    },
-    {
-      "id": 83,
-      "name": "Bamboo Fiber Cup Lids",
-      "price": "$5.99",
-      "description": "Lids for bamboo fiber cups",
-      "image": "https://example.com/bamboo-lids.jpg",
-      "category": "lunchBoxes",
-      "featured": false,
-      "stock": 150
-    },
-    {
-      "id": 84,
-      "name": "Plant-Based Baking Cups",
-      "price": "$3.99",
-      "description": "Cups for muffins and cupcakes",
-      "image": "https://example.com/baking-cups.jpg",
-      "category": "lunchBoxes",
-      "featured": false,
-      "stock": 200
-    },
-    {
-      "id": 85,
-      "name": "Recycled Paper Hot Lids",
-      "price": "$4.99",
-      "description": "Lids for hot beverage cups",
-      "image": "https://example.com/hot-lids.jpg",
-      "category": "lunchBoxes",
-      "featured": false,
-      "stock": 180
-    },
-    {
-      "id": 86,
-      "name": "Eco-Friendly Skewer Boxes",
-      "price": "$8.49",
-      "description": "Specialty boxes for skewered foods",
-      "image": "https://example.com/skewer-boxes.jpg",
-      "category": "eco-friendly",
-      "featured": false,
-      "stock": 95
-    },
-    {
-      "id": 87,
-      "name": "Bagasse Square Plates",
-      "price": "$9.99",
-      "description": "Modern square plates for presentation",
-      "image": "https://example.com/square-plates.jpg",
-      "category": "eco-friendly",
-      "featured": false,
-      "stock": 105
-    },
-    {
-      "id": 88,
-      "name": "Compostable Clear Bowls",
-      "price": "$11.49",
-      "description": "Transparent bowls for food display",
-      "image": "https://example.com/clear-bowls.jpg",
-      "category": "eco-friendly",
-      "featured": false,
-      "stock": 80
-    },
-    {
-      "id": 89,
-      "name": "Eco-Friendly Tasting Spoons",
-      "price": "$4.99",
-      "description": "Small spoons for samples and tastings",
-      "image": "https://example.com/tasting-spoons.jpg",
-      "category": "eco-friendly",
-      "featured": false,
-      "stock": 175
-    },
-    {
-      "id": 90,
-      "name": "Bamboo Fiber Salad Containers",
-      "price": "$12.99",
-      "description": "Containers perfect for fresh salads",
-      "image": "https://example.com/salad-containers-bamboo.jpg",
-      "category": "eco-friendly",
-      "featured": true,
-      "stock": 70
-    },
-    {
-      "id": 91,
-      "name": "Plant-Based Cold Lids",
-      "price": "$4.49",
-      "description": "Lids for cold beverage cups",
-      "image": "https://example.com/cold-lids.jpg",
-      "category": "eco-friendly",
-      "featured": false,
-      "stock": 190
-    },
-    {
-      "id": 92,
-      "name": "Recycled Paper Pasta Bowls",
-      "price": "$9.49",
-      "description": "Bowls perfect for pasta dishes",
-      "image": "https://example.com/pasta-bowls.jpg",
-      "category": "eco-friendly",
-      "featured": false,
-      "stock": 90
-    },
-    {
-      "id": 93,
-      "name": "Eco-Friendly Sample Cups",
-      "price": "$3.99",
-      "description": "Tiny cups for samples and tastings",
-      "image": "https://example.com/sample-cups.jpg",
-      "category": "eco-friendly",
-      "featured": false,
-      "stock": 220
-    },
-    {
-      "id": 94,
-      "name": "Bagasse Rectangular Plates",
-      "price": "$10.99",
-      "description": "Rectangular plates for elegant presentation",
-      "image": "https://example.com/rectangular-plates.jpg",
-      "category": "eco-friendly",
-      "featured": false,
-      "stock": 85
-    },
-    {
-      "id": 95,
-      "name": "Compostable Clear Trays",
-      "price": "$12.49",
-      "description": "Transparent trays for food display",
-      "image": "https://example.com/clear-trays.jpg",
-      "category": "eco-friendly",
-      "featured": false,
-      "stock": 75
-    },
-    {
-      "id": 96,
-      "name": "Eco-Friendly Chopsticks",
-      "price": "$6.99",
-      "description": "Biodegradable chopsticks",
-      "image": "https://example.com/chopsticks.jpg",
-      "category": "household-supplies",
-      "featured": false,
-      "stock": 150
-    },
-    {
-      "id": 97,
-      "name": "Bamboo Fiber Serving Bowls",
-      "price": "$13.99",
-      "description": "Large bowls for serving sides and salads",
-      "image": "https://example.com/serving-bowls.jpg",
-      "category": "household-supplies",
-      "featured": true,
-      "stock": 60
-    },
-    {
-      "id": 98,
-      "name": "Plant-Based Tray Dividers",
-      "price": "$5.99",
-      "description": "Dividers for creating compartments in trays",
-      "image": "https://example.com/tray-dividers.jpg",
-      "category": "household-supplies",
-      "featured": false,
-      "stock": 130
-    },
-    {
-      "id": 99,
-      "name": "Recycled Paper Dessert Boxes",
-      "price": "$7.99",
-      "description": "Boxes perfect for cakes and pastries",
-      "image": "https://example.com/dessert-boxes.jpg",
-      "category": "household-supplies",
-      "featured": false,
-      "stock": 0
-    },
-    {
-      "id": 100,
-      "name": "Eco-Friendly Utensil Set",
-      "price": "$8.99",
-      "description": "Complete set of biodegradable utensils",
-      "image": "https://example.com/utensil-set.jpg",
-      "category": "household-supplies",
-      "featured": true,
-      "stock": 120
+      <script type="module">
+    // Import Firebase functions from script.js
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBk4oAO4LVlrwgBgrdk9m2waZaeiB1nrqY",
+      authDomain: "floyds-489c8.firebaseapp.com",
+      databaseURL: "https://floyds-489c8-default-rtdb.firebaseio.com",
+      projectId: "floyds-489c8",
+      storageBucket: "floyds-489c8.appspot.com",
+      messagingSenderId: "467837659879",
+      appId: "1:467837659879:web:8fde5b1862184183ac9042",
+      measurementId: "G-32RKBL830G"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Make db available globally
+    window.db = db;
+
+    // DOM Elements
+    const productsGrid = document.getElementById('productsGrid');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const noResults = document.getElementById('noResults');
+    const mobileSearchInput = document.getElementById('mobileSearchInput');
+    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortBy = document.getElementById('sortBy');
+    const resetFilters = document.getElementById('resetFilters');
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Check for search query in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQuery = urlParams.get('q');
+        
+        if (searchQuery) {
+            if (mobileSearchInput) mobileSearchInput.value = searchQuery;
+            handleSearch(searchQuery);
+        } else {
+            await displayProducts();
+        }
+
+        // Set up event listeners
+        setupEventListeners();
+    });
+
+    // Set up all event listeners
+    function setupEventListeners() {
+        if (mobileSearchInput) {
+            mobileSearchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') handleSearch();
+            });
+        }
+        
+        if (mobileSearchBtn) mobileSearchBtn.addEventListener('click', () => handleSearch());
+        
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', () => {
+                // When category changes, we want to filter but keep any existing search term
+                const searchTerm = mobileSearchInput?.value || '';
+                displayProducts(searchTerm);
+            });
+        }
+        
+        if (sortBy) {
+            sortBy.addEventListener('change', () => {
+                const searchTerm = mobileSearchInput?.value || '';
+                displayProducts(searchTerm);
+            });
+        }
+        
+        if (resetFilters) {
+            resetFilters.addEventListener('click', () => {
+                if (mobileSearchInput) mobileSearchInput.value = '';
+                if (categoryFilter) categoryFilter.value = 'all';
+                if (sortBy) sortBy.value = 'featured';
+                displayProducts();
+            });
+        }
     }
-        ];
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const productsGrid = document.getElementById('productsGrid');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const noResults = document.getElementById('noResults');
-            const searchInput = document.getElementById('searchInput');
-            const mobileSearchInput = document.getElementById('mobileSearchInput');
-            const searchBtn = document.getElementById('searchBtn');
-            const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-            const categoryFilter = document.getElementById('categoryFilter');
-            const sortBy = document.getElementById('sortBy');
-            const resetFilters = document.getElementById('resetFilters');
+    async function displayProducts(searchTerm = '') {
+        console.log('Starting to display products...');
+        loadingIndicator.style.display = 'flex';
+        noResults.style.display = 'none';
+        productsGrid.innerHTML = '';
+        
+        try {
+            console.log('Fetching products from firestore...');
+            const productsCol = collection(db, 'products');
+            const snapshot = await getDocs(productsCol);
+            console.log(`Found ${snapshot.size} products`);
             
-            // Initial load
-            displayProducts(products);
-
-            
-            function handleSearch() {
-                const searchTerm = searchInput.value.toLowerCase() || mobileSearchInput.value.toLowerCase();
-                const category = categoryFilter.value;
-                const sortOption = sortBy.value;
-                
-                let filteredProducts = products.filter(product => {
-                    const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
-                                        product.description.toLowerCase().includes(searchTerm);
-                    const matchesCategory = category === 'all' || product.category === category;
-                    return matchesSearch && matchesCategory;
-                });
-
-                // Sort products
-                filteredProducts = sortProducts(filteredProducts, sortOption);
-
-                displayProducts(filteredProducts);
-            }
-
-            // Handle search from URL parameter
-            function handleProductsPageSearch(query) {
-                // Set the search input value
-                const searchInput = document.getElementById('searchInput');
-                const mobileSearchInput = document.getElementById('mobileSearchInput');
-                
-                if (searchInput) searchInput.value = query;
-                if (mobileSearchInput) mobileSearchInput.value = query;
-                
-                // Trigger the search
-                if (typeof handleSearch === 'function') {
-                    handleSearch();
-                }
-            }
-
-            // Check for search query on page load
-            document.addEventListener('DOMContentLoaded', function() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const searchQuery = urlParams.get('q');
-                
-                if (searchQuery) {
-                    handleProductsPageSearch(searchQuery);
-                }
+            let products = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    name: data.name || 'Unnamed Product',
+                    price: typeof data.price === 'number' ? data.price.toFixed(2) : data.price,
+                    description: data.description || 'No description available',
+                    image: data.image || 'https://placehold.co/300x200?text=Product+Image',
+                    category: data.category || 'other',
+                    featured: data.featured || false,
+                    stock: data.stock || 0
+                };
             });
 
-            // Sort products
-            function sortProducts(products, sortOption) {
-                switch(sortOption) {
-                    case 'price-low':
-                        return [...products].sort((a, b) => parseFloat(a.price.replace('$', '')) - parseFloat(b.price.replace('$', '')));
-                    case 'price-high':
-                        return [...products].sort((a, b) => parseFloat(b.price.replace('$', '')) - parseFloat(a.price.replace('$', '')));
-                    case 'name-asc':
-                        return [...products].sort((a, b) => a.name.localeCompare(b.name));
-                    case 'name-desc':
-                        return [...products].sort((a, b) => b.name.localeCompare(a.name));
-                    case 'featured':
-                    default:
-                        return [...products].sort((a, b) => (b.featured === a.featured) ? 0 : b.featured ? -1 : 1);
-                }
+            // Apply search filter
+            if (searchTerm && typeof searchTerm === 'string') {
+                const lowerTerm = searchTerm.toLowerCase();
+                products = products.filter(product => 
+                    product.name.toLowerCase().includes(lowerTerm) || 
+                    (product.description && product.description.toLowerCase().includes(lowerTerm))
+                );
             }
 
-            // Display products in grid
-            // Add these helper functions
-            function getStockClass(stock) {
-                if (stock > 20) return 'in-stock';
-                if (stock > 0) return 'low-stock';
-                return 'out-of-stock';
+            // Apply category filter
+            const category = categoryFilter.value;
+            if (category !== 'all') {
+                products = products.filter(p => p.category === category);
             }
 
-            function getStockText(stock) {
-                if (stock > 20) return 'In Stock';
-                if (stock > 0) return `Low Stock (${stock} left)`;
-                return 'Out of Stock';
+            // Apply sorting
+            const sortOption = sortBy.value;
+            products = sortProducts(products, sortOption);
+
+            // Render products
+            renderProducts(products);
+
+            if (products.length === 0) {
+                noResults.style.display = 'block';
             }
+        } catch (error) {
+            console.error("Error loading products:", error);
+            noResults.style.display = 'block';
+            noResults.innerHTML = `
+                <h3>Error loading products</h3>
+                <p>Please try again later</p>
+            `;
+        } finally {
+            loadingIndicator.style.display = 'none';
+        }
+    }
 
-            // In products.html, update the displayProducts function
-           async function displayProducts(filteredProducts = null) {
-              const productsGrid = document.getElementById('productsGrid');
-              const loadingIndicator = document.getElementById('loadingIndicator');
-              const noResults = document.getElementById('noResults');
-              
-              loadingIndicator.style.display = 'flex';
-              noResults.style.display = 'none';
-              
-              try {
-                  let products;
-                  
-                  // Try to fetch from Firebase first
-                  try {
-                      const productsCol = collection(db, 'products');
-                      const productSnapshot = await getDocs(productsCol);
-                      products = productSnapshot.docs.map(doc => {
-                          return { id: doc.id, ...doc.data() };
-                      });
-                      
-                      // Apply filters if provided
-                      if (filteredProducts) {
-                          const filteredIds = new Set(filteredProducts.map(p => p.id));
-                          products = products.filter(p => filteredIds.has(p.id));
-                      }
-                  } catch (firebaseError) {
-                      console.error("Firebase error, falling back to local data:", firebaseError);
-                      // Fall back to local products data if Firebase fails
-                      products = filteredProducts || window.products || [];
-                  }
-                  
-                  if (products.length === 0) {
-                      noResults.style.display = 'block';
-                      productsGrid.innerHTML = '';
-                      return;
-                  }
-                  
-                  productsGrid.innerHTML = '';
-                  
-                  products.forEach(product => {
-                      // Determine stock status
-                      const stockStatus = product.stock > 0 ? 
-                          (product.stock > 20 ? 'In Stock' : `Low Stock (${product.stock} left)`) : 
-                          'Out of Stock';
-                      const stockClass = product.stock > 0 ? 
-                          (product.stock > 20 ? 'in-stock' : 'low-stock') : 
-                          'out-of-stock';
-                      
-                      const productCard = document.createElement('div');
-                      productCard.className = 'product-card';
-                      productCard.dataset.id = product.id;
-                      productCard.innerHTML = `
-                          <div class="card-header">
-                              <h3>${product.name}</h3>
-                              <img src="${product.image}" alt="${product.name}" class="product-image">
-                          </div>
-                          <div class="card-body">
-                              <p class="price">${product.price}</p>
-                              <p class="description">${product.description}</p>
-                              ${product.stock !== undefined ? 
-                              `<div class="product-stock ${stockClass}">
-                                  ${stockStatus}
-                              </div>` : ''}
-                              
-                              <div class="card-buttons">
-                                  <button class="view-btn">View Details</button>
-                                  <button class="card-add-to-cart" data-id="${product.id}" 
-                                      ${product.stock <= 0 ? 'disabled' : ''}>
-                                      ${product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
-                                  </button>
-                              </div>
-                          </div>
-                      `;
-                      productsGrid.appendChild(productCard);
-                      
-                      productCard.querySelector('.view-btn').addEventListener('click', (e) => {
-                          e.stopPropagation();
-                          showProductDetail(product);
-                      });
+    async function handleSearch(searchTerm = null) {
+        const term = searchTerm !== null ? searchTerm : (mobileSearchInput?.value || '');
+        await displayProducts(term);
+    }
 
-                      // Only add click handler if product is in stock
-                      const addToCartBtn = productCard.querySelector('.card-add-to-cart');
-                      if (addToCartBtn && product.stock > 0) {
-                          addToCartBtn.addEventListener('click', (e) => {
-                              e.stopPropagation();
-                              addToCart(product);
-                              
-                              // Visual feedback
-                              addToCartBtn.textContent = "Added!";
-                              setTimeout(() => {
-                                  if (product.stock > 0) {
-                                      addToCartBtn.textContent = "Add to Cart";
-                                  }
-                              }, 2000);
-                          });
-                      }
-                  });
-              } catch (error) {
-                  console.error("Error loading products:", error);
-                  noResults.style.display = 'block';
-                  noResults.innerHTML = `
-                      <h3>Error loading products</h3>
-                      <p>Please try again later</p>
-                  `;
-              } finally {
-                  loadingIndicator.style.display = 'none';
-              }
-          }
-           
+    // Sort products based on selected option
+    function sortProducts(products, sortOption) {
+        switch(sortOption) {
+            case 'price-low':
+                return [...products].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+            case 'price-high':
+                return [...products].sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+            case 'name-asc':
+                return [...products].sort((a, b) => a.name.localeCompare(b.name));
+            case 'name-desc':
+                return [...products].sort((a, b) => b.name.localeCompare(a.name));
+            case 'featured':
+            default:
+                return [...products].sort((a, b) => (b.featured === a.featured) ? 0 : b.featured ? -1 : 1);
+        }
+    }
 
-            // Show product detail (you can implement this as a modal or redirect to product page)
-            window.showProductDetail = function(product) {
-                // Create overlay
-                const overlay = document.createElement('div');
-                overlay.className = 'tile-overlay active';
-                document.body.appendChild(overlay);
-                
-                // Create detail tile
-                const detailTile = document.createElement('div');
-                detailTile.className = 'product-detail-tile active';
-                detailTile.dataset.id = product.id;
-                detailTile.innerHTML = `
-                    <button class="close-tile">×</button>
-                    <div class="tile-content">
-                        <div class="product-images">
-                            <img src="${product.image}" alt="${product.name}" class="detail-image">
-                            <div class="thumbnail-container">
-                                <!-- Thumbnails would go here -->
+    // Render products to the grid
+    function renderProducts(products) {
+        productsGrid.innerHTML = '';
+        
+        products.forEach(product => {
+            const stockStatus = getStockText(product.stock);
+            const stockClass = getStockClass(product.stock);
+
+            const imagePath = product.image.startsWith('http') ? 
+                product.image : 
+                `/${product.image}`;
+            
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+            productCard.dataset.id = product.id;
+            productCard.innerHTML = `
+                <div class="card-header">
+                    <h3>${product.name}</h3>
+                    <img src="${imagePath}" alt="${product.name}" class="product-image" 
+                        onerror="this.onerror=null; this.src='https://placehold.co/300x200?text=Product+Image'"></div>
+                <div class="card-body">
+                    <p class="price">$${product.price}</p>
+                    <p class="description">${product.description}</p>
+                    ${product.category ? `<p class="category">Category: ${product.category}</p>` : ''}
+                    
+                    <div class="product-stock ${stockClass}">
+                        ${stockStatus}
+                    </div>
+                    
+                    <div class="card-buttons">
+                        <button class="view-btn">View Details</button>
+                        <button class="card-add-to-cart" data-id="${product.id}" 
+                            ${product.stock <= 0 ? 'disabled' : ''}>
+                            ${product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            productsGrid.appendChild(productCard);
+            
+            // Add event listeners
+            productCard.querySelector('.view-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                showProductDetail(product);
+            });
+
+            const addToCartBtn = productCard.querySelector('.card-add-to-cart');
+            if (addToCartBtn && product.stock > 0) {
+                addToCartBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.addToCart(product); // Use the global addToCart function from script.js
+                    
+                    // Visual feedback
+                    addToCartBtn.textContent = "Added!";
+                    setTimeout(() => {
+                        if (product.stock > 0) {
+                            addToCartBtn.textContent = "Add to Cart";
+                        }
+                    }, 2000);
+                });
+            }
+        });
+    }
+
+    // Show product detail modal
+    async function showProductDetail(product) {
+        // If product is just an ID, fetch the full details
+        if (typeof product === 'string') {
+            const productRef = doc(db, 'products', product);
+            const productSnap = await getDoc(productRef);
+            if (!productSnap.exists()) return;
+            product = { id: productSnap.id, ...productSnap.data() };
+        }
+        
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'tile-overlay active';
+        document.body.appendChild(overlay);
+        
+        // Create detail tile
+        const detailTile = document.createElement('div');
+        detailTile.className = 'product-detail-tile active';
+        detailTile.dataset.id = product.id;
+        detailTile.innerHTML = `
+            <button class="close-tile">×</button>
+            <div class="tile-content">
+                <div class="product-images">
+                    <img src="${product.image}" alt="${product.name}" class="detail-image"
+                        onerror="this.src='https://placehold.co/300x200?text=Product+Image'">
+                    <div class="thumbnail-container">
+                        <!-- Thumbnails would go here -->
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h2>${product.name}</h2>
+                    <p class="price">$${product.price}</p>
+                    <p class="product-description">${product.description}</p>
+                    
+                    <div class="product-options">
+                        <div class="option-group">
+                            <label>Size:</label>
+                            <div class="option-selector">
+                                <div class="option-item selected">Small</div>
+                                <div class="option-item">Medium</div>
+                                <div class="option-item">Large</div>
                             </div>
                         </div>
-                        <div class="product-info">
-                            <h2>${product.name}</h2>
-                            <p class="price">${product.price}</p>
-                            <p class="product-description">${product.description}</p>
-                            
-                            <div class="product-options">
-                                <div class="option-group">
-                                    <label>Size:</label>
-                                    <div class="option-selector">
-                                        <div class="option-item selected">Small</div>
-                                        <div class="option-item">Medium</div>
-                                        <div class="option-item">Large</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="option-group">
-                                    <label>Color:</label>
-                                    <div class="option-selector">
-                                        <div class="option-item selected">White</div>
-                                        <div class="option-item">Green</div>
-                                        <div class="option-item">Brown</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="option-group">
-                                    <label>Quantity:</label>
-                                    <div class="quantity-selector">
-                                        <button class="quantity-btn minus">-</button>
-                                        <input type="number" value="1" min="1" class="quantity-input">
-                                        <button class="quantity-btn plus">+</button>
-                                    </div>
-                                </div>
+                        
+                        <div class="option-group">
+                            <label>Color:</label>
+                            <div class="option-selector">
+                                <div class="option-item selected">White</div>
+                                <div class="option-item">Green</div>
+                                <div class="option-item">Brown</div>
                             </div>
-                            
-                            <button class="btn add-to-cart-btn">Add to Cart</button>
-                            <a href="product-detail.html?id=${product.id}" class="btn btn-outline">View Full Details</a>
+                        </div>
+                        
+                        <div class="option-group">
+                            <label>Quantity:</label>
+                            <div class="quantity-selector">
+                                <button class="quantity-btn minus">-</button>
+                                <input type="number" value="1" min="1" max="${product.stock}" class="quantity-input">
+                                <button class="quantity-btn plus">+</button>
+                            </div>
                         </div>
                     </div>
-                `;
-                document.body.appendChild(detailTile);
-                
-                // Add event listeners for option selection
-                detailTile.querySelectorAll('.option-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        this.parentNode.querySelectorAll('.option-item').forEach(i => 
-                            i.classList.remove('selected'));
-                        this.classList.add('selected');
-                    });
-                });
-                
-                // Quantity controls
-                detailTile.querySelector('.minus').addEventListener('click', () => {
-                    const input = detailTile.querySelector('.quantity-input');
-                    if (input.value > 1) input.value--;
-                });
-                
-                detailTile.querySelector('.plus').addEventListener('click', () => {
-                    const input = detailTile.querySelector('.quantity-input');
-                    input.value++;
-                });
-                
-                // Add to cart from detail view
-                detailTile.querySelector('.add-to-cart-btn').addEventListener('click', function() {
-                    const quantity = parseInt(detailTile.querySelector('.quantity-input').value);
-                    const selectedSize = detailTile.querySelector('.option-group:nth-child(1) .selected').textContent;
-                    const selectedColor = detailTile.querySelector('.option-group:nth-child(2) .selected').textContent;
                     
-                    const productWithOptions = {
-                        ...product,
-                        quantity,
-                        options: {
-                            size: selectedSize,
-                            color: selectedColor
-                        }
-                    };
-                    
-                    addToCart(productWithOptions);
-                    this.textContent = "Added to Cart!";
-                    setTimeout(() => {
-                        detailTile.remove();
-                        overlay.remove();
-                    }, 1500);
-                });
-                
-                // Close functionality
-                detailTile.querySelector('.close-tile').addEventListener('click', () => {
-                    detailTile.remove();
-                    overlay.remove();
-                });
-                
-                overlay.addEventListener('click', () => {
-                    detailTile.remove();
-                    overlay.remove();
-                });
-            };
-
-            function filterProducts(query) {
-                const productsGrid = document.getElementById('productsGrid');
-                const loadingIndicator = document.getElementById('loadingIndicator');
-                const noResults = document.getElementById('noResults');
-                
-                loadingIndicator.style.display = 'block';
-                noResults.style.display = 'none';
-                
-                // Filter products based on query
-                const filteredProducts = products.filter(product => 
-                    product.name.toLowerCase().includes(query.toLowerCase()) || 
-                    product.description.toLowerCase().includes(query.toLowerCase())
-                );
-                
-                // Display filtered products
-                displayProducts(filteredProducts);
-                
-                if (filteredProducts.length === 0) {
-                    noResults.style.display = 'block';
-                }
-                
-                loadingIndicator.style.display = 'none';
-            }
-
-            // Event listeners
-            searchInput.addEventListener('keyup', handleSearch);
-            mobileSearchInput.addEventListener('keyup', handleSearch);
-            searchBtn.addEventListener('click', handleSearch);
-            mobileSearchBtn.addEventListener('click', handleSearch);
-            categoryFilter.addEventListener('change', handleSearch);
-            sortBy.addEventListener('change', handleSearch);
-            resetFilters.addEventListener('click', function() {
-                searchInput.value = '';
-                mobileSearchInput.value = '';
-                categoryFilter.value = 'all';
-                sortBy.value = 'featured';
-                handleSearch();
+                    <button class="btn add-to-cart-btn" ${product.stock <= 0 ? 'disabled' : ''}>
+                        ${product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                    </button>
+                    <a href="product-detail.html?id=${product.id}" class="btn btn-outline">View Full Details</a>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(detailTile);
+        
+        // Add event listeners for option selection
+        detailTile.querySelectorAll('.option-item').forEach(item => {
+            item.addEventListener('click', function() {
+                this.parentNode.querySelectorAll('.option-item').forEach(i => 
+                    i.classList.remove('selected'));
+                this.classList.add('selected');
             });
-
-            // Simulate loading delay
-            setTimeout(() => {
-                loadingIndicator.style.display = 'none';
-            }, 1000);
         });
-    </script>
+        
+        // Quantity controls
+        detailTile.querySelector('.minus').addEventListener('click', () => {
+            const input = detailTile.querySelector('.quantity-input');
+            if (input.value > 1) input.value--;
+        });
+        
+        detailTile.querySelector('.plus').addEventListener('click', () => {
+            const input = detailTile.querySelector('.quantity-input');
+            if (parseInt(input.value) < product.stock) input.value++;
+        });
+        
+        // Add to cart from detail view
+        const addToCartBtn = detailTile.querySelector('.add-to-cart-btn');
+        if (addToCartBtn && product.stock > 0) {
+            addToCartBtn.addEventListener('click', function() {
+                const quantity = parseInt(detailTile.querySelector('.quantity-input').value);
+                const selectedSize = detailTile.querySelector('.option-group:nth-child(1) .selected').textContent;
+                const selectedColor = detailTile.querySelector('.option-group:nth-child(2) .selected').textContent;
+                
+                const productWithOptions = {
+                    ...product,
+                    quantity,
+                    options: {
+                        size: selectedSize,
+                        color: selectedColor
+                    }
+                };
+                
+                window.addToCart(productWithOptions); // Use the global addToCart function from script.js
+                this.textContent = "Added to Cart!";
+                setTimeout(() => {
+                    detailTile.remove();
+                    overlay.remove();
+                }, 1500);
+            });
+        }
+        
+        // Close functionality
+        detailTile.querySelector('.close-tile').addEventListener('click', () => {
+            detailTile.remove();
+            overlay.remove();
+        });
+        
+        overlay.addEventListener('click', () => {
+            detailTile.remove();
+            overlay.remove();
+        });
+    }
+
+    // Helper function for stock status
+    function getStockClass(stock) {
+        if (stock > 20) return 'in-stock';
+        if (stock > 0) return 'low-stock';
+        return 'out-of-stock';
+    }
+
+    function getStockText(stock) {
+        if (stock > 20) return 'In Stock';
+        if (stock > 0) return `Low Stock (${stock} left)`;
+        return 'Out of Stock';
+    }
+</script>
+<script src="script.js" type="module"></script>
 </body>
 </html>

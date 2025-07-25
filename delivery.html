@@ -263,6 +263,7 @@
                 font-size: 0.8rem;
             }
         }
+
     </style>
 </head>
 <body>
@@ -272,15 +273,11 @@
             <div class="logo">
                 <h1>Floyd's Distributors</h1>
             </div>
-            <div class="search-container">
-                <input type="text" placeholder="Search products..." class="search-input">
-                <button class="search-btn">🔍</button>
-            </div>
             <nav class="navbar">
                 <ul class="nav-links">
                     <li><a href="index.html">Home</a></li>
                     <li class="dropdown">
-                        <a href="#">Products <span class="dropdown-arrow">▼</span></a>
+                        <a href="products.html">Products <span class="dropdown-arrow">▼</span></a>
                         <ul class="dropdown-menu">
                             <li><a href="products.html">All Products</a></li>
                             <li><a href="category.html?cat=food-containers">Food Containers</a></li>
@@ -291,10 +288,6 @@
                     <li><a href="about.html">About Us</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
-                <div class="cart-icon">
-                    <span class="cart-icon-symbol">🛒</span>
-                    <span class="cart-count">0</span>
-                </div>
                 <div class="hamburger">☰</div>
             </nav>
         </div>
@@ -304,32 +297,10 @@
     <main class="delivery-main">
         <div class="container">
             <div class="delivery-container">
-                <h2>Delivery Information</h2>
-                <p>Please provide your delivery details to proceed with your order.</p>
-                
-                <!-- Delivery Steps -->
-                <div class="delivery-steps">
-                    <div class="delivery-step-line">
-                        <div class="delivery-step-line-progress" id="stepProgress"></div>
-                    </div>
-                    <div class="delivery-step active" id="step1">
-                        <div class="delivery-step-number">1</div>
-                        <div>Select Parish</div>
-                    </div>
-                    <div class="delivery-step" id="step2">
-                        <div class="delivery-step-number">2</div>
-                        <div>Enter Address</div>
-                    </div>
-                    <div class="delivery-step" id="step3">
-                        <div class="delivery-step-number">3</div>
-                        <div>Review & Pay</div>
-                    </div>
-                </div>
+                <h2>Delivery Parishes & Dates</h2>
                 
                 <!-- Parish Selection Section -->
                 <div class="parish-selection" id="parishSelection">
-                    <h3>Select Your Parish</h3>
-                    <p>Choose the parish where your delivery should be sent</p>
                     
                     <div class="parish-grid">
                         <!-- Kingston -->
@@ -587,7 +558,7 @@
             </div>
         </div>
     </footer>
-
+    <script type="module" src="script.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Delivery page functionality

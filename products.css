@@ -790,7 +790,6 @@
     margin-bottom: 1rem;
 }
 
-/* Add to products.css */
 .product-card .card-buttons {
     display: flex;
     flex-direction: column;
@@ -1057,3 +1056,5 @@
         padding: 0.8rem 1rem;
     }
 }
+
+

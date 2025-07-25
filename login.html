@@ -7,30 +7,153 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, rgba(0, 128, 128, 0.1) 0%, rgba(0, 102, 102, 0.2) 100%);
-            padding: 20px;
+    body.login-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, rgba(0, 128, 128, 0.1) 0%, rgba(0, 102, 102, 0.2) 100%);
+        padding: 20px;
+    }
+    
+    .auth-overlay {
+        display: none !important;
+    }
+    
+    #authContainer {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        transform: none !important;
+        display: flex !important;
+        box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12);
+        width: 100%;
+        max-width: 800px;
+        min-height: 480px;
+        background-color: white;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    /* Mobile toggle links - hidden by default */
+    .mobile-toggle {
+        display: none;
+        margin-top: 1.5rem;
+        text-align: center;
+    }
+
+    .mobile-toggle a {
+        color: var(--teal);
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    /* Default desktop styles */
+    .form-container {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        transition: all 0.6s ease-in-out;
+    }
+
+    .sign-in-container {
+        left: 0;
+        width: 50%;
+        z-index: 2;
+    }
+
+    .sign-up-container {
+        left: 0;
+        width: 50%;
+        opacity: 0;
+        z-index: 1;
+    }
+
+    #authContainer.right-panel-active .sign-in-container {
+        transform: translateX(100%);
+    }
+
+    #authContainer.right-panel-active .sign-up-container {
+        transform: translateX(100%);
+        opacity: 1;
+        z-index: 5;
+    }
+
+    .overlay-container {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 50%;
+        height: 100%;
+        overflow: hidden;
+        transition: transform 0.6s ease-in-out;
+        z-index: 100;
+    }
+
+    #authContainer.right-panel-active .overlay-container {
+        transform: translateX(-100%);
+    }
+
+    /* Mobile styles */
+    @media (max-width: 768px) {
+        #authContainer {
+            flex-direction: column;
+            min-height: auto;
+            height: auto;
         }
         
-        .auth-overlay {
+        .form-container {
+            position: relative !important;
+            width: 100% !important;
+            height: auto !important;
+            padding: 2rem 1.5rem !important;
+            transform: none !important;
+        }
+        
+        .sign-in-container, 
+        .sign-up-container {
+            opacity: 1 !important;
+        }
+        
+        /* Show only one form at a time on mobile */
+        #authContainer.right-panel-active .sign-in-container {
             display: none !important;
         }
         
-        #authContainer {
-            position: relative !important;
-            top: auto !important;
-            left: auto !important;
-            transform: none !important;
-            display: block !important;
-            box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12);
+        #authContainer:not(.right-panel-active) .sign-up-container {
+            display: none !important;
         }
-    </style>
+        
+        /* Hide overlay panel on mobile */
+        .overlay-container {
+            display: none !important;
+        }
+        
+        /* Show mobile toggle links */
+        .mobile-toggle {
+            display: block;
+        }
+    }
+
+    @media (max-width: 480px) {
+        body.login-page {
+            padding: 0;
+            align-items: flex-start;
+        }
+        
+        #authContainer {
+            border-radius: 0;
+            box-shadow: none;
+        }
+        
+        .form-container {
+            padding: 1.5rem 1rem !important;
+        }
+    }
+</style>
 </head>
-<body>
+<body class="login-page">
     <!-- Reuse your existing auth container -->
     <div class="container" id="authContainer">
         <div class="form-container sign-up-container">
@@ -47,6 +170,10 @@
                 <input type="password" placeholder="Password" id="signupPassword" />
                 <input type="hidden" id="signupRole" value="customer">
                 <button id="submitSignup">Sign Up</button>
+                <!-- Add this inside the sign-up-container form -->
+                <div class="mobile-toggle">
+                <p>Already have an account? <a href="#" id="mobileToggleLogin">Sign In</a></p>
+                </div>
             </form>
         </div>
         <div class="form-container sign-in-container">
@@ -62,6 +189,12 @@
                 <input type="password" placeholder="Password" id="loginPassword" />
                 <a href="#" id="forgotPassword">Forgot your password?</a>
                 <button id="submitLogin">Sign In</button>
+                <!-- Add this inside the sign-in-container form -->
+                <div class="mobile-toggle">
+                <p>Don't have an account? <a href="#" id="mobileToggleSignup">Sign Up</a></p>
+                </div>
+
+
             </form>
         </div>
         <div class="overlay-container">

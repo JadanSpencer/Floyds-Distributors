@@ -211,7 +211,7 @@ async function handleLogin() {
   const submitBtn = document.getElementById('submitLogin');
   
   if (!email || !password) {
-    showAuthError('Please fill in all fields');
+    showAuthError('Please fill in all fields','loginError');
     return;
   }
 
@@ -219,15 +219,6 @@ async function handleLogin() {
   submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Signing in...`;
   
   try {
-    const hardcodedUser = [...HARDCODED_ADMINS, ...HARDCODED_DRIVERS].find(u => 
-      u.email === email && u.password === password);
-    
-    if (hardcodedUser) {
-      await signInWithEmailAndPassword(auth, email, password);
-      const role = HARDCODED_ADMINS.some(a => a.email === email) ? 'admin' : 'driver';
-      redirectBasedOnRole(role);
-      return;
-    }
 
     // Normal Firebase auth flow
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -314,7 +305,7 @@ async function handleSignup() {
   const role = document.getElementById('signupRole')?.value || 'customer';
 
   if (!name || !email || !password) {
-    showAuthError('Please fill in all fields');
+    showAuthError('Please fill in all fields','signupError');
     return;
   }
 
@@ -601,12 +592,29 @@ export function canAccessDriverPortal(role) {
     return role === 'driver' || (role === 'admin' && adminAccessing);
 }
 
-function showAuthError(message, container = null) {
-  // Remove any existing error messages
-  const errorContainer = container || document.querySelector('.auth-container');
+function showAuthError(message, containerId = null) {
+  // For login page
+  if (window.location.pathname.includes('login.html')) {
+    const errorElement = containerId 
+      ? document.getElementById(containerId)
+      : document.querySelector('.auth-error');
+    
+    if (errorElement) {
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+    }
+    return;
+  }
+
+  // Original code for other pages
+  const errorContainer = containerId 
+    ? document.getElementById(containerId)
+    : document.querySelector('.auth-container');
+  
+  if (!errorContainer) return;
+  
   errorContainer.querySelectorAll('.auth-error').forEach(el => el.remove());
   
-  // Create and display new error message
   const errorElement = document.createElement('div');
   errorElement.className = 'auth-error';
   errorElement.style.color = '#ff6b6b';
@@ -614,7 +622,6 @@ function showAuthError(message, container = null) {
   errorElement.style.textAlign = 'center';
   errorElement.textContent = message;
   
-  // Insert after the submit button or at the end of the form
   const submitBtn = errorContainer.querySelector('button[type="submit"]');
   if (submitBtn) {
     submitBtn.insertAdjacentElement('afterend', errorElement);

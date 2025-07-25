@@ -167,9 +167,10 @@
                 <span>or use your email for registration</span>
                 <input type="text" placeholder="Name" id="signupName" />
                 <input type="email" placeholder="Email" id="signupEmail" />
-                <input type="password" placeholder="Password" id="signupPassword" />
+                <input type="password" placeholder="Password" id="signupPassword" autocomplete="new-password">
                 <input type="hidden" id="signupRole" value="customer">
                 <button id="submitSignup">Sign Up</button>
+                <div class="auth-error" id="loginError" style="color: #ff6b6b; margin: 1rem 0; text-align: center;"></div>
                 <!-- Add this inside the sign-up-container form -->
                 <div class="mobile-toggle">
                 <p>Already have an account? <a href="#" id="mobileToggleLogin">Sign In</a></p>
@@ -185,11 +186,12 @@
                     <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>
                 </div>
                 <span>or use your account</span>
-                <input type="email" placeholder="Email" id="loginEmail" />
-                <input type="password" placeholder="Password" id="loginPassword" />
+                <input type="email" placeholder="Email" id="loginEmail" autocomplete="email"/>
+                <input type="password" placeholder="Password" id="loginPassword" autocomplete="current-password">
                 <a href="#" id="forgotPassword">Forgot your password?</a>
                 <button id="submitLogin">Sign In</button>
                 <!-- Add this inside the sign-in-container form -->
+                <div class="auth-error" id="loginError" style="color: #ff6b6b; margin: 1rem 0; text-align: center;"></div>
                 <div class="mobile-toggle">
                 <p>Don't have an account? <a href="#" id="mobileToggleSignup">Sign Up</a></p>
                 </div>

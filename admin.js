@@ -14,24 +14,29 @@ import {
     where,
     createUserWithEmailAndPassword,
     updateProfile,
-    ensureAdminStatus,
+    ensureAdminStatus, // Assuming this is imported or defined elsewhere if needed
     onAuthStateChanged,
     addDoc,
     orderBy,
     limit,
-    onSnapshot
+    onSnapshot,
+    getDeliveryStatusBadgeClass
 } from './script.js';
 
 import { GeoPoint } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 console.log("✅ admin.js is now running");
 
+const OPENROUTE_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImU4OTBiNGUwYTZkYjQwZTU4YjY2ZjhkZGQxZjNkNTliIiwiaCI6Im11cm11cjY0In0='; // Replace with your OpenRouteService API key if you want geocoding to work
+
 // DOM Elements
 const lastUpdated = document.getElementById('lastUpdated');
 const totalUsers = document.getElementById('totalUsers');
 const totalProducts = document.getElementById('totalProducts');
 const recentOrders = document.getElementById('recentOrders');
+if (!recentOrders) console.warn('recentOrders element not found');
 const totalRevenue = document.getElementById('totalRevenue');
+if (!totalRevenue) console.warn('totalRevenue element not found');
 const recentActivity = document.getElementById('recentActivity');
 const productsTableBody = document.getElementById('productsTableBody');
 const usersTableBody = document.getElementById('usersTableBody');
@@ -43,54 +48,44 @@ const totalDrivers = document.getElementById('totalDrivers');
 const activeDrivers = document.getElementById('activeDrivers');
 const onDutyDrivers = document.getElementById('onDutyDrivers');
 
+// Order Action Modal Elements
+const orderActionModal = document.getElementById('orderActionModal');
+const orderActionModalOverlay = document.getElementById('orderActionModalOverlay');
+const closeOrderActionModal = document.getElementById('closeOrderActionModal');
+const orderIdDisplay = document.getElementById('orderIdDisplay');
+const orderStatusDisplay = document.getElementById('orderStatusDisplay');
+const confirmOrderButton = document.getElementById('confirmOrderButton');
+const addDeliveryButton = document.getElementById('addDeliveryButton');
+const adminDeliveryForm = document.getElementById('adminDeliveryForm');
+const adminCustomerNameInput = document.getElementById('adminCustomerName');
+const adminCustomerPhoneInput = document.getElementById('adminCustomerPhone');
+const adminDeliveryAddressInput = document.getElementById('adminDeliveryAddress');
+const adminDeliveryNotesInput = document.getElementById('adminDeliveryNotes');
+const adminGpsCoordinatesInput = document.getElementById('adminGpsCoordinates');
+const adminDeliveryDriverSelect = document.getElementById('adminDeliveryDriver');
+const cancelAddDeliveryAdminBtn = document.getElementById('cancelAddDeliveryAdmin');
+
+
 
 // Initialize admin panel
-/*document.addEventListener('DOMContentLoaded', async () => {
-  console.log('Admin panel loading');
-  document.body.classList.add('loading');
-
-  try {
-    console.log('Checking admin status...');
-    const isAdmin = await ensureAdminStatus();
-    console.log('Admin check result:', isAdmin);
-    
-    if (!isAdmin) {
-      console.log("❌ User is not an admin, redirecting...");
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 1500);
-      return;
-    }
-
-    console.log("✅ Admin access granted");
-    console.log('loadDashboardData running...');
-    initAdminPanel();
-    await Promise.all([
-      loadDashboardData(),
-      loadProducts(),
-      loadUsers(),
-      loadOrders()
-    ]);
-    
-    setupAdminNavigation();
-    setupModals();
-    setupEventListeners();
-    
-  } catch (error) {
-    console.error("Admin init error:", error);
-    window.location.href = 'index.html';
-  } finally {
-    document.body.classList.remove('loading');
-  }
-});*/
-
 (async () => {
     console.log('✅ admin.js IIFE starting, DOM is already loaded');
     
     try {
         console.log('✅ Test log BEFORE admin check');
 
-        const isAdmin = true; // override for testing
+        // Replace the hardcoded isAdmin check with:
+        const user = auth.currentUser;
+        if (!user) {
+        window.location.href = 'login.html';
+        return;
+        }
+
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+        window.location.href = 'index.html';
+        return;
+        }
         console.log('✅ Test log AFTER admin check');
 
         initAdminPanel();
@@ -103,7 +98,7 @@ const onDutyDrivers = document.getElementById('onDutyDrivers');
             loadOrders(),
             loadDrivers()
         ]);
-        console.log('✅ Test log AFTER loading data');
+        console.log('✅ All data loaded');
 
         setupAdminNavigation();
         setupModals();
@@ -111,9 +106,12 @@ const onDutyDrivers = document.getElementById('onDutyDrivers');
         console.log('✅ All setup done');
     } catch (error) {
         console.error('❌ Error during admin initialization:', error);
+        // If not admin and not already redirected, redirect to index
+        // if (error.message !== "Redirecting to login" && !window.location.pathname.includes('index.html')) {
+        //     window.location.href = 'index.html';
+        // }
     }
 })();
-
 
 
 // Initialize admin panel components
@@ -142,80 +140,128 @@ function updateLastUpdated() {
 
 // Load dashboard data
 async function loadDashboardData() {
-    console.log('✅ loadDashboardData started');
-
+    console.log('✅ Loading dashboard data...');
+    
     try {
-        // Check DOM Elements
-        console.log('totalUsers element: ', totalUsers);
-        console.log('totalProducts element: ', totalProducts);
-        console.log('recentOrders element: ', recentOrders);
-        console.log('totalRevenue element: ', totalRevenue);
-        
-        // Get counts from Firestore
-        console.log('Fetching users count...');
-        const usersCount = await getCollectionCount('users');
-        console.log('Users count fetched: ', usersCount);
-
-        console.log('Fetch products count...');
-        const productsCount = await getCollectionCount('products');
-        console.log('Products count fetched: ', productsCount);
-                
-        // Get recent orders (last 7 days)
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        console.log('Fetching recent orders since: ', sevenDaysAgo);
-        
-        let recentOrdersCount = 0;
-        let revenue = 0;
-        
-        try {
-            const ordersQuery = query(
-                collection(db, "orders"),
-                where("createdAt", ">=", sevenDaysAgo),
-                where("status", "in", ["completed", "delivered"])
-            );
-            
-            const ordersSnapshot = await getDocs(ordersQuery);
-            recentOrdersCount = ordersSnapshot.size;
-            
-            ordersSnapshot.forEach(doc => {
-                const amount = parseFloat(doc.data().totalAmount) || 0;
-                revenue += amount;
-            });
-        } catch (error) {
-            console.error("Error loading orders:", error);
-            showToast("Error loading recent orders data", "error");
+        // Check if DOM elements exist
+        if (!totalUsers || !totalProducts || !recentOrders || !totalRevenue) {
+            console.warn('One or more dashboard elements not found');
+            return;
         }
-        
+
+        // Set loading states
+        totalUsers.textContent = '...';
+        totalProducts.textContent = '...';
+        recentOrders.textContent = '...';
+        totalRevenue.textContent = '...';
+        if (totalDrivers) totalDrivers.textContent = '...';
+        if (activeDrivers) activeDrivers.textContent = '...';
+        if (onDutyDrivers) onDutyDrivers.textContent = '...';
+
+        // Parallel data fetching
+        const [
+            usersCount, 
+            productsCount, 
+            ordersData,
+            driversData
+        ] = await Promise.all([
+            getCollectionCount('users'),
+            getCollectionCount('products'),
+            getRecentOrdersData(),
+            getDriversData()
+        ]);
+
         // Update dashboard stats
-        if (totalUsers) totalUsers.textContent = usersCount;
-        if (totalProducts) totalProducts.textContent = productsCount;
-        if (recentOrders) recentOrders.textContent = recentOrdersCount;
-        if (totalRevenue) totalRevenue.textContent = `$${revenue.toFixed(2)}`;
+        totalUsers.textContent = usersCount;
+        totalProducts.textContent = productsCount;
+        recentOrders.textContent = ordersData.count;
+        totalRevenue.textContent = formatCurrency(ordersData.revenue);
         
+        // Update driver stats if elements exist
+        if (totalDrivers) totalDrivers.textContent = driversData.total;
+        if (activeDrivers) activeDrivers.textContent = driversData.active;
+        if (onDutyDrivers) onDutyDrivers.textContent = driversData.onDuty;
+
         // Load recent activity
         await loadRecentActivity();
 
-        const driversQuery = query(collection(db, "users"), where("role", "==", "driver"));
-        const driversSnapshot = await getDocs(driversQuery);
-        
-        const activeDriversQuery = query(
-            collection(db, "users"),
-            where("role", "==", "driver"),
-            where("status", "==", "active")
-        );
-        const activeDriversSnapshot = await getDocs(activeDriversQuery);
-        
-        if (totalDrivers) totalDrivers.textContent = driversSnapshot.size;
-        if (activeDrivers) activeDrivers.textContent = activeDriversSnapshot.size;
-        
-        // For on-duty drivers
-        const onDutyCount = await getOnDutyDriversCount();
-        if (onDutyDrivers) onDutyDrivers.textContent = onDutyCount;
+        console.log('✅ Dashboard data loaded successfully');
+
     } catch (error) {
-        console.error("Error loading dashboard data:", error);
+        console.error("❌ Dashboard load error:", error);
         showToast("Error loading dashboard data", "error");
+        
+        // Set error states
+        totalUsers.textContent = '0';
+        totalProducts.textContent = '0';
+        recentOrders.textContent = '0';
+        totalRevenue.textContent = '$0.00';
+        if (totalDrivers) totalDrivers.textContent = '0';
+        if (activeDrivers) activeDrivers.textContent = '0';
+        if (onDutyDrivers) onDutyDrivers.textContent = '0';
     }
+}
+
+// Helper functions for dashboard data
+async function getRecentOrdersData() {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    try {
+        const ordersQuery = query(
+            collection(db, "orders"),
+            where("createdAt", ">=", sevenDaysAgo),
+            where("status", "in", ["completed", "delivered"])
+        );
+        
+        const snapshot = await getDocs(ordersQuery);
+        let revenue = 0;
+        
+        snapshot.forEach(doc => {
+            const amount = parseFloat(doc.data().totalAmount) || 0;
+            revenue += amount;
+        });
+        
+        return {
+            count: snapshot.size,
+            revenue: revenue
+        };
+        
+    } catch (error) {
+        console.error("Orders data error:", error);
+        return { count: 0, revenue: 0 };
+    }
+}
+
+async function getDriversData() {
+    try {
+        const [totalSnapshot, activeSnapshot, onDutySnapshot] = await Promise.all([
+            getDocs(query(collection(db, "users"), where("role", "==", "driver"))),
+            getDocs(query(collection(db, "users"), 
+                where("role", "==", "driver"),
+                where("status", "==", "active"))),
+            getDocs(query(collection(db, "users"), 
+                where("role", "==", "driver"),
+                where("status", "==", "on-duty")))
+        ]);
+        
+        return {
+            total: totalSnapshot.size,
+            active: activeSnapshot.size,
+            onDuty: onDutySnapshot.size
+        };
+        
+    } catch (error) {
+        console.error("Drivers data error:", error);
+        return { total: 0, active: 0, onDuty: 0 };
+    }
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(amount);
 }
 
 // Get count of documents in a collection
@@ -268,6 +314,7 @@ function showToast(message, type = 'info') {
 }
 
 // Load recent activity
+// Load recent activity
 async function loadRecentActivity() {
     try {
         const activityQuery = query(
@@ -276,8 +323,20 @@ async function loadRecentActivity() {
             limit(10)
         );
         
-        const snapshot = await getDocs(activityQuery);
+        // Add null check here
+        if (!recentActivity) {
+            console.warn('Recent activity element not found');
+            return;
+        }
+        
         recentActivity.innerHTML = '';
+        
+        const snapshot = await getDocs(activityQuery);
+        
+        if (snapshot.empty) {
+            recentActivity.innerHTML = '<tr><td colspan="4">No recent activity found</td></tr>';
+            return;
+        }
         
         snapshot.forEach(doc => {
             const activity = doc.data();
@@ -286,131 +345,960 @@ async function loadRecentActivity() {
             row.innerHTML = `
                 <td>${activity.userName || 'System'}</td>
                 <td>${activity.action}</td>
-                <td>${activity.timestamp?.toDate().toLocaleString() || 'N/A'}</td>
-                <td><span class="badge ${getStatusBadgeClass(activity.status)}">${activity.status}</span></td>
+                <td>${activity.timestamp ? new Date(activity.timestamp.toDate()).toLocaleString() : 'N/A'}</td>
+                <td><span class="badge ${activity.status === 'success' ? 'badge-success' : 'badge-info'}">${activity.status || 'info'}</span></td>
             `;
-            
             recentActivity.appendChild(row);
         });
-        
     } catch (error) {
         console.error("Error loading recent activity:", error);
-    }
-}
-
-// Get badge class based on status
-function getStatusBadgeClass(status) {
-    switch(status.toLowerCase()) {
-        case 'success': return 'badge-success';
-        case 'failed': return 'badge-danger';
-        case 'pending': return 'badge-warning';
-        default: return '';
+        if (recentActivity) {
+            recentActivity.innerHTML = '<tr><td colspan="4">Error loading activity</td></tr>';
+        }
+        showToast("Error loading recent activity", "error");
     }
 }
 
 // Load products
 async function loadProducts(searchTerm = '') {
     try {
-        let productsQuery;
-        const productsRef = collection(db, "products");
-        
+        const productsCollection = collection(db, "products");
+        let q = productsCollection;
+
         if (searchTerm) {
-            // Convert search term to lowercase for case-insensitive search
-            const term = searchTerm.toLowerCase();
-            productsQuery = query(productsRef, 
-                where("name_lowercase", ">=", term),
-                where("name_lowercase", "<=", term + '\uf8ff')
-            );
-        } else {
-            productsQuery = query(productsRef);
+            q = query(productsCollection, 
+                      where("name", ">=", searchTerm), 
+                      where("name", "<=", searchTerm + '\uf8ff'));
         }
 
-        const productsSnapshot = await getDocs(productsQuery);
+        const snapshot = await getDocs(q);
         productsTableBody.innerHTML = '';
-        
-        if (productsSnapshot.empty) {
-            productsTableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" style="text-align: center;">No products found</td>
-                </tr>
-            `;
-            return;
-        }
-        
-        productsSnapshot.forEach(doc => {
+        snapshot.forEach(doc => {
             const product = doc.data();
             const row = document.createElement('tr');
-            
             row.innerHTML = `
-                <td><img src="${product.image}" alt="${product.name}" class="product-table-image"></td>
+                <td><img src="${product.imageUrl || 'https://via.placeholder.com/50'}" alt="${product.name}" class="product-table-image"></td>
                 <td>${product.name}</td>
-                <td>$${product.price?.toFixed(2) || '0.00'}</td>
-                <td>${product.stock || 0}</td>
-                <td>${product.category || 'Uncategorized'}</td>
+                <td>${product.category}</td>
+                <td>$${parseFloat(product.price).toFixed(2)}</td>
+                <td>${product.stock}</td>
+                <td>${product.featured ? '<i class="fas fa-check-circle badge-success"></i>' : '<i class="fas fa-times-circle badge-danger"></i>'}</td>
                 <td>
-                    <button class="btn-admin btn-admin-outline edit-product" data-id="${doc.id}">Edit</button>
-                    <button class="btn-admin btn-admin-outline delete-product" data-id="${doc.id}">Delete</button>
+                    <button class="btn-admin btn-admin-sm btn-admin-outline edit-product" data-id="${doc.id}">Edit</button>
+                    <button class="btn-admin btn-admin-sm btn-admin-danger delete-product" data-id="${doc.id}">Delete</button>
                 </td>
             `;
-            
             productsTableBody.appendChild(row);
         });
-        
-        // Add event listeners to edit/delete buttons
-        // Add event listeners to edit/delete buttons
-        document.querySelectorAll('.edit-product').forEach(btn => {
-            console.log('Binding edit button for product:', btn.dataset.id);
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent event bubbling
-                console.log('Edit button clicked for product:', btn.dataset.id);
-                editProduct(btn.dataset.id);
-            });
-        });
-        
-        document.querySelectorAll('.delete-product').forEach(btn => {
-            btn.addEventListener('click', () => deleteProduct(btn.dataset.id));
-        });
-        
     } catch (error) {
-        console.error('Error loading products:', error);
-        alert('Error loading products. Please try again.');
+        console.error("Error loading products:", error);
+        showToast("Error loading products", "error");
     }
 }
 
-// Edit product
-async function editProduct(productId) {
-    console.log('Editing product:', productId);
+// Load users
+async function loadUsers(searchTerm = '') {
+    try {
+        const usersCollection = collection(db, "users");
+        let q = usersCollection;
+
+        if (searchTerm) {
+            q = query(usersCollection, 
+                      where("email", ">=", searchTerm), 
+                      where("email", "<=", searchTerm + '\uf8ff'));
+        }
+
+        const snapshot = await getDocs(q);
+        usersTableBody.innerHTML = '';
+        snapshot.forEach(doc => {
+            const user = doc.data();
+            if (user.role === 'admin') return; // Don't list admins here
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${user.name || 'N/A'}</td>
+                <td>${user.email}</td>
+                <td><span class="badge badge-info">${user.role || 'customer'}</span></td>
+                <td><span class="badge ${user.status === 'active' ? 'badge-success' : 'badge-danger'}">${user.status || 'inactive'}</span></td>
+                <td>
+                    <button class="btn-admin btn-admin-sm btn-admin-outline edit-user" data-id="${doc.id}">Edit</button>
+                    <button class="btn-admin btn-admin-sm btn-admin-danger delete-user" data-id="${doc.id}">Delete</button>
+                </td>
+            `;
+            usersTableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error loading users:", error);
+        showToast("Error loading users", "error");
+    }
+}
+
+// Load orders with filtering and search
+async function loadOrders(filterStatus = 'all', searchTerm = '') {
+    try {
+        const ordersCollection = collection(db, "orders");
+        let q = query(ordersCollection, orderBy("createdAt", "desc"));
+
+        const conditions = [];
+
+        if (filterStatus !== 'all') {
+            conditions.push(where("status", "==", filterStatus));
+        }
+
+        if (searchTerm) {
+            conditions.push(where("customerName", ">=", searchTerm), where("customerName", "<=", searchTerm + '\uf8ff'));
+        }
+
+        if (conditions.length > 0) {
+            q = query(ordersCollection, ...conditions, orderBy("createdAt", "desc"));
+        } else {
+            q = query(ordersCollection, orderBy("createdAt", "desc"));
+        }
+
+        const snapshot = await getDocs(q);
+        ordersTableBody.innerHTML = '';
+        snapshot.forEach(doc => {
+            const order = doc.data();
+            const orderId = doc.id;
+            const createdAt = order.createdAt ? new Date(order.createdAt.toDate()).toLocaleString() : 'N/A';
+            const statusClass = getDeliveryStatusBadgeClass(order.status);
+
+            // Make pending status clickable
+            const statusHtml = order.status.toLowerCase() === 'pending'
+                ? `<span class="badge ${statusClass} status-pending-clickable" data-order-id="${orderId}">Pending</span>`
+                : `<span class="badge ${getDeliveryStatusBadgeClass(order.status)}">
+                    ${order.status}
+                  </span>`;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${orderId}</td>
+                <td>${order.customerName || 'N/A'}</td>
+                <td>${createdAt}</td>
+                <td>$${parseFloat(order.totalAmount || 0).toFixed(2)}</td>
+                <td>${statusHtml}</td>
+                <td>
+                    <button class="btn-admin btn-admin-sm btn-admin-outline view-order" data-id="${orderId}">View</button>
+                    <button class="btn-admin btn-admin-sm btn-admin-danger delete-order" data-id="${orderId}">Delete</button>
+                </td>
+            `;
+            ordersTableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error loading orders:", error);
+        showToast("Error loading orders", "error");
+    }
+}
+
+// Function to handle clicking on a pending order status
+// In admin.js, update the handlePendingOrderStatusClick function:
+
+async function handlePendingOrderStatusClick(orderId) {
+    console.log(`Clicked pending status for order ID: ${orderId}`);
+    try {
+        const orderDoc = await getDoc(doc(db, "orders", orderId));
+        if (!orderDoc.exists()) {
+            showToast("Order not found!", "error");
+            return;
+        }
+        
+        currentOrderId = orderId;
+        const order = orderDoc.data();
+
+        // Update modal content
+        if (orderIdDisplay) orderIdDisplay.textContent = orderId;
+        if (orderStatusDisplay) orderStatusDisplay.textContent = order.status;
+
+        // Show appropriate section based on order status
+        if (order.status === 'pending') {
+            document.getElementById('assignDriverSection').style.display = 'none';
+            document.getElementById('addDeliverySection').style.display = 'none';
+            document.getElementById('confirmOrderActionBtn').style.display = 'block';
+        } else if (order.status === 'processing') {
+            document.getElementById('assignDriverSection').style.display = 'none';
+            document.getElementById('addDeliverySection').style.display = 'block';
+            document.getElementById('confirmOrderActionBtn').style.display = 'none';
+            
+            // FIX: Pass the complete order object with ID to showAddDeliveryForm
+            const orderWithId = { ...order, id: orderId };
+            await showAddDeliveryForm(orderWithId);
+        }
+
+        showModal(orderActionModal, orderActionModalOverlay);
+    } catch (error) {
+        console.error("Error handling pending order status click:", error);
+        showToast("Error opening order actions", "error");
+    }
+}
+
+// Function to confirm an order
+async function confirmOrder(orderId) {
+    try {
+        // Re-verify admin status
+        const user = auth.currentUser;
+        if (!user) throw new Error("Not authenticated");
+        
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+            throw new Error("Admin privileges required");
+        }
+
+        if (!orderId) throw new Error("No order ID provided");
+        
+        // Only update allowed fields per security rules
+        await updateDoc(doc(db, "orders", orderId), {
+            status: "processing",
+            updatedAt: serverTimestamp()
+        });
+        
+        showToast("Order confirmed!", "success");
+        
+        // FIX: After confirming, automatically show the delivery form
+        const orderDoc = await getDoc(doc(db, "orders", orderId));
+        if (orderDoc.exists()) {
+            const order = orderDoc.data();
+            const orderWithId = { ...order, id: orderId };
+            
+            // Update the modal to show delivery form section
+            document.getElementById('confirmOrderActionBtn').style.display = 'none';
+            document.getElementById('addDeliverySection').style.display = 'block';
+            if (orderStatusDisplay) orderStatusDisplay.textContent = 'processing';
+            
+            await showAddDeliveryForm(orderWithId);
+        }
+        
+        loadOrders(); // Refresh orders table
+        
+    } catch (error) {
+        console.error("Error confirming order:", error);
+        showToast(`Error: ${error.message}`, "error");
+    }
+}
+
+// Function to show and populate the Add Delivery form within the modal
+async function showAddDeliveryForm(order) {
+    if (!adminDeliveryForm) {
+        console.error("Admin delivery form element not found");
+        showToast("Delivery form not available", "error");
+        return;
+    }
+
+    console.log("Showing Add Delivery Form for order:", order.id || 'unknown');
     
+    // Show the delivery form section
+    document.getElementById('addDeliverySection').style.display = 'block';
+    
+    // Safely populate form fields with null checks
+    if (adminCustomerNameInput) {
+        adminCustomerNameInput.value = order?.customerName || '';
+    }
+    if (adminCustomerPhoneInput) {
+        adminCustomerPhoneInput.value = order?.customerPhone || '';
+    }
+    if (adminDeliveryAddressInput) {
+        adminDeliveryAddressInput.value = order?.deliveryAddress || '';
+    }
+    if (adminDeliveryNotesInput) {
+        adminDeliveryNotesInput.value = order?.notes || '';
+    }
+
+    // Attempt to geocode the address if we have one
+    if (order?.deliveryAddress && adminGpsCoordinatesInput) {
+        const coords = await geocodeAddress(order.deliveryAddress);
+        if (coords) {
+            adminGpsCoordinatesInput.value = `${coords.lat}, ${coords.lng}`;
+        } else {
+            adminGpsCoordinatesInput.value = '';
+        }
+    }
+
+    // Populate driver dropdown
+    if (adminDeliveryDriverSelect) {
+        await populateDriverDropdown(adminDeliveryDriverSelect);
+    }
+
+    // Set order ID on form
+    if (order?.id) {
+        adminDeliveryForm.dataset.orderId = order.id;
+    }
+}
+
+// Geocoding function (ported from driver.js or similar)
+async function geocodeAddress(address) {
+    if (!address || !OPENROUTE_API_KEY) {
+        console.warn("Address or API key missing");
+        return null;
+    }
+
+    try {
+        const response = await fetch(
+            `https://api.openrouteservice.org/geocode/search?api_key=${OPENROUTE_API_KEY}&text=${encodeURIComponent(address)}`
+        );
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const data = await response.json();
+        if (data.features?.length > 0) {
+            const [lng, lat] = data.features[0].geometry.coordinates;
+            return { lat, lng };
+        }
+        return null;
+    } catch (error) {
+        console.error("Geocoding error:", error);
+        return null;
+    }
+}
+
+// In the populateDriverDropdown function
+// In admin.js, update the populateDriverDropdown function
+async function populateDriverDropdown(selectElement, selectedDriverId = null) {
+    if (!selectElement) {
+        console.error("Select element not found for driver dropdown");
+        return;
+    }
+    
+    selectElement.innerHTML = '<option value="">-- Select Driver --</option>';
+    
+    try {
+        const driversQuery = query(
+            collection(db, "users"),
+            where("role", "==", "driver")
+        );
+        const driversSnapshot = await getDocs(driversQuery);
+        
+        console.log("Found drivers for dropdown:", driversSnapshot.size);
+        
+        if (driversSnapshot.empty) {
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "No drivers available";
+            option.disabled = true;
+            selectElement.appendChild(option);
+            return;
+        }
+        
+        driversSnapshot.forEach(doc => {
+            const driver = doc.data();
+            const option = document.createElement('option');
+            option.value = doc.id;
+            option.textContent = `${driver.name || driver.email} (${driver.status || 'unknown'})`;
+            
+            if (selectedDriverId && doc.id === selectedDriverId) {
+                option.selected = true;
+            }
+            
+            selectElement.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error("Error populating drivers:", error);
+        showToast("Error loading drivers for dropdown", "error");
+        
+        const errorOption = document.createElement('option');
+        errorOption.value = "";
+        errorOption.textContent = "Error loading drivers";
+        errorOption.disabled = true;
+        selectElement.appendChild(errorOption);
+    }
+}
+
+// Function to create delivery from admin panel
+async function createDelivery(event) {
+    event.preventDefault();
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    
+    try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+        const orderId = adminDeliveryForm.dataset.orderId || currentOrderId;
+        if (!orderId) {
+            throw new Error("Missing order ID - please try refreshing and selecting the order again");
+        }
+
+        const driverId = adminDeliveryDriverSelect.value;
+        if (!driverId) {
+            throw new Error("Please assign a driver to this delivery");
+        }
+
+        // Get driver info
+        const driverDoc = await getDoc(doc(db, "users", driverId));
+        const driverName = driverDoc.exists() ? 
+            (driverDoc.data().name || driverDoc.data().email) : 'Unknown Driver';
+
+        // Create delivery data
+        const deliveryData = {
+            orderId: orderId,
+            customerName: adminCustomerNameInput.value.trim(),
+            customerPhone: adminCustomerPhoneInput.value.trim(),
+            deliveryAddress: adminDeliveryAddressInput.value.trim(),
+            deliveryNotes: adminDeliveryNotesInput.value.trim() || null,
+            status: "pending",
+            driverId: driverId,
+            driverName: driverName,
+            createdAt: serverTimestamp(),
+            createdBy: auth.currentUser.uid
+        };
+
+        // Handle GPS coordinates properly
+        const gpsInput = adminGpsCoordinatesInput.value.trim();
+        if (gpsInput) {
+            const coords = gpsInput.split(',').map(s => s.trim());
+            if (coords.length === 2) {
+                const lat = parseFloat(coords[0]);
+                const lng = parseFloat(coords[1]);
+                
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    deliveryData.gpsCoordinates = new GeoPoint(lat, lng);
+                }
+            }
+        }
+
+        // Create delivery document
+        const deliveryRef = await addDoc(collection(db, "deliveries"), deliveryData);
+        
+        // Update order status
+        await updateDoc(doc(db, "orders", orderId), {
+            status: "shipped",
+            deliveryId: deliveryRef.id,
+            updatedAt: serverTimestamp()
+        });
+
+        // Log activity
+        await logAdminActivity(`Created delivery ${deliveryRef.id} for order ${orderId}`);
+
+        showToast("Delivery created successfully!", "success");
+        hideModal(orderActionModal, orderActionModalOverlay);
+        loadOrders(); // Refresh orders table
+
+    } catch (error) {
+        console.error("Delivery creation error:", error);
+        showToast(`Error: ${error.message}`, "error");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Create Delivery';
+    }
+}
+
+async function logAdminActivity(action) {
+    try {
+        await addDoc(collection(db, "activity"), {
+            userId: auth.currentUser.uid,
+            userName: auth.currentUser.displayName || "Admin",
+            action: action,
+            timestamp: serverTimestamp(),
+            status: "success"
+        });
+    } catch (error) {
+        console.error("Error logging activity:", error);
+    }
+}
+
+// Load drivers
+async function loadDrivers(searchTerm = '') {
+    try {
+        const driversCollection = collection(db, "users");
+        let q = query(driversCollection, where("role", "==", "driver"));
+
+        if (searchTerm) {
+            q = query(driversCollection, 
+                      where("role", "==", "driver"),
+                      where("name", ">=", searchTerm), 
+                      where("name", "<=", searchTerm + '\uf8ff'));
+        }
+
+        const snapshot = await getDocs(q);
+        driversTableBody.innerHTML = '';
+        
+        if (snapshot.empty) {
+            driversTableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No drivers found</td></tr>';
+            return;
+        }
+        
+        snapshot.forEach(doc => {
+            const driver = doc.data();
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${driver.name || 'N/A'}</td>
+                <td>${driver.email}</td>
+                <td>${driver.lastLogin ? new Date(driver.lastLogin.toDate()).toLocaleString() : 'Never'}</td>
+                <td>
+                    <span class="badge ${driver.status === 'active' ? 'badge-success' : 'badge-danger'}">
+                        ${driver.status || 'inactive'}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-admin btn-admin-outline edit-driver" data-id="${doc.id}">Edit</button>
+                    <button class="btn-admin btn-admin-outline view-driver-deliveries" data-id="${doc.id}" data-driver-name="${driver.name || driver.email}">Deliveries</button>
+                </td>
+            `;
+            driversTableBody.appendChild(row);
+        });
+
+        // Set up real-time listener for all deliveries
+        setupDeliveriesListener();
+        
+    } catch (error) {
+        console.error("Error loading drivers:", error);
+        showToast("Error loading drivers", "error");
+    }
+}
+
+function setupDeliveriesListener() {
+    const deliveriesRef = collection(db, "deliveries");
+    const q = query(deliveriesRef, orderBy("createdAt", "desc"));
+    
+    // Remove existing listener if any
+    if (window.deliveriesUnsubscribe) {
+        window.deliveriesUnsubscribe();
+    }
+    
+    window.deliveriesUnsubscribe = onSnapshot(q, 
+        (snapshot) => {
+            console.log("Admin deliveries updated:", snapshot.size);
+            loadAllDeliveries(); // Refresh the table
+        },
+        (error) => {
+            console.error("Deliveries listener error:", error);
+            showToast("Error loading deliveries updates", "error");
+        }
+    );
+}
+
+async function getOnDutyDriversCount() {
+    try {
+        const q = query(collection(db, "users"), where("role", "==", "driver"), where("status", "==", "on-duty"));
+        const snapshot = await getDocs(q);
+        return snapshot.size;
+    } catch (error) {
+        console.error("Error getting on-duty drivers count:", error);
+        return 0;
+    }
+}
+
+// Get order status badge class
+// function getOrderStatusBadgeClass(status) {
+//     switch(status.toLowerCase()) {
+//         case 'completed':
+//         case 'delivered':
+//             return 'badge-success';
+//         case 'cancelled':
+//             return 'badge-danger';
+//         case 'processing':
+//         case 'shipped':
+//         case 'pending':
+//             return 'badge-warning';
+//         default:
+//             return 'badge-info';
+//     }
+// }
+
+// Setup Navigation
+function setupAdminNavigation() {
+    document.querySelectorAll('.admin-nav a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Cleanup previous listeners
+            if (window.deliveriesUnsubscribe) {
+                window.deliveriesUnsubscribe();
+                window.deliveriesUnsubscribe = null;
+            }
+            
+            document.querySelectorAll('.admin-nav a').forEach(navLink => navLink.classList.remove('active'));
+            this.classList.add('active');
+
+            const sectionId = this.dataset.section + '-section';
+            const section = document.getElementById(sectionId);
+            if (!section) {
+                console.error(`Section with ID ${sectionId} not found`);
+                return;
+            }
+
+            // Hide all sections
+            document.querySelectorAll('.admin-content > section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Show the selected section
+            section.style.display = 'block';
+
+            // Load data for the section
+            switch(this.dataset.section) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'products':
+                    loadProducts();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'orders':
+                    loadOrders();
+                    break;
+                case 'drivers':
+                    loadDrivers();
+                    loadAllDeliveries(); // Load all deliveries immediately
+                    break;
+                case 'settings':
+                    break;
+            }
+        });
+    });
+
+    // Activate the dashboard by default
+    const defaultLink = document.querySelector('.admin-nav a[data-section="dashboard"]');
+    if (defaultLink) {
+        defaultLink.click();
+    }
+}
+
+// Setup Modals
+function setupModals() {
+    // Product Modal
     const productModal = document.getElementById('productModal');
-    if (!productModal) {
-        console.error('Product modal not found in DOM');
+    const productModalOverlay = document.getElementById('productModalOverlay');
+    const closeProductModal = document.getElementById('closeProductModal');
+    const addProductBtn = document.getElementById('addProductBtn');
+    const cancelProductBtn = document.getElementById('cancelProductBtn');
+    const productImageInput = document.getElementById('productImage');
+    const productImagePreview = document.getElementById('productImagePreview');
+
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', () => {
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = '';
+            document.getElementById('productModalTitle').innerHTML = '<i class="fas fa-box-open"></i> Add New Product';
+            productImagePreview.style.display = 'none';
+            showModal(productModal, productModalOverlay);
+        });
+    }
+
+    if (closeProductModal) {
+        closeProductModal.addEventListener('click', () => hideModal(productModal, productModalOverlay));
+    }
+    if (cancelProductBtn) {
+        cancelProductBtn.addEventListener('click', () => hideModal(productModal, productModalOverlay));
+    }
+    if (productImageInput) {
+        productImageInput.addEventListener('input', (e) => updateImagePreview(e.target.value));
+    }
+
+    // Admin Modal
+    const adminModal = document.getElementById('adminModal');
+    const adminModalOverlay = document.getElementById('adminModalOverlay');
+    const closeAdminModal = document.getElementById('closeAdminModal');
+    const addUserBtn = document.getElementById('addUserBtn'); // This now also handles adding admins if role is set
+    const cancelAddAdminBtn = document.getElementById('cancelAddAdminBtn');
+
+    if (addUserBtn) {
+        addUserBtn.addEventListener('click', () => {
+            document.getElementById('adminForm').reset();
+            document.getElementById('adminModalTitle').innerHTML = '<i class="fas fa-user-shield"></i> Add New User'; // Can be adjusted for admin/driver add
+            showModal(adminModal, adminModalOverlay);
+        });
+    }
+    if (closeAdminModal) {
+        closeAdminModal.addEventListener('click', () => hideModal(adminModal, adminModalOverlay));
+    }
+    if (cancelAddAdminBtn) {
+        cancelAddAdminBtn.addEventListener('click', () => hideModal(adminModal, adminModalOverlay));
+    }
+
+    // User Edit Modal
+    const userModal = document.getElementById('userModal');
+    const userModalOverlay = document.getElementById('userModalOverlay');
+    const closeUserModal = document.getElementById('closeUserModal');
+    const cancelUserEditBtn = document.getElementById('cancelUserEditBtn');
+
+    if (closeUserModal) {
+        closeUserModal.addEventListener('click', () => hideModal(userModal, userModalOverlay));
+    }
+    if (cancelUserEditBtn) {
+        cancelUserEditBtn.addEventListener('click', () => hideModal(userModal, userModalOverlay));
+    }
+
+    // Edit Driver Modal
+    const editDriverModal = document.getElementById('editDriverModal');
+    const editDriverModalOverlay = document.getElementById('editDriverModalOverlay');
+    const closeEditDriverModal = document.getElementById('closeEditDriverModal');
+    const cancelEditDriverBtn = document.getElementById('cancelEditDriverBtn');
+
+    if (closeEditDriverModal) {
+        closeEditDriverModal.addEventListener('click', () => hideModal(editDriverModal, editDriverModalOverlay));
+    }
+    if (cancelEditDriverBtn) {
+        cancelEditDriverBtn.addEventListener('click', () => hideModal(editDriverModal, editDriverModalOverlay));
+    }
+
+    // Delivery Details Modal (for drivers section)
+    const deliveryDetailsModal = document.getElementById('deliveryDetailsModal');
+    const deliveryDetailsModalOverlay = document.getElementById('deliveryDetailsModalOverlay');
+    const closeDeliveryDetailsModal = document.getElementById('closeDeliveryDetailsModal');
+
+    if (closeDeliveryDetailsModal) {
+        closeDeliveryDetailsModal.addEventListener('click', () => hideModal(deliveryDetailsModal, deliveryDetailsModalOverlay));
+    }
+    
+    // Edit Delivery Modal (for all deliveries table)
+    const editDeliveryModal = document.getElementById('editDeliveryModal');
+    const editDeliveryModalOverlay = document.getElementById('editDeliveryModalOverlay');
+    const closeEditDeliveryModal = document.getElementById('closeEditDeliveryModal');
+    const cancelEditDeliveryBtn = document.getElementById('cancelEditDeliveryBtn');
+
+    if (closeEditDeliveryModal) {
+        closeEditDeliveryModal.addEventListener('click', () => hideModal(editDeliveryModal, editDeliveryModalOverlay));
+    }
+    if (cancelEditDeliveryBtn) {
+        cancelEditDeliveryBtn.addEventListener('click', () => hideModal(editDeliveryModal, editDeliveryModalOverlay));
+    }
+
+    // NEW: Order Action Modal
+    if (closeOrderActionModal) {
+        closeOrderActionModal.addEventListener('click', () => hideModal(orderActionModal, orderActionModalOverlay));
+    }
+    if (cancelAddDeliveryAdminBtn) {
+        cancelAddDeliveryAdminBtn.addEventListener('click', () => hideModal(orderActionModal, orderActionModalOverlay));
+    }
+}
+
+function showModal(modal, overlay) {
+    console.log('Attempting to show modal:', modal.id);
+    overlay.classList.add('show');
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Prevent scrolling of background
+}
+
+function hideModal(modal, overlay) {
+    console.log('Attempting to hide modal:', modal.id);
+    modal.classList.remove('show');
+    overlay.classList.remove('show');
+    document.body.style.overflow = ''; // Restore scrolling
+}
+
+function setupEventListeners() {
+    // Initialize all modal elements first
+    const productModal = document.getElementById('productModal');
+    const productModalOverlay = document.getElementById('productModalOverlay');
+    const adminModal = document.getElementById('adminModal');
+    const adminModalOverlay = document.getElementById('adminModalOverlay');
+    const userModal = document.getElementById('userModal');
+    const userModalOverlay = document.getElementById('userModalOverlay');
+    const editDriverModal = document.getElementById('editDriverModal');
+    const editDriverModalOverlay = document.getElementById('editDriverModalOverlay');
+    const deliveryDetailsModal = document.getElementById('deliveryDetailsModal');
+    const deliveryDetailsModalOverlay = document.getElementById('deliveryDetailsModalOverlay');
+    const editDeliveryModal = document.getElementById('editDeliveryModal');
+    const editDeliveryModalOverlay = document.getElementById('editDeliveryModalOverlay');
+    const orderActionModal = document.getElementById('orderActionModal');
+    const orderActionModalOverlay = document.getElementById('orderActionModalOverlay');
+
+    // Form submissions
+    const productForm = document.getElementById('productForm');
+    if (productForm) productForm.addEventListener('submit', saveProduct);
+    
+    const adminForm = document.getElementById('adminForm');
+    if (adminForm) adminForm.addEventListener('submit', createNewUser);
+    
+    const userForm = document.getElementById('userForm');
+    if (userForm) userForm.addEventListener('submit', saveUser);
+    
+    const editDriverForm = document.getElementById('editDriverForm');
+    if (editDriverForm) editDriverForm.addEventListener('submit', saveDriver);
+    
+    const editDeliveryForm = document.getElementById('editDeliveryForm');
+    if (editDeliveryForm) editDeliveryForm.addEventListener('submit', saveEditedDelivery);
+
+    if (adminDeliveryForm) adminDeliveryForm.addEventListener('submit', createDelivery);
+
+    // Delegated event listeners for edit/delete buttons on tables
+    document.addEventListener('click', async (e) => {
+        // Product actions
+        if (e.target.classList.contains('edit-product')) {
+            editProduct(e.target.dataset.id);
+        } else if (e.target.classList.contains('delete-product')) {
+            deleteProduct(e.target.dataset.id);
+        }
+        // User actions
+        else if (e.target.classList.contains('edit-user')) {
+            editUser(e.target.dataset.id);
+        } else if (e.target.classList.contains('delete-user')) {
+            deleteUser(e.target.dataset.id);
+        }
+        // Order actions
+        else if (e.target.classList.contains('view-order')) {
+            viewOrder(e.target.dataset.id);
+        } else if (e.target.classList.contains('delete-order')) {
+            deleteOrder(e.target.dataset.id);
+        }
+        // Driver actions
+        else if (e.target.classList.contains('edit-driver')) {
+            editDriver(e.target.dataset.id);
+        } else if (e.target.classList.contains('view-driver-deliveries')) {
+            const driverId = e.target.dataset.id;
+            const driverName = e.target.dataset.driverName;
+            await viewDriverDeliveries(driverId);
+        }
+        // Admin Deliveries table actions
+        else if (e.target.classList.contains('view-delivery')) {
+            viewDeliveryDetails(e.target.dataset.id);
+        } else if (e.target.classList.contains('edit-delivery')) {
+            editDelivery(e.target.dataset.id);
+        } else if (e.target.classList.contains('delete-delivery')) {
+            deleteDelivery(e.target.dataset.id);
+        }
+    });
+
+    // Order Action Modal specific listeners
+    if (ordersTableBody) {
+        ordersTableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('status-pending-clickable')) {
+                const orderId = e.target.dataset.orderId;
+                if (orderId) handlePendingOrderStatusClick(orderId);
+            }
+        });
+    }
+
+    const confirmOrderButton = document.getElementById('confirmOrderActionBtn');
+    const addDeliveryButton = document.getElementById('addDeliveryBtn');
+    const closeOrderActionModal = document.querySelector('[data-modal="orderActionModal"]');
+
+    if (confirmOrderButton) {
+        confirmOrderButton.addEventListener('click', () => {
+            if (currentOrderId) confirmOrder(currentOrderId);
+        });
+    }
+
+    if (addDeliveryButton) {
+        addDeliveryButton.addEventListener('click', async () => {
+            if (currentOrderId) {
+                const orderDoc = await getDoc(doc(db, "orders", currentOrderId));
+                if (orderDoc.exists()) showAddDeliveryForm(orderDoc.data());
+            }
+        });
+    }
+
+    if (closeOrderActionModal && orderActionModal && orderActionModalOverlay) {
+        closeOrderActionModal.addEventListener('click', () => {
+            hideModal(orderActionModal, orderActionModalOverlay);
+        });
+    }
+
+    // Handle clicks on pending order status
+    if (ordersTableBody) {
+        ordersTableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('status-pending-clickable')) {
+                const orderId = e.target.dataset.orderId;
+                if (orderId) {
+                    handlePendingOrderStatusClick(orderId);
+                }
+            }
+        });
+    }
+
+    // Settings form submission
+    const settingsForm = document.getElementById('settingsForm');
+    if (settingsForm) settingsForm.addEventListener('submit', saveSettings);
+    
+    const refreshActivityBtn = document.getElementById('refreshActivity');
+    if (refreshActivityBtn) refreshActivityBtn.addEventListener('click', loadRecentActivity);
+    
+    // Admin Add Delivery Button (if exists separately from order flow)
+    const addDeliveryBtnAdmin = document.getElementById('addDeliveryBtnAdmin');
+    if (addDeliveryBtnAdmin) {
+        addDeliveryBtnAdmin.addEventListener('click', () => {
+            showToast("This button is not yet fully implemented for standalone delivery creation. Please use the 'Pending' order flow.", "info");
+        });
+    }
+
+    // Modal close buttons
+    const closeButtons = [
+        { btn: document.getElementById('closeProductModal'), modal: productModal, overlay: productModalOverlay },
+        { btn: document.getElementById('closeAdminModal'), modal: adminModal, overlay: adminModalOverlay },
+        { btn: document.getElementById('closeUserModal'), modal: userModal, overlay: userModalOverlay },
+        { btn: document.getElementById('closeEditDriverModal'), modal: editDriverModal, overlay: editDriverModalOverlay },
+        { btn: document.getElementById('closeDeliveryDetailsModal'), modal: deliveryDetailsModal, overlay: deliveryDetailsModalOverlay },
+        { btn: document.getElementById('closeEditDeliveryModal'), modal: editDeliveryModal, overlay: editDeliveryModalOverlay }
+    ];
+
+    closeButtons.forEach(({btn, modal, overlay}) => {
+        if (btn && modal && overlay) {
+            btn.addEventListener('click', () => hideModal(modal, overlay));
+        }
+    });
+
+    // Cancel buttons
+    const cancelButtons = [
+        { btn: document.getElementById('cancelProductEditBtn'), modal: productModal, overlay: productModalOverlay },
+        { btn: document.getElementById('cancelAddAdminBtn'), modal: adminModal, overlay: adminModalOverlay },
+        { btn: document.getElementById('cancelUserEditBtn'), modal: userModal, overlay: userModalOverlay },
+        { btn: document.getElementById('cancelEditDriverBtn'), modal: editDriverModal, overlay: editDriverModalOverlay },
+        { btn: document.getElementById('cancelEditDeliveryBtn'), modal: editDeliveryModal, overlay: editDeliveryModalOverlay },
+        { btn: document.getElementById('cancelAddDeliveryAdminBtn'), modal: orderActionModal, overlay: orderActionModalOverlay }
+    ];
+
+    cancelButtons.forEach(({btn, modal, overlay}) => {
+        if (btn && modal && overlay) {
+            btn.addEventListener('click', () => hideModal(modal, overlay));
+        }
+    });
+}
+
+// PRODUCT FUNCTIONS
+async function saveProduct(event) {
+    event.preventDefault();
+    const productId = document.getElementById('productId').value;
+    const name = document.getElementById('productName').value;
+    const description = document.getElementById('productDescription').value;
+    const category = document.getElementById('productCategory').value;
+    const price = parseFloat(document.getElementById('productPrice').value);
+    const stock = parseInt(document.getElementById('productStock').value);
+    const imageUrl = document.getElementById('productImage').value;
+    const featured = document.getElementById('productFeatured').checked;
+
+    if (!name || !category || isNaN(price) || isNaN(stock) || !imageUrl) {
+        showToast("Please fill all required product fields.", "error");
         return;
     }
 
     try {
+        const productData = {
+            name, description, category, price, stock, imageUrl, featured,
+            updatedAt: serverTimestamp()
+        };
+
+        if (productId) {
+            await updateDoc(doc(db, "products", productId), productData);
+            showToast("Product updated successfully!", "success");
+        } else {
+            productData.createdAt = serverTimestamp();
+            await addDoc(collection(db, "products"), productData);
+            showToast("Product added successfully!", "success");
+        }
+        hideModal(document.getElementById('productModal'), document.getElementById('productModalOverlay'));
+        loadProducts();
+    } catch (error) {
+        console.error("Error saving product:", error);
+        showToast("Error saving product", "error");
+    }
+}
+
+async function editProduct(productId) {
+    try {
         const productDoc = await getDoc(doc(db, "products", productId));
         if (productDoc.exists()) {
             const product = productDoc.data();
-            console.log('Product data loaded:', product);
-            
-            // Update form fields
             document.getElementById('productId').value = productId;
             document.getElementById('productName').value = product.name || '';
-            document.getElementById('productPrice').value = product.price || '';
             document.getElementById('productDescription').value = product.description || '';
             document.getElementById('productCategory').value = product.category || '';
+            document.getElementById('productPrice').value = product.price || 0;
             document.getElementById('productStock').value = product.stock || 0;
-            document.getElementById('productImage').value = product.image || '';
+            document.getElementById('productImage').value = product.imageUrl || '';
             document.getElementById('productFeatured').checked = product.featured || false;
-            
-            // Update image preview
-            updateImagePreview(product.image);
-            
-            // Show modal
-            console.log('Showing product modal');
-            showModal(productModal);
+            document.getElementById('productModalTitle').innerHTML = '<i class="fas fa-box-open"></i> Edit Product';
+            updateImagePreview(product.imageUrl);
+            showModal(document.getElementById('productModal'), document.getElementById('productModalOverlay'));
         } else {
-            console.error('Product not found:', productId);
             showToast('Product not found', 'error');
         }
     } catch (error) {
@@ -419,7 +1307,6 @@ async function editProduct(productId) {
     }
 }
 
-// Update image preview
 function updateImagePreview(imageUrl) {
     const preview = document.getElementById('productImagePreview');
     if (imageUrl) {
@@ -430,129 +1317,62 @@ function updateImagePreview(imageUrl) {
     }
 }
 
-// Delete product
 async function deleteProduct(productId) {
-    if (confirm('Are you sure you want to delete this product? This cannot be undone.')) {
+    if (confirm('Are you sure you want to delete this product?')) {
         try {
             await deleteDoc(doc(db, "products", productId));
-            
-            // Log activity
-            await logActivity('Product deleted', `Product ID: ${productId}`);
-            
+            showToast("Product deleted successfully!", "success");
             loadProducts();
-            alert('Product deleted successfully');
         } catch (error) {
-            console.error('Error deleting product:', error);
-            alert('Error deleting product. Please try again.');
+            console.error("Error deleting product:", error);
+            showToast("Error deleting product", "error");
         }
     }
 }
 
-//handle product search
-function initProductSearch() {
-    const productSearch = document.getElementById('productSearch');
-    const searchBtn = document.querySelector('#productSearch + .search-btn');
-    
-    if (productSearch && searchBtn) {
-        // Handle search on button click
-        searchBtn.addEventListener('click', () => {
-            loadProducts(productSearch.value.trim());
-        });
-        
-        // Handle search on Enter key
-        productSearch.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                loadProducts(productSearch.value.trim());
-            }
-        });
-        
-        // Handle search with debounce on input
-        productSearch.addEventListener('input', debounce(() => {
-            loadProducts(productSearch.value.trim());
-        }, 300));
-    }
-}
+// USER FUNCTIONS
+async function createNewUser(event) {
+    event.preventDefault();
+    const name = document.getElementById('adminName').value;
+    const email = document.getElementById('adminEmail').value;
+    const password = document.getElementById('adminPassword').value;
+    const role = document.getElementById('userRole') ? document.getElementById('userRole').value : 'customer'; // Default to customer
 
-// Load users with search functionality
-async function loadUsers(searchTerm = '') {
     try {
-        let usersQuery;
-        const usersRef = collection(db, "users");
-        
-        if (searchTerm) {
-            usersQuery = query(usersRef, 
-                where("name", ">=", searchTerm),
-                where("name", "<=", searchTerm + '\uf8ff')
-            );
-        } else {
-            usersQuery = query(usersRef);
-        }
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-        const usersSnapshot = await getDocs(usersQuery);
-        usersTableBody.innerHTML = '';
-        
-        usersSnapshot.forEach(doc => {
-            const user = doc.data();
-            const row = document.createElement('tr');
-            
-            row.innerHTML = `
-                <td>${user.name || 'No name'}</td>
-                <td>${user.email}</td>
-                <td>${user.createdAt ? new Date(user.createdAt.toDate()).toLocaleDateString() : 'N/A'}</td>
-                <td>${user.lastLogin ? new Date(user.lastLogin.toDate()).toLocaleString() : 'Never'}</td>
-                <td>
-                    <span class="badge ${user.status === 'suspended' ? 'badge-danger' : 
-                                      user.role === 'admin' ? 'badge-info' : 
-                                      user.role === 'driver' ? 'badge-warning' : 'badge-success'}">
-                        ${user.role || 'customer'}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn-admin btn-admin-outline edit-user" data-id="${doc.id}">Edit</button>
-                    ${user.role !== 'admin' && user.role !== 'driver' ? 
-                        `<button class="btn-admin btn-admin-outline delete-user" data-id="${doc.id}">Delete</button>` : 
-                        ''}
-                </td>
-            `;
-            
-            usersTableBody.appendChild(row);
+        await setDoc(doc(db, "users", user.uid), {
+            name: name,
+            email: email,
+            role: role,
+            status: 'active',
+            createdAt: serverTimestamp(),
+            lastLogin: serverTimestamp()
         });
-        
-        // Add event listeners to edit/delete buttons
-        document.querySelectorAll('.edit-user').forEach(btn => {
-            btn.addEventListener('click', () => editUser(btn.dataset.id));
-        });
-        
-        document.querySelectorAll('.delete-user').forEach(btn => {
-            btn.addEventListener('click', () => deleteUser(btn.dataset.id));
-        });
-        
+        showToast(`User (${role}) created successfully!`, "success");
+        hideModal(document.getElementById('adminModal'), document.getElementById('adminModalOverlay'));
+        loadUsers();
     } catch (error) {
-        console.error('Error loading users:', error);
-        alert('Error loading users. Please try again.');
+        console.error("Error creating new user:", error);
+        showToast(`Error creating user: ${error.message}`, "error");
     }
 }
 
-// Edit user
 async function editUser(userId) {
     try {
         const userDoc = await getDoc(doc(db, "users", userId));
         if (userDoc.exists()) {
             const user = userDoc.data();
-            
-            // Safely get modal title element
-            const modalTitle = document.getElementById('userModalTitle');
-            if (modalTitle) {
-                modalTitle.textContent = 'Edit User';
-            }
-            
+            document.getElementById('userModalTitle').textContent = 'Edit User';
             document.getElementById('userId').value = userId;
             document.getElementById('userName').value = user.name || '';
             document.getElementById('userEmail').value = user.email || '';
             document.getElementById('userRole').value = user.role || 'customer';
             document.getElementById('userStatus').value = user.status || 'active';
-            
-            showModal(document.getElementById('userModal'));
+            showModal(document.getElementById('userModal'), document.getElementById('userModalOverlay'));
+        } else {
+            showToast('User not found', 'error');
         }
     } catch (error) {
         console.error('Error editing user:', error);
@@ -560,161 +1380,560 @@ async function editUser(userId) {
     }
 }
 
-// Delete user
+async function saveUser(event) {
+    event.preventDefault();
+    const userId = document.getElementById('userId').value;
+    const name = document.getElementById('userName').value;
+    const role = document.getElementById('userRole').value;
+    const status = document.getElementById('userStatus').value;
+
+    try {
+        await updateDoc(doc(db, "users", userId), {
+            name: name,
+            role: role,
+            status: status,
+            updatedAt: serverTimestamp()
+        });
+        showToast("User updated successfully!", "success");
+        hideModal(document.getElementById('userModal'), document.getElementById('userModalOverlay'));
+        loadUsers();
+    } catch (error) {
+        console.error("Error saving user:", error);
+        showToast("Error saving user", "error");
+    }
+}
+
 async function deleteUser(userId) {
-    if (confirm('Are you sure you want to delete this user? This cannot be undone.')) {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
         try {
             await deleteDoc(doc(db, "users", userId));
-            
-            // Log activity
-            await logActivity('User deleted', `User ID: ${userId}`);
-            
+            showToast("User deleted successfully!", "success");
             loadUsers();
-            alert('User deleted successfully');
         } catch (error) {
-            console.error('Error deleting user:', error);
-            alert('Error deleting user. Please try again.');
+            console.error("Error deleting user:", error);
+            showToast("Error deleting user", "error");
         }
     }
 }
 
-// Load orders with filter
-async function loadOrders(filter = 'all') {
-    try {
-        let ordersQuery;
-        const ordersRef = collection(db, "orders");
-        
-        if (filter !== 'all') {
-            ordersQuery = query(ordersRef, where("status", "==", filter), orderBy("createdAt", "desc"));
-        } else {
-            ordersQuery = query(ordersRef, orderBy("createdAt", "desc"));
-        }
+// ORDER FUNCTIONS
+let currentOrderId = null; // Variable to store the order ID being acted upon
 
-        // Use onSnapshot for real-time updates
-        const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
-            ordersTableBody.innerHTML = '';
-            
-            snapshot.forEach(doc => {
-                const order = doc.data();
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td>${order.orderNumber || doc.id.substring(0, 8)}</td>
-                    <td>${order.customerName || 'N/A'}</td>
-                    <td>${order.createdAt ? new Date(order.createdAt.toDate()).toLocaleDateString() : 'N/A'}</td>
-                    <td>$${order.total?.toFixed(2) || '0.00'}</td>
-                    <td><span class="badge ${getOrderStatusBadgeClass(order.status)}">${order.status}</span></td>
-                    <td>
-                        <button class="btn-admin btn-admin-outline view-order" data-id="${doc.id}">View</button>
-                        <button class="btn-admin btn-admin-outline update-status" data-id="${doc.id}">Update</button>
-                    </td>
-                `;
-                
-                ordersTableBody.appendChild(row);
-            });
-            
-            // Reattach event listeners
-            document.querySelectorAll('.view-order').forEach(btn => {
-                btn.addEventListener('click', () => viewOrder(btn.dataset.id));
-            });
-            
-            document.querySelectorAll('.update-status').forEach(btn => {
-                btn.addEventListener('click', () => updateOrderStatus(btn.dataset.id));
-            });
-        });
-        
-        // Return unsubscribe function if needed
-        return unsubscribe;
-        
-    } catch (error) {
-        console.error('Error loading orders:', error);
-        showToast('Error loading orders', 'error');
-    }
-}
-
-// Get order status badge class
-function getOrderStatusBadgeClass(status) {
-    switch(status.toLowerCase()) {
-        case 'completed':
-        case 'delivered': return 'badge-success';
-        case 'cancelled': return 'badge-danger';
-        case 'processing': 
-        case 'shipped': return 'badge-warning';
-        default: return '';
-    }
-}
-
-function getDeliveryStatusBadgeClass(status) {
-  switch(status.toLowerCase()) {
-    case 'completed': return 'badge-success';
-    case 'in-progress': return 'badge-warning';
-    case 'pending': return 'badge-info';
-    case 'cancelled': return 'badge-danger';
-    default: return '';
-  }
-}
-
-// View order details
 async function viewOrder(orderId) {
     try {
         const orderDoc = await getDoc(doc(db, "orders", orderId));
-        if (orderDoc.exists()) {
-            const order = orderDoc.data();
-            
-            // Create modal if it doesn't exist
-            let orderModal = document.getElementById('orderModal');
-            let orderModalOverlay = document.getElementById('orderModalOverlay');
-            
-            if (!orderModal) {
-                orderModal = document.createElement('div');
-                orderModal.id = 'orderModal';
-                orderModal.className = 'modal';
-                document.body.appendChild(orderModal);
-                
-                orderModalOverlay = document.createElement('div');
-                orderModalOverlay.className = 'modal-overlay';
-                orderModalOverlay.id = 'orderModalOverlay';
-                document.body.appendChild(orderModalOverlay);
-            }
-            
-            // Rest of the modal content creation...
-            
-            showModal(orderModal, orderModalOverlay);
+        if (!orderDoc.exists()) {
+            showToast("Order not found.", "error");
+            return;
         }
+        const order = orderDoc.data();
+        
+        // This 'viewOrder' is a placeholder. You might want a dedicated modal for viewing full order details.
+        // For now, it just confirms the order if pending, or shows the delivery form if already processed.
+        handlePendingOrderStatusClick(orderId);
+
     } catch (error) {
-        console.error('Error viewing order:', error);
-        showToast('Error loading order details', 'error');
+        console.error("Error viewing order:", error);
+        showToast("Error loading order details", "error");
     }
 }
 
-// Update order status
-async function updateOrderStatus(orderId) {
+async function deleteOrder(orderId) {
+    if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+        return;
+    }
+
     try {
-        const orderDoc = await getDoc(doc(db, "orders", orderId));
-        if (orderDoc.exists()) {
-            const order = orderDoc.data();
-            
-            const newStatus = prompt('Enter new status (pending, processing, shipped, delivered, cancelled):', order.status);
-            if (newStatus && newStatus !== order.status) {
-                await updateDoc(doc(db, "orders", orderId), {
-                    status: newStatus,
-                    updatedAt: serverTimestamp()
-                });
-                
-                // Log activity
-                await logActivity('Order status updated', `Order ${orderId} set to ${newStatus}`);
-                
-                loadOrders(document.getElementById('orderFilter').value);
-                alert('Order status updated successfully');
+        // First check if the order exists
+        const orderRef = doc(db, "orders", orderId);
+        const orderSnap = await getDoc(orderRef);
+        
+        if (!orderSnap.exists()) {
+            showToast("Order not found", "error");
+            return;
+        }
+
+        // If there's an associated delivery, delete that first
+        const orderData = orderSnap.data();
+        if (orderData.deliveryId) {
+            try {
+                await deleteDoc(doc(db, "deliveries", orderData.deliveryId));
+            } catch (deliveryError) {
+                console.error("Error deleting associated delivery:", deliveryError);
+                // Continue with order deletion even if delivery deletion fails
             }
         }
+
+        // Delete the order
+        await deleteDoc(orderRef);
+        showToast("Order deleted successfully!", "success");
+        
+        // Refresh orders table
+        const currentFilter = document.getElementById('orderFilter')?.value || 'all';
+        const currentSearch = document.getElementById('orderSearch')?.value || '';
+        loadOrders(currentFilter, currentSearch);
+
     } catch (error) {
-        console.error('Error updating order status:', error);
-        alert('Error updating order status. Please try again.');
+        console.error("Error deleting order:", error);
+        showToast(`Error deleting order: ${error.message}`, "error");
     }
 }
 
-// Initialize user search
+
+// DRIVER FUNCTIONS
+async function saveDriver(event) {
+    event.preventDefault();
+    const driverId = document.getElementById('editDriverId').value;
+    const status = document.getElementById('editDriverStatus').value;
+
+    try {
+        await updateDoc(doc(db, "users", driverId), {
+            status: status,
+            updatedAt: serverTimestamp()
+        });
+        showToast("Driver updated successfully!", "success");
+        hideModal(document.getElementById('editDriverModal'), document.getElementById('editDriverModalOverlay'));
+        loadDrivers();
+    } catch (error) {
+        console.error("Error saving driver:", error);
+        showToast("Error saving driver", "error");
+    }
+}
+
+async function editDriver(driverId) {
+    try {
+        const driverDoc = await getDoc(doc(db, "users", driverId));
+        if (driverDoc.exists()) {
+            const driver = driverDoc.data();
+            document.getElementById('editDriverId').value = driverId;
+            document.getElementById('editDriverName').value = driver.name || '';
+            document.getElementById('editDriverEmail').value = driver.email || '';
+            document.getElementById('editDriverStatus').value = driver.status || 'active';
+            showModal(document.getElementById('editDriverModal'), document.getElementById('editDriverModalOverlay'));
+        } else {
+            showToast('Driver not found', 'error');
+        }
+    } catch (error) {
+        console.error('Error editing driver:', error);
+        showToast('Error loading driver details', 'error');
+    }
+}
+
+async function viewDriverDeliveries(driverId) {
+    try {
+        const driverDoc = await getDoc(doc(db, "users", driverId));
+        if (!driverDoc.exists()) {
+            showToast("Driver not found.", "error");
+            return;
+        }
+        
+        const driver = driverDoc.data();
+        const driverNameHeader = document.getElementById('driverNameHeader');
+        
+        if (driverNameHeader) {
+            driverNameHeader.textContent = `Deliveries for ${driver.name || driver.email}`;
+            driverNameHeader.dataset.driverId = driverId; // Store driver ID for filtering
+        }
+        
+        // Load stats for this driver
+        await loadDriverStats(driverId);
+        
+        // Load deliveries for this specific driver
+        await loadDeliveriesForDriver(driverId, 'all');
+
+        // Show the driver stats and deliveries section
+        if (driverStatsSection) {
+            driverStatsSection.style.display = 'block';
+            driverStatsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+    } catch (error) {
+        console.error("Error viewing driver deliveries:", error);
+        showToast("Error loading driver deliveries", "error");
+    }
+}
+
+async function loadDriverStats(driverId) {
+    try {
+        const deliveriesRef = collection(db, "deliveries");
+        const q = query(deliveriesRef, where("driverId", "==", driverId));
+        const snapshot = await getDocs(q);
+
+        let total = snapshot.size;
+        let completed = 0;
+        let inProgress = 0;
+
+        snapshot.forEach(doc => {
+            const delivery = doc.data();
+            if (delivery.status === 'completed') {
+                completed++;
+            } else if (delivery.status === 'in-progress') {
+                inProgress++;
+            }
+        });
+
+        document.getElementById('driverTotalDeliveries').textContent = total;
+        document.getElementById('driverCompletedDeliveries').textContent = completed;
+        document.getElementById('driverInProgressDeliveries').textContent = inProgress;
+
+    } catch (error) {
+        console.error("Error loading driver stats:", error);
+        showToast("Error loading driver statistics", "error");
+    }
+}
+
+async function loadDeliveriesForDriver(driverId, filterStatus = 'all') {
+    try {
+        const deliveriesRef = collection(db, "deliveries");
+        let q = query(deliveriesRef, where("driverId", "==", driverId), orderBy("createdAt", "desc"));
+
+        if (filterStatus !== 'all') {
+            q = query(deliveriesRef, 
+                      where("driverId", "==", driverId), 
+                      where("status", "==", filterStatus),
+                      orderBy("createdAt", "desc"));
+        }
+
+        const snapshot = await getDocs(q);
+        driverDeliveriesTableBody.innerHTML = '';
+        
+        if (snapshot.empty) {
+            driverDeliveriesTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No deliveries found for this driver.</td></tr>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const delivery = doc.data();
+            const deliveryId = doc.id;
+            const createdAt = delivery.createdAt ? new Date(delivery.createdAt.toDate()).toLocaleString() : 'N/A';
+            const completedAt = delivery.completedAt ? new Date(delivery.completedAt.toDate()).toLocaleString() : 'N/A';
+            const statusClass = getDeliveryStatusBadgeClass(delivery.status);
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${delivery.customerName || 'N/A'}</td>
+                <td>${delivery.deliveryAddress || 'N/A'}</td>
+                <td>${createdAt}</td>
+                <td><span class="badge ${statusClass}">${delivery.status}</span></td>
+                <td>${completedAt}</td>
+                <td>
+                    <button class="btn-admin btn-admin-sm btn-admin-outline view-delivery" data-id="${deliveryId}">View</button>
+                    <button class="btn-admin btn-admin-sm btn-admin-outline edit-delivery" data-id="${deliveryId}">Edit</button>
+                    <button class="btn-admin btn-admin-sm btn-admin-danger delete-delivery" data-id="${deliveryId}">Delete</button>
+                </td>
+            `;
+            driverDeliveriesTableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error loading deliveries for driver:", error);
+        driverDeliveriesTableBody.innerHTML = '<tr><td colspan="6">Error loading deliveries</td></tr>';
+    }
+}
+
+// Function to view delivery details (admin-side, from driver's list or all deliveries list)
+async function viewDeliveryDetails(deliveryId) {
+    try {
+        const deliveryDoc = await getDoc(doc(db, "deliveries", deliveryId));
+        if (!deliveryDoc.exists()) {
+            showToast("Delivery not found.", "error");
+            return;
+        }
+        const delivery = deliveryDoc.data();
+
+        // Update modal content
+        document.getElementById('detailOrderId').textContent = delivery.orderId || 'N/A';
+        document.getElementById('detailCustomerName').textContent = delivery.customerName || 'N/A';
+        document.getElementById('detailAddress').textContent = delivery.deliveryAddress || 'N/A';
+        document.getElementById('detailPhone').textContent = delivery.customerPhone || 'N/A';
+        document.getElementById('detailNotes').textContent = delivery.deliveryNotes || 'N/A';
+        document.getElementById('detailStatus').textContent = delivery.status || 'N/A';
+        document.getElementById('detailAssignedDriver').textContent = delivery.driverName || 'N/A';
+        document.getElementById('detailCreatedAt').textContent = delivery.createdAt ? new Date(delivery.createdAt.toDate()).toLocaleString() : 'N/A';
+        document.getElementById('detailUpdatedAt').textContent = delivery.updatedAt ? new Date(delivery.updatedAt.toDate()).toLocaleString() : 'N/A';
+
+        // Show the modal
+        showModal(document.getElementById('deliveryDetailsModal'), document.getElementById('deliveryDetailsModalOverlay'));
+
+        // Initialize map - ensure the element exists and Leaflet is loaded
+        const mapElement = document.getElementById('deliveryMap');
+        if (!mapElement) {
+            console.error("Map element not found");
+            return;
+        }
+
+        // Clear any existing map
+        if (mapElement._map) {
+            mapElement._map.remove();
+        }
+
+        // Create new map
+        const map = L.map('deliveryMap').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Store map reference on the element
+        mapElement._map = map;
+
+        // Add marker if we have coordinates
+        if (delivery.gpsCoordinates) {
+            const latLng = [delivery.gpsCoordinates.latitude, delivery.gpsCoordinates.longitude];
+            L.marker(latLng).addTo(map)
+                .bindPopup(`<b>Delivery Location:</b><br>${delivery.deliveryAddress}`)
+                .openPopup();
+            map.setView(latLng, 15);
+        } else if (delivery.deliveryAddress) {
+            // Attempt geocoding if no coordinates but have address
+            const coords = await geocodeAddress(delivery.deliveryAddress);
+            if (coords) {
+                const latLng = [coords.lat, coords.lng];
+                L.marker(latLng).addTo(map)
+                    .bindPopup(`<b>Delivery Location:</b><br>${delivery.deliveryAddress}`)
+                    .openPopup();
+                map.setView(latLng, 15);
+            }
+        }
+
+        // Ensure map renders correctly in modal
+        setTimeout(() => map.invalidateSize(), 100);
+
+    } catch (error) {
+        console.error("Error viewing delivery details:", error);
+        showToast("Error loading delivery details", "error");
+    }
+}
+
+// Function to edit delivery (admin-side)
+async function editDelivery(deliveryId) {
+    try {
+        const deliveryDoc = await getDoc(doc(db, "deliveries", deliveryId));
+        if (!deliveryDoc.exists()) {
+            showToast("Delivery not found.", "error");
+            return;
+        }
+        const delivery = deliveryDoc.data();
+
+        document.getElementById('editDeliveryId').value = deliveryId;
+        document.getElementById('editCustomerName').value = delivery.customerName || '';
+        document.getElementById('editCustomerPhone').value = delivery.customerPhone || '';
+        document.getElementById('editDeliveryAddress').value = delivery.deliveryAddress || '';
+        document.getElementById('editDeliveryNotes').value = delivery.deliveryNotes || '';
+        document.getElementById('editGpsCoordinates').value = delivery.gpsCoordinates ? `${delivery.gpsCoordinates.latitude}, ${delivery.gpsCoordinates.longitude}` : '';
+        document.getElementById('editDeliveryStatus').value = delivery.status || 'pending';
+
+        await populateDriverDropdown(document.getElementById('editDeliveryDriver'), delivery.driverId);
+
+        showModal(document.getElementById('editDeliveryModal'), document.getElementById('editDeliveryModalOverlay'));
+    } catch (error) {
+        console.error("Error editing delivery:", error);
+        showToast("Error loading delivery details", "error");
+    }
+}
+
+async function saveEditedDelivery(event) {
+    event.preventDefault();
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    
+    try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        const deliveryId = document.getElementById('editDeliveryId').value;
+        const driverId = document.getElementById('editDeliveryDriver').value;
+        
+        if (!driverId) {
+            showToast("Please assign a driver", "error");
+            return;
+        }
+        
+        // Get driver name
+        const driverDoc = await getDoc(doc(db, "users", driverId));
+        const driverName = driverDoc.exists() ? 
+            (driverDoc.data().name || driverDoc.data().email) : 'Unknown Driver';
+        
+        const updateData = {
+            customerName: document.getElementById('editCustomerName').value.trim(),
+            customerPhone: document.getElementById('editCustomerPhone').value.trim(),
+            deliveryAddress: document.getElementById('editDeliveryAddress').value.trim(),
+            deliveryNotes: document.getElementById('editDeliveryNotes').value.trim() || null,
+            status: document.getElementById('editDeliveryStatus').value,
+            driverId: driverId,
+            driverName: driverName,
+            updatedAt: serverTimestamp()
+        };
+        
+        // Handle GPS coordinates
+        const gpsInput = document.getElementById('editGpsCoordinates').value.trim();
+        if (gpsInput) {
+            const [latStr, lngStr] = gpsInput.split(',').map(s => s.trim());
+            const lat = parseFloat(latStr);
+            const lng = parseFloat(lngStr);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+                updateData.gpsCoordinates = new GeoPoint(lat, lng);
+            }
+        }
+        
+        await updateDoc(doc(db, "deliveries", deliveryId), updateData);
+        
+        showToast("Delivery updated successfully!", "success");
+        hideModal(document.getElementById('editDeliveryModal'), document.getElementById('editDeliveryModalOverlay'));
+        
+        // Refresh the appropriate view
+        const currentSection = document.querySelector('.admin-nav a.active')?.dataset.section;
+        if (currentSection === 'drivers') {
+            const activeDriverId = document.getElementById('driverNameHeader')?.dataset.driverId;
+            if (activeDriverId) {
+                await loadDeliveriesForDriver(activeDriverId, 'all');
+            }
+        }
+        await loadAllDeliveries();
+        
+    } catch (error) {
+        console.error("Error saving delivery:", error);
+        showToast(`Error saving delivery: ${error.message}`, "error");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Save Changes';
+    }
+}
+
+
+async function deleteDelivery(deliveryId) {
+    if (confirm('Are you sure you want to delete this delivery?')) {
+        try {
+            await deleteDoc(doc(db, "deliveries", deliveryId));
+            showToast("Delivery deleted successfully!", "success");
+            
+            // Refresh the appropriate table
+            const currentSection = document.querySelector('.admin-nav a.active').dataset.section;
+            if (currentSection === 'drivers') {
+                const driverId = document.getElementById('driverNameHeader')?.dataset.driverId;
+                if (driverId) {
+                    loadDeliveriesForDriver(driverId);
+                } else {
+                    loadAllDeliveries();
+                }
+            } else {
+                loadAllDeliveries();
+            }
+        } catch (error) {
+            console.error("Error deleting delivery:", error);
+            showToast("Error deleting delivery", "error");
+        }
+    }
+}
+
+// async function createDelivery(event) {
+//     event.preventDefault();
+//     const submitBtn = adminDeliveryForm.querySelector('button[type="submit"]');
+//     submitBtn.disabled = true;
+//     submitBtn.innerHTML = '<span class="loading-spinner"></span> Creating...';
+
+//     const orderId = adminDeliveryForm.dataset.orderId;
+//     if (!orderId) {
+//         showToast("Order ID not found for delivery creation.", "error");
+//         submitBtn.disabled = false;
+//         submitBtn.innerHTML = 'Create Delivery';
+//         return;
+//     }
+
+//     const customerName = adminCustomerNameInput.value;
+//     const customerPhone = adminCustomerPhoneInput.value;
+//     const deliveryAddress = adminDeliveryAddressInput.value;
+//     const deliveryNotes = adminDeliveryNotesInput.value;
+//     const gpsCoordinatesText = adminGpsCoordinatesInput.value;
+//     const driverId = adminDeliveryDriverSelect.value;
+//     const assignedDriverName = adminDeliveryDriverSelect.options[adminDeliveryDriverSelect.selectedIndex].text;
+
+//     let gpsCoordinates = null;
+//     if (gpsCoordinatesText) {
+//         const [lat, lng] = gpsCoordinatesText.split(',').map(s => parseFloat(s.trim()));
+//         if (!isNaN(lat) && !isNaN(lng)) {
+//             gpsCoordinates = new GeoPoint(lat, lng);
+//         } else {
+//             showToast("Invalid GPS Coordinates format. Please use 'latitude, longitude'.", "error");
+//             submitBtn.disabled = false;
+//             submitBtn.innerHTML = 'Create Delivery';
+//             return;
+//         }
+//     }
+
+//     if (!driverId) {
+//         showToast("Please assign a driver.", "error");
+//         submitBtn.disabled = false;
+//         submitBtn.innerHTML = 'Create Delivery';
+//         return;
+//     }
+
+//     try {
+//         // Create the delivery document
+//         const deliveryRef = await addDoc(collection(db, "deliveries"), {
+//             orderId: orderId,
+//             customerName: customerName,
+//             customerPhone: customerPhone,
+//             deliveryAddress: deliveryAddress,
+//             deliveryNotes: deliveryNotes,
+//             gpsCoordinates: gpsCoordinates,
+//             driverId: driverId,
+//             assignedDriverName: assignedDriverName,
+//             status: "pending", // Important: Set to pending
+//             createdAt: serverTimestamp(),
+//             updatedAt: serverTimestamp()
+//         });
+
+//         // Update the order status
+//         await updateDoc(doc(db, "orders", orderId), {
+//             status: "shipped",
+//             deliveryId: deliveryRef.id,
+//             updatedAt: serverTimestamp()
+//         });
+
+//         showToast("Delivery created and order updated successfully!", "success");
+//         hideModal(orderActionModal, orderActionModalOverlay);
+//         loadOrders(); // Refresh orders table
+
+//     } catch (error) {
+//         console.error("Error creating delivery:", error);
+//         showToast("Failed to create delivery", "error");
+//     } finally {
+//         submitBtn.disabled = false;
+//         submitBtn.innerHTML = 'Create Delivery';
+//     }
+// }
+
+// SETTINGS FUNCTIONS
+async function saveSettings(event) {
+    event.preventDefault();
+    const siteName = document.getElementById('siteName').value;
+    const currency = document.getElementById('currency').value;
+    const adminEmailForNotifications = document.getElementById('adminEmailForNotifications').value;
+
+    try {
+        // Example: save settings to a 'settings' document in Firestore
+        await setDoc(doc(db, "settings", "appSettings"), {
+            siteName,
+            currency,
+            adminEmailForNotifications,
+            updatedAt: serverTimestamp()
+        }, { merge: true }); // Use merge to update without overwriting other settings
+        showToast("Settings saved successfully!", "success");
+    } catch (error) {
+        console.error("Error saving settings:", error);
+        showToast("Error saving settings. Please try again.", "error");
+    }
+}
+
+// SEARCH AND FILTER FUNCTIONS
+function debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+    };
+}
+
 function initUserSearch() {
     const userSearch = document.getElementById('userSearch');
     if (userSearch) {
@@ -724,1430 +1943,135 @@ function initUserSearch() {
     }
 }
 
-// Initialize order filter
+function initProductSearch() {
+    const productSearch = document.getElementById('productSearch');
+    if (productSearch) {
+        productSearch.addEventListener('input', debounce(() => {
+            loadProducts(productSearch.value.trim());
+        }, 300));
+    }
+}
+
 function initOrderFilter() {
     const orderFilter = document.getElementById('orderFilter');
+    const orderSearch = document.getElementById('orderSearch');
     if (orderFilter) {
         orderFilter.addEventListener('change', () => {
-            loadOrders(orderFilter.value);
+            loadOrders(orderFilter.value, orderSearch ? orderSearch.value.trim() : '');
         });
     }
-}
-
-// Update the setupAdminNavigation function
-function setupAdminNavigation() {
-  const navLinks = document.querySelectorAll('.admin-nav a');
-  
-  navLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      
-      // Remove active class from all links
-      navLinks.forEach(l => l.classList.remove('active'));
-      
-      // Add active class to clicked link
-      link.classList.add('active');
-      
-      // Get the section to show
-      const sectionId = `${link.dataset.section}-section`;
-      const section = document.getElementById(sectionId);
-      
-      if (!section) {
-        console.error(`Section with ID ${sectionId} not found`);
-        return;
-      }
-      
-      // Hide all sections
-      document.querySelectorAll('.admin-content > section').forEach(section => {
-        section.style.display = 'none';
-      });
-      
-      // Show the selected section
-      section.style.display = 'block';
-      
-      // Load data for the section if needed
-      switch(link.dataset.section) {
-        case 'dashboard':
-          loadDashboardData();
-          break;
-        case 'products':
-          loadProducts();
-          break;
-        case 'users':
-          loadUsers();
-          break;
-        case 'orders':
-          loadOrders();
-          break;
-        case 'drivers': // Add this case
-          loadDrivers();
-          break;
-        case 'settings':
-          // No special loading needed for settings
-          break;
-      }
-    });
-  });
-  
-  // Activate the dashboard by default
-  const defaultLink = document.querySelector('.admin-nav a[data-section="dashboard"]');
-  if (defaultLink) {
-    defaultLink.click();
-  }
-}
-
-// Setup modals
-function setupModals() {
-    // Setup for product modal
-    const productModal = document.getElementById('productModal');
-    const productModalOverlay = document.getElementById('productModalOverlay');
-    
-    if (productModal && productModalOverlay) {
-        // Show modal when Add Product button is clicked
-        document.getElementById('addProductBtn')?.addEventListener('click', () => {
-            document.getElementById('productModalTitle').textContent = 'Add New Product';
-            document.getElementById('productForm').reset();
-            document.getElementById('productImagePreview').style.display = 'none';
-            showModal(productModal);
-        });
-        
-        // Close modal when overlay or X is clicked
-        productModalOverlay.addEventListener('click', () => hideModal(productModal));
-        productModal.querySelector('.close-modal')?.addEventListener('click', () => hideModal(productModal));
-        productModal.querySelector('.cancel-modal')?.addEventListener('click', () => hideModal(productModal));
-        
-        // Image URL preview
-        document.getElementById('productImage').addEventListener('input', function() {
-            updateImagePreview(this.value);
-        });
+    if (orderSearch) {
+        orderSearch.addEventListener('input', debounce(() => {
+            loadOrders(orderFilter ? orderFilter.value : 'all', orderSearch.value.trim());
+        }, 300));
     }
-    
-    // Setup for admin modal
-    const adminModal = document.getElementById('adminModal');
-    const adminModalOverlay = document.getElementById('adminModalOverlay');
-    
-    if (adminModal && adminModalOverlay) {
-        // Show modal when Create Admin button is clicked
-        document.getElementById('addAdminBtn')?.addEventListener('click', () => {
-            document.getElementById('adminModalTitle').textContent = 'Create New Admin';
-            document.getElementById('adminForm').reset();
-            showModal(adminModal);
-        });
-        
-        // Close modal when overlay or X is clicked
-        adminModalOverlay.addEventListener('click', () => hideModal(adminModal));
-        adminModal.querySelector('.close-modal')?.addEventListener('click', () => hideModal(adminModal));
-        adminModal.querySelector('.cancel-modal')?.addEventListener('click', () => hideModal(adminModal));
-    }
-    
-    // Setup for user modal
-    const userModal = document.getElementById('userModal');
-    const userModalOverlay = document.getElementById('userModalOverlay');
-    
-    if (userModal && userModalOverlay) {
-        // Close modal when overlay or X is clicked
-        userModalOverlay.addEventListener('click', () => hideModal(userModal));
-        userModal.querySelector('.close-modal')?.addEventListener('click', () => hideModal(userModal));
-        userModal.querySelector('.cancel-modal')?.addEventListener('click', () => hideModal(userModal));
-    }
-}
-
-// Setup event listeners for forms
-function setupEventListeners() {
-
-    document.getElementById('addDeliveryBtnAdmin')?.addEventListener('click', showAddDeliveryModal);
-    document.getElementById('driverPortalLink')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        // Store a flag that this is admin accessing driver portal
-        sessionStorage.setItem('adminAccessingDriverPortal', 'true');
-        window.location.href = 'driver.html';
-    });
-    // Product form submission
-    const productForm = document.getElementById('productForm');
-    if (productForm) {
-        productForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const productId = document.getElementById('productId').value;
-            const productData = {
-                name: document.getElementById('productName').value,
-                price: parseFloat(document.getElementById('productPrice').value),
-                description: document.getElementById('productDescription').value,
-                category: document.getElementById('productCategory').value,
-                stock: parseInt(document.getElementById('productStock').value),
-                image: document.getElementById('productImage').value,
-                featured: document.getElementById('productFeatured').checked,
-                updatedAt: serverTimestamp()
-            };
-            
-            try {
-                if (productId) {
-                    // Update existing product
-                    await updateDoc(doc(db, "products", productId), productData);
-                    
-                    // Log activity
-                    await logActivity('Product updated', `Product ID: ${productId}`);
-                    
-                    alert('Product updated successfully');
-                } else {
-                    // Add new product
-                    const docRef = await addDoc(collection(db, "products"), {
-                        ...productData,
-                        createdAt: serverTimestamp()
-                    });
-                    
-                    // Log activity
-                    await logActivity('Product added', `Product ID: ${docRef.id}`);
-                    
-                    alert('Product added successfully');
-                }
-                
-                hideModal(document.getElementById('productModal'));
-                loadProducts();
-            } catch (error) {
-                console.error('Error saving product:', error);
-                alert('Error saving product. Please try again.');
-            }
-        });
-    }
-    
-    // Admin form submission
-    const adminForm = document.getElementById('adminForm');
-    if (adminForm) {
-        adminForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('adminName').value;
-            const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
-            
-            try {
-                // Create auth user
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                
-                // Update profile with name
-                await updateProfile(userCredential.user, {
-                    displayName: name
-                });
-                
-                // Create user document with admin role
-                await setDoc(doc(db, "users", userCredential.user.uid), {
-                    name: name,
-                    email: email,
-                    role: 'admin',
-                    createdAt: serverTimestamp(),
-                    lastLogin: serverTimestamp(),
-                    status: 'active'
-                });
-                
-                // Log activity
-                await logActivity('Admin created', `Admin: ${email}`);
-                
-                hideModal(document.getElementById('adminModal'));
-                alert('Admin account created successfully!');
-                loadUsers();
-            } catch (error) {
-                console.error('Error creating admin:', error);
-                alert(getAuthErrorMessage(error.code));
-            }
-        });
-    }
-    
-    // User form submission
-    const userForm = document.getElementById('userForm');
-    if (userForm) {
-        userForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const userId = document.getElementById('userId').value;
-            const userData = {
-                name: document.getElementById('userName').value,
-                email: document.getElementById('userEmail').value,
-                role: document.getElementById('userRole').value,
-                status: document.getElementById('userStatus').value,
-                updatedAt: serverTimestamp()
-            };
-            
-            try {
-                await updateDoc(doc(db, "users", userId), userData);
-                
-                // Log activity
-                await logActivity('User updated', `User ID: ${userId}`);
-                
-                hideModal(document.getElementById('userModal'));
-                loadUsers();
-                alert('User updated successfully');
-            } catch (error) {
-                console.error('Error updating user:', error);
-                alert('Error updating user. Please try again.');
-            }
-        });
-    }
-    
-    // Settings form submission
-    const settingsForm = document.getElementById('settingsForm');
-    if (settingsForm) {
-        settingsForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const settings = {
-                siteName: document.getElementById('siteName').value,
-                adminEmail: document.getElementById('adminEmailSettings').value,
-                maintenanceMode: document.getElementById('maintenanceMode').value === 'true',
-                updatedAt: serverTimestamp()
-            };
-            
-            try {
-                await setDoc(doc(db, "settings", "general"), settings, { merge: true });
-                
-                // Log activity
-                await logActivity('Settings updated', 'General settings modified');
-                
-                alert('Settings saved successfully');
-            } catch (error) {
-                console.error('Error saving settings:', error);
-                alert('Error saving settings. Please try again.');
-            }
-        });
-    }
-}
-
-function showModal(modal) {
-    console.log('Attempting to show modal:', modal.id);
-    const overlay = modal.previousElementSibling;
-    if (!overlay || !overlay.classList.contains('modal-overlay')) {
-        console.error('Modal overlay not found for modal:', modal.id);
-        return;
-    }
-    overlay.classList.add('show'); // Add this
-    modal.classList.add('show');   // Add this
-    document.body.style.overflow = 'hidden';
-}
-
-function hideModal(modal) {
-    console.log('Attempting to hide modal:', modal.id);
-    const overlay = modal.previousElementSibling;
-    overlay.classList.remove('show'); // Add this
-    modal.classList.remove('show');   // Add this
-    document.body.style.overflow = '';
-}
-
-// Log activity
-async function logActivity(action, details = '', status = 'success') {
-    const user = auth.currentUser;
-    
-    try {
-        const activityData = {
-            action: action,
-            details: details,
-            userId: user?.uid || 'system',
-            userName: user?.displayName || 'System',
-            timestamp: serverTimestamp(),
-            status: status
-        };
-        
-        await addDoc(collection(db, "activity"), activityData);
-        return true;
-    } catch (error) {
-        console.error('Error logging activity:', error);
-        
-        // Fallback - try to log the error itself
-        try {
-            await addDoc(collection(db, "activity"), {
-                action: "Activity Log Failed",
-                details: `Original action: ${action}. Error: ${error.message}`,
-                userId: 'system',
-                userName: 'System',
-                timestamp: serverTimestamp(),
-                status: 'error'
-            });
-        } catch (fallbackError) {
-            console.error('Fallback activity log also failed:', fallbackError);
-        }
-        
-        return false;
-    }
-}
-
-// Helper function for debouncing
-function debounce(func, delay) {
-    let timeoutId;
-    return function(...args) {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => func.apply(this, args), delay);
-    };
-}
-
-// Get auth error message
-function getAuthErrorMessage(code) {
-    switch(code) {
-        case 'auth/invalid-email': return 'Invalid email address';
-        case 'auth/user-disabled': return 'This account has been disabled';
-        case 'auth/user-not-found': return 'No account found with this email';
-        case 'auth/wrong-password': return 'Incorrect password';
-        case 'auth/email-already-in-use': return 'Email already in use';
-        case 'auth/weak-password': return 'Password should be at least 6 characters';
-        case 'auth/too-many-requests': return 'Too many attempts. Try again later.';
-        default: return 'An error occurred. Please try again.';
-    }
-}
-
-async function loadDrivers(searchTerm = '') {
-  try {
-    const driversTableBody = document.getElementById('driversTableBody');
-    if (!driversTableBody) {
-      console.error('Drivers table body not found');
-      return;
-    }
-
-    let driversQuery;
-    const driversRef = collection(db, "users");
-    
-    if (searchTerm) {
-      driversQuery = query(driversRef,
-        where("role", "==", "driver"),
-        where("name", ">=", searchTerm),
-        where("name", "<=", searchTerm + '\uf8ff')
-      );
-    } else {
-      driversQuery = query(driversRef, where("role", "==", "driver"));
-    }
-
-    const driversSnapshot = await getDocs(driversQuery);
-    driversTableBody.innerHTML = '';
-    
-    driversSnapshot.forEach(doc => {
-      const driver = doc.data();
-      const row = document.createElement('tr');
-      
-      row.innerHTML = `
-        <td>${driver.name || 'No name'}</td>
-        <td>${driver.email}</td>
-        <td>${driver.lastLogin ? new Date(driver.lastLogin.toDate()).toLocaleString() : 'Never'}</td>
-        <td>
-          <span class="badge ${driver.status === 'active' ? 'badge-success' : 'badge-danger'}">
-            ${driver.status || 'inactive'}
-          </span>
-        </td>
-        <td>
-          <button class="btn-admin btn-admin-outline edit-driver" data-id="${doc.id}">Edit</button>
-          <button class="btn-admin btn-admin-outline view-driver-deliveries" data-id="${doc.id}">Deliveries</button>
-        </td>
-      `;
-      
-      driversTableBody.appendChild(row);
-    });
-    
-    // Add event listeners
-    document.querySelectorAll('.edit-driver').forEach(btn => {
-      btn.addEventListener('click', () => editDriver(btn.dataset.id));
-    });
-    
-    document.querySelectorAll('.view-driver-deliveries').forEach(btn => {
-      btn.addEventListener('click', () => viewDriverDeliveries(btn.dataset.id));
-    });
-    
-    // Update dashboard stats
-    updateDriverStats(driversSnapshot.size);
-    
-  } catch (error) {
-    console.error('Error loading drivers:', error);
-    showToast('Error loading drivers', 'error');
-  }
-}
-
-async function editDriver(driverId) {
-  try {
-    const driverDoc = await getDoc(doc(db, "users", driverId));
-    if (driverDoc.exists()) {
-      const driver = driverDoc.data();
-      
-      // Populate the user modal (reusing existing modal)
-      document.getElementById('userModalTitle').textContent = 'Edit Driver';
-      document.getElementById('userId').value = driverId;
-      document.getElementById('userName').value = driver.name || '';
-      document.getElementById('userEmail').value = driver.email || '';
-      document.getElementById('userRole').value = 'driver'; // Locked to driver role
-      document.getElementById('userStatus').value = driver.status || 'active';
-      
-      showModal(document.getElementById('userModal'));
-    }
-  } catch (error) {
-    console.error('Error editing driver:', error);
-    showToast('Error loading driver details', 'error');
-  }
-}
-
-async function viewDriverDeliveries(driverId) {
-  try {
-    // Safely get elements
-    const driverStatsSection = document.getElementById('driverStatsSection');
-    const driverDeliveriesTableBody = document.getElementById('driverDeliveriesTableBody');
-    const driverNameHeader = document.getElementById('driverNameHeader');
-    
-    if (!driverStatsSection || !driverDeliveriesTableBody || !driverNameHeader) {
-      console.error('Required elements not found');
-      showToast('Error loading driver deliveries', 'error');
-      return;
-    }
-
-    // Show loading state
-    driverDeliveriesTableBody.innerHTML = '<tr><td colspan="6">Loading deliveries...</td></tr>';
-    driverStatsSection.style.display = 'block';
-    
-    // Get driver info
-    const driverDoc = await getDoc(doc(db, "users", driverId));
-    if (!driverDoc.exists()) {
-      showToast('Driver not found', 'error');
-      return;
-    }
-    
-    const driverName = driverDoc.data().name;
-    driverNameHeader.textContent = `${driverName}'s Deliveries`;
-    
-    // Load deliveries for this driver
-    const deliveriesQuery = query(
-      collection(db, "deliveries"),
-      where("driverId", "==", driverId),
-      orderBy("createdAt", "desc"),
-      limit(50)
-    );
-    
-    const unsubscribe = onSnapshot(deliveriesQuery, (snapshot) => {
-      driverDeliveriesTableBody.innerHTML = '';
-      
-      if (snapshot.empty) {
-        driverDeliveriesTableBody.innerHTML = '<tr><td colspan="6">No deliveries found</td></tr>';
-        return;
-      }
-      
-      snapshot.forEach(doc => {
-        const delivery = doc.data();
-        const row = document.createElement('tr');
-        
-        row.innerHTML = `
-          <td>${delivery.customerName || 'N/A'}</td>
-          <td>${delivery.deliveryAddress || 'N/A'}</td>
-          <td>${delivery.createdAt?.toDate().toLocaleString() || 'N/A'}</td>
-          <td>
-            <span class="badge ${getDeliveryStatusBadgeClass(delivery.status)}">
-              ${delivery.status}
-            </span>
-          </td>
-          <td>${delivery.completedAt?.toDate().toLocaleString() || 'In progress'}</td>
-          <td>
-            <button class="btn-admin btn-admin-outline view-delivery" data-id="${doc.id}">View</button>
-            <button class="btn-admin btn-admin-outline edit-delivery" data-id="${doc.id}">Edit</button>
-          </td>
-        `;
-        
-        driverDeliveriesTableBody.appendChild(row);
-      });
-      
-      // Add event listeners
-      document.querySelectorAll('.view-delivery').forEach(btn => {
-        btn.addEventListener('click', () => viewDeliveryDetails(btn.dataset.id));
-      });
-      
-      document.querySelectorAll('.edit-delivery').forEach(btn => {
-        btn.addEventListener('click', () => editDelivery(btn.dataset.id));
-      });
-      
-      // Update driver stats
-      updateDriverStats(null, snapshot);
-    });
-    
-    return unsubscribe;
-    
-  } catch (error) {
-    console.error('Error loading driver deliveries:', error);
-    showToast('Error loading deliveries', 'error');
-    const driverDeliveriesTableBody = document.getElementById('driverDeliveriesTableBody');
-    if (driverDeliveriesTableBody) {
-      driverDeliveriesTableBody.innerHTML = '<tr><td colspan="6">Error loading deliveries</td></tr>';
-    }
-  }
-}
-
-async function viewDeliveryDetails(deliveryId) {
-    try {
-        // Get delivery document
-        const deliveryDoc = await getDoc(doc(db, "deliveries", deliveryId));
-        if (!deliveryDoc.exists()) {
-            showToast("Delivery not found", "error");
-            return;
-        }
-
-        const delivery = deliveryDoc.data();
-        
-        // Get driver details if assigned
-        let driverName = "Unassigned";
-        if (delivery.driverId) {
-            const driverDoc = await getDoc(doc(db, "users", delivery.driverId));
-            if (driverDoc.exists()) {
-                driverName = driverDoc.data().name;
-            }
-        }
-
-        // Get customer details if available (assuming customers are stored separately)
-        let customerDetails = {};
-        if (delivery.customerId) {
-            const customerDoc = await getDoc(doc(db, "customers", delivery.customerId));
-            if (customerDoc.exists()) {
-                customerDetails = customerDoc.data();
-            }
-        }
-
-        // Format dates
-        const formatDate = (timestamp) => {
-            if (!timestamp) return "N/A";
-            return timestamp.toDate().toLocaleString();
-        };
-
-        // Create modal content
-        const modalContent = `
-            <div class="modal-header">
-                <h3><i class="fas fa-truck"></i> Delivery Details (#${deliveryId.substring(0, 8)})</h3>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="delivery-details-grid">
-                    <!-- Customer Information -->
-                    <div class="delivery-section">
-                        <h4><i class="fas fa-user"></i> Customer Information</h4>
-                        <div class="detail-row">
-                            <span class="detail-label">Name:</span>
-                            <span class="detail-value">${delivery.customerName || customerDetails.name || "N/A"}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Phone:</span>
-                            <span class="detail-value">${delivery.customerPhone || customerDetails.phone || "N/A"}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Email:</span>
-                            <span class="detail-value">${customerDetails.email || "N/A"}</span>
-                        </div>
-                    </div>
-
-                    <!-- Delivery Information -->
-                    <div class="delivery-section">
-                        <h4><i class="fas fa-map-marker-alt"></i> Delivery Information</h4>
-                        <div class="detail-row">
-                            <span class="detail-label">Address:</span>
-                            <span class="detail-value">${delivery.deliveryAddress || "N/A"}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Coordinates:</span>
-                            <span class="detail-value">${delivery.gpsCoordinates || "N/A"}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Notes:</span>
-                            <span class="detail-value">${delivery.notes || "No notes"}</span>
-                        </div>
-                    </div>
-
-                    <!-- Status Information -->
-                    <div class="delivery-section">
-                        <h4><i class="fas fa-info-circle"></i> Status Information</h4>
-                        <div class="detail-row">
-                            <span class="detail-label">Status:</span>
-                            <span class="detail-value">
-                                <span class="badge ${getDeliveryStatusBadgeClass(delivery.status)}">
-                                    ${delivery.status}
-                                </span>
-                            </span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Assigned Driver:</span>
-                            <span class="detail-value">${driverName}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Created:</span>
-                            <span class="detail-value">${formatDate(delivery.createdAt)}</span>
-                        </div>
-                        ${delivery.startedAt ? `
-                        <div class="detail-row">
-                            <span class="detail-label">Started:</span>
-                            <span class="detail-value">${formatDate(delivery.startedAt)}</span>
-                        </div>
-                        ` : ''}
-                        ${delivery.completedAt ? `
-                        <div class="detail-row">
-                            <span class="detail-label">Completed:</span>
-                            <span class="detail-value">${formatDate(delivery.completedAt)}</span>
-                        </div>
-                        ` : ''}
-                    </div>
-
-                    <!-- Driver Tracking -->
-                    <div class="delivery-section">
-                        <h4><i class="fas fa-map-marked"></i> Driver Tracking</h4>
-                        ${delivery.currentLocation ? `
-                        <div class="detail-row">
-                            <span class="detail-label">Last Location:</span>
-                            <span class="detail-value">
-                                ${delivery.currentLocation.latitude}, ${delivery.currentLocation.longitude}
-                            </span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Last Updated:</span>
-                            <span class="detail-value">${formatDate(delivery.lastUpdated)}</span>
-                        </div>
-                        <div id="deliveryMap" style="height: 250px; margin-top: 15px;"></div>
-                        ` : `
-                        <div class="detail-row">
-                            <span class="detail-value">No location data available</span>
-                        </div>
-                        `}
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="delivery-actions">
-                    <button class="btn-admin btn-admin-outline" id="editDeliveryBtn">
-                        <i class="fas fa-edit"></i> Edit Delivery
-                    </button>
-                    <button class="btn-admin btn-admin-outline" id="assignDriverBtn">
-                        <i class="fas fa-user-tie"></i> Assign Driver
-                    </button>
-                    ${delivery.status !== 'completed' && delivery.status !== 'cancelled' ? `
-                    <button class="btn-admin ${delivery.status === 'pending' ? 'btn-admin-warning' : 'btn-admin-success'}" 
-                            id="updateStatusBtn">
-                        <i class="fas ${delivery.status === 'pending' ? 'fa-play' : 'fa-check'}"></i>
-                        ${delivery.status === 'pending' ? 'Start Delivery' : 'Complete Delivery'}
-                    </button>
-                    ` : ''}
-                    ${delivery.status !== 'cancelled' ? `
-                    <button class="btn-admin btn-admin-danger" id="cancelDeliveryBtn">
-                        <i class="fas fa-times"></i> Cancel Delivery
-                    </button>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-
-        // Create or update modal
-        let detailsModal = document.getElementById('deliveryDetailsModal');
-        if (!detailsModal) {
-            detailsModal = document.createElement('div');
-            detailsModal.id = 'deliveryDetailsModal';
-            detailsModal.className = 'modal';
-            document.body.appendChild(detailsModal);
-        }
-
-        detailsModal.innerHTML = modalContent;
-        showModal(detailsModal);
-
-        // Initialize map if we have location data
-        if (delivery.currentLocation && delivery.gpsCoordinates) {
-            initDeliveryMap(
-                delivery.currentLocation.latitude,
-                delivery.currentLocation.longitude,
-                delivery.gpsCoordinates
-            );
-        }
-
-        // Add event listeners for buttons
-        document.getElementById('editDeliveryBtn')?.addEventListener('click', () => {
-            hideModal(detailsModal);
-            editDeliveryAdmin(deliveryId);
-        });
-
-        document.getElementById('assignDriverBtn')?.addEventListener('click', () => {
-            hideModal(detailsModal);
-            assignDriverToDelivery(deliveryId);
-        });
-
-        document.getElementById('updateStatusBtn')?.addEventListener('click', async () => {
-            try {
-                let updateData = {
-                    updatedAt: serverTimestamp()
-                };
-
-                if (delivery.status === 'pending') {
-                    updateData.status = 'in-progress';
-                    updateData.startedAt = serverTimestamp();
-                } else if (delivery.status === 'in-progress') {
-                    updateData.status = 'completed';
-                    updateData.completedAt = serverTimestamp();
-                }
-
-                await updateDoc(doc(db, "deliveries", deliveryId), updateData);
-                showToast("Delivery status updated", "success");
-            } catch (error) {
-                console.error("Error updating status:", error);
-                showToast("Failed to update status", "error");
-            }
-        });
-
-        document.getElementById('cancelDeliveryBtn')?.addEventListener('click', async () => {
-            if (confirm("Are you sure you want to cancel this delivery?")) {
-                try {
-                    await updateDoc(doc(db, "deliveries", deliveryId), {
-                        status: 'cancelled',
-                        cancelledAt: serverTimestamp(),
-                        updatedAt: serverTimestamp()
-                    });
-                    showToast("Delivery cancelled", "success");
-                } catch (error) {
-                    console.error("Error cancelling delivery:", error);
-                    showToast("Failed to cancel delivery", "error");
-                }
-            }
-        });
-
-        // Close modal handler
-        detailsModal.querySelector('.close-modal').addEventListener('click', () => {
-            hideModal(detailsModal);
-        });
-
-    } catch (error) {
-        console.error("Error viewing delivery details:", error);
-        showToast("Error loading delivery details", "error");
-    }
-}
-
-function initDeliveryMap(driverLat, driverLng, deliveryCoords) {
-    const mapElement = document.getElementById('deliveryMap');
-    if (!mapElement) return;
-
-    // Clear any existing map
-    if (mapElement._leaflet_id) {
-        for (const id in L.Map._instances) {
-            if (L.Map._instances[id]._container.id === 'deliveryMap') {
-                L.Map._instances[id].remove();
-                break;
-            }
-        }
-    }
-
-    // Create new map centered on driver location
-    const map = L.map('deliveryMap').setView([driverLat, driverLng], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
-    // Add driver marker with custom icon
-    L.marker([driverLat, driverLng], {
-        icon: L.divIcon({
-            className: 'driver-marker-icon',
-            html: '<i class="fas fa-truck"></i>',
-            iconSize: [30, 30],
-            iconAnchor: [15, 30]
-        })
-    }).addTo(map).bindPopup('Driver Location');
-
-    // Add delivery location marker if coordinates exist
-    if (deliveryCoords) {
-        const [deliveryLat, deliveryLng] = deliveryCoords.split(',').map(Number);
-        
-        L.marker([deliveryLat, deliveryLng], {
-            icon: L.divIcon({
-                className: 'delivery-marker-icon',
-                html: '<i class="fas fa-map-marker-alt"></i>',
-                iconSize: [30, 30],
-                iconAnchor: [15, 30]
-            })
-        }).addTo(map).bindPopup('Delivery Location');
-
-        // Add route line between points
-        L.polyline(
-            [
-                [driverLat, driverLng],
-                [deliveryLat, deliveryLng]
-            ],
-            {
-                color: '#008080',
-                weight: 4,
-                opacity: 0.7,
-                dashArray: '5, 5'
-            }
-        ).addTo(map);
-
-        // Calculate distance between points
-        const distance = calculateDistance(driverLat, driverLng, deliveryLat, deliveryLng);
-        L.popup()
-            .setLatLng([(driverLat + deliveryLat) / 2, (driverLng + deliveryLng) / 2])
-            .setContent(`Distance: ${distance.toFixed(1)} km`)
-            .openOn(map);
-    }
-}
-
-async function editDelivery(deliveryId) {
-  try {
-    const deliveryDoc = await getDoc(doc(db, "deliveries", deliveryId));
-    if (deliveryDoc.exists()) {
-      const delivery = deliveryDoc.data();
-      
-      // Create and show edit modal
-      const modalContent = `
-        <div class="modal-header">
-          <h3>Edit Delivery #${deliveryId.substring(0, 8)}</h3>
-          <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <form id="editDeliveryForm">
-            <input type="hidden" id="deliveryId" value="${deliveryId}">
-            
-            <div class="form-group">
-              <label for="deliveryStatus">Status</label>
-              <select id="deliveryStatus" class="form-control">
-                <option value="pending" ${delivery.status === 'pending' ? 'selected' : ''}>Pending</option>
-                <option value="in-progress" ${delivery.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
-                <option value="completed" ${delivery.status === 'completed' ? 'selected' : ''}>Completed</option>
-                <option value="cancelled" ${delivery.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="deliveryNotes">Notes</label>
-              <textarea id="deliveryNotes" class="form-control">${delivery.notes || ''}</textarea>
-            </div>
-            
-            <div class="form-actions">
-              <button type="submit" class="btn-admin">Save Changes</button>
-              <button type="button" class="btn-admin btn-admin-outline cancel-modal">Cancel</button>
-            </div>
-          </form>
-        </div>
-      `;
-      
-      // Create modal if it doesn't exist
-      let editDeliveryModal = document.getElementById('editDeliveryModal');
-      if (!editDeliveryModal) {
-        editDeliveryModal = document.createElement('div');
-        editDeliveryModal.id = 'editDeliveryModal';
-        editDeliveryModal.className = 'modal';
-        document.body.appendChild(editDeliveryModal);
-      }
-      
-      editDeliveryModal.innerHTML = modalContent;
-      showModal(editDeliveryModal);
-      
-      // Form submission
-      document.getElementById('editDeliveryForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const status = document.getElementById('deliveryStatus').value;
-        const notes = document.getElementById('deliveryNotes').value;
-        
-        try {
-          const updateData = {
-            status: status,
-            notes: notes,
-            updatedAt: serverTimestamp()
-          };
-          
-          // Add completedAt timestamp if status changed to completed
-          if (status === 'completed' && delivery.status !== 'completed') {
-            updateData.completedAt = serverTimestamp();
-          }
-          
-          // Add startedAt timestamp if status changed to in-progress
-          if (status === 'in-progress' && delivery.status !== 'in-progress') {
-            updateData.startedAt = serverTimestamp();
-          }
-          
-          await updateDoc(doc(db, "deliveries", deliveryId), updateData);
-          
-          showToast('Delivery updated successfully', 'success');
-          hideModal(editDeliveryModal);
-        } catch (error) {
-          console.error('Error updating delivery:', error);
-          showToast('Error updating delivery', 'error');
-        }
-      });
-      
-      // Close modal
-      editDeliveryModal.querySelector('.close-modal').addEventListener('click', () => {
-        hideModal(editDeliveryModal);
-      });
-      
-      editDeliveryModal.querySelector('.cancel-modal').addEventListener('click', () => {
-        hideModal(editDeliveryModal);
-      });
-    }
-  } catch (error) {
-    console.error('Error editing delivery:', error);
-    showToast('Error loading delivery details', 'error');
-  }
 }
 
 function initDriverSearch() {
-  const driverSearch = document.getElementById('driverSearch');
-  if (driverSearch) {
-    driverSearch.addEventListener('input', debounce(() => {
-      loadDrivers(driverSearch.value.trim());
-    }, 300));
-  }
+    const driverSearch = document.getElementById('driverSearch');
+    if (driverSearch) {
+        driverSearch.addEventListener('input', debounce(() => {
+            loadDrivers(driverSearch.value.trim());
+        }, 300));
+    }
 }
 
 function initDeliveryFilter() {
-  const deliveryFilter = document.getElementById('deliveryFilter');
-  if (deliveryFilter) {
-    deliveryFilter.addEventListener('change', () => {
-      // This would filter the driver deliveries table
-      const driverId = document.getElementById('currentDriverId')?.value;
-      if (driverId) {
-        viewDriverDeliveries(driverId);
-      }
-    });
-  }
+    const deliveryFilter = document.getElementById('deliveryFilter');
+    if (deliveryFilter) {
+        deliveryFilter.addEventListener('change', () => {
+            // This would filter the driver deliveries table if driverStatsSection is open
+            const activeDriverId = document.getElementById('driverNameHeader').dataset.driverId; // Assuming you set this
+            if (activeDriverId) {
+                loadDeliveriesForDriver(activeDriverId, deliveryFilter.value);
+            }
+        });
+    }
 }
 
-function updateDriverStats(totalDriversCount = null, deliveriesSnapshot = null) {
-  if (totalDriversCount !== null) {
-    totalDrivers.textContent = totalDriversCount;
-  }
-  
-  if (deliveriesSnapshot) {
-    const deliveries = deliveriesSnapshot.docs.map(doc => doc.data());
-    const completedCount = deliveries.filter(d => d.status === 'completed').length;
-    const inProgressCount = deliveries.filter(d => d.status === 'in-progress').length;
-    
-    document.getElementById('driverCompletedDeliveries').textContent = completedCount;
-    document.getElementById('driverInProgressDeliveries').textContent = inProgressCount;
-    document.getElementById('driverTotalDeliveries').textContent = deliveries.length;
-  }
-}
-
-async function getOnDutyDriversCount() {
-  try {
-    // Get all drivers with in-progress deliveries
-    const deliveriesQuery = query(
-      collection(db, "deliveries"),
-      where("status", "==", "in-progress")
-    );
-    
-    const snapshot = await getDocs(deliveriesQuery);
-    const uniqueDriverIds = new Set();
-    
-    snapshot.forEach(doc => {
-      uniqueDriverIds.add(doc.data().driverId);
-    });
-    
-    return uniqueDriverIds.size;
-  } catch (error) {
-    console.error("Error counting on-duty drivers:", error);
-    return 0;
-  }
-}
-
+// Load all deliveries (admin function)
 async function loadAllDeliveries() {
     try {
-        const deliveriesQuery = query(
-            collection(db, "deliveries"),
-            orderBy("createdAt", "desc")
-        );
+        const deliveriesRef = collection(db, "deliveries");
+        const q = query(deliveriesRef, orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
         
-        const unsubscribe = onSnapshot(deliveriesQuery, async (snapshot) => {
-            const deliveriesTableBody = document.getElementById('allDeliveriesTableBody');
-            deliveriesTableBody.innerHTML = '';
-            
-            if (snapshot.empty) {
-                deliveriesTableBody.innerHTML = '<tr><td colspan="6">No deliveries found</td></tr>';
-                return;
-            }
-            
-            // Get all drivers for lookup
-            const driversQuery = query(collection(db, "users"), where("role", "==", "driver"));
-            const driversSnapshot = await getDocs(driversQuery);
-            const drivers = {};
-            driversSnapshot.forEach(doc => {
-                drivers[doc.id] = doc.data().name;
-            });
-            
-            snapshot.forEach(doc => {
-                const delivery = doc.data();
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td>${delivery.customerName || 'N/A'}</td>
-                    <td>${delivery.driverId ? (drivers[delivery.driverId] || 'Unassigned') : 'Unassigned'}</td>
-                    <td>${delivery.deliveryAddress || 'N/A'}</td>
-                    <td>${delivery.createdAt?.toDate().toLocaleString() || 'N/A'}</td>
-                    <td>
-                        <span class="badge ${getDeliveryStatusBadgeClass(delivery.status)}">
-                            ${delivery.status}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn-admin btn-admin-outline edit-delivery-admin" data-id="${doc.id}">Edit</button>
-                        <button class="btn-admin btn-admin-outline assign-driver" data-id="${doc.id}">Assign</button>
-                    </td>
-                `;
-                
-                deliveriesTableBody.appendChild(row);
-            });
-            
-            // Add event listeners
-            document.querySelectorAll('.edit-delivery-admin').forEach(btn => {
-                btn.addEventListener('click', () => editDeliveryAdmin(btn.dataset.id));
-            });
-            
-            document.querySelectorAll('.assign-driver').forEach(btn => {
-                btn.addEventListener('click', () => assignDriverToDelivery(btn.dataset.id));
-            });
+        console.log("Loading all deliveries:", snapshot.size);
+        
+        if (!driverDeliveriesTableBody) {
+            console.error("Driver deliveries table body not found");
+            return;
+        }
+        
+        driverDeliveriesTableBody.innerHTML = '';
+        
+        if (snapshot.empty) {
+            driverDeliveriesTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No deliveries found.</td></tr>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const delivery = doc.data();
+            const deliveryId = doc.id;
+            const createdAt = delivery.createdAt ? new Date(delivery.createdAt.toDate()).toLocaleString() : 'N/A';
+            const completedAt = delivery.completedAt ? new Date(delivery.completedAt.toDate()).toLocaleString() : 'N/A';
+            const statusClass = getDeliveryStatusBadgeClass(delivery.status);
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${delivery.customerName || 'N/A'}</td>
+                <td>${delivery.deliveryAddress || 'N/A'}</td>
+                <td>${createdAt}</td>
+                <td><span class="badge ${statusClass}">${delivery.status}</span></td>
+                <td>${completedAt}</td>
+                <td>
+                    <button class="btn-admin btn-admin-sm btn-admin-outline view-delivery" data-id="${deliveryId}">View</button>
+                    <button class="btn-admin btn-admin-sm btn-admin-outline edit-delivery" data-id="${deliveryId}">Edit</button>
+                    <button class="btn-admin btn-admin-sm btn-admin-danger delete-delivery" data-id="${deliveryId}" onclick="confirmDeleteDelivery('${deliveryId}')">Delete</button>
+                </td>
+            `;
+            driverDeliveriesTableBody.appendChild(row);
         });
         
-        return unsubscribe;
     } catch (error) {
         console.error("Error loading all deliveries:", error);
+        if (driverDeliveriesTableBody) {
+            driverDeliveriesTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">Error loading deliveries</td></tr>';
+        }
         showToast("Error loading deliveries", "error");
     }
 }
 
-
-async function showAddDeliveryModal() {
-    try {
-        // Get available drivers
-        const driversQuery = query(collection(db, "users"), where("role", "==", "driver"));
-        const driversSnapshot = await getDocs(driversQuery);
-        
-        const modalContent = `
-            <div class="modal-header">
-                <h3><i class="fas fa-truck"></i> Create New Delivery</h3>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="adminDeliveryForm">
-                    <div class="form-group">
-                        <label for="adminCustomerName">Customer Name</label>
-                        <input type="text" id="adminCustomerName" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminCustomerPhone">Phone Number</label>
-                        <input type="tel" id="adminCustomerPhone" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminDeliveryAddress">Delivery Address</label>
-                        <input type="text" id="adminDeliveryAddress" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminDeliveryDriver">Assign Driver</label>
-                        <select id="adminDeliveryDriver" class="form-control">
-                            <option value="">-- Select Driver --</option>
-                            ${driversSnapshot.docs.map(doc => 
-                                `<option value="${doc.id}">${doc.data().name}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminDeliveryNotes">Notes</label>
-                        <textarea id="adminDeliveryNotes" class="form-control" rows="3"></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-admin btn-admin-outline cancel-modal">Cancel</button>
-                        <button type="submit" class="btn-admin">Create Delivery</button>
-                    </div>
-                </form>
-            </div>
-        `;
-        
-        // Create modal if it doesn't exist
-        let deliveryModal = document.getElementById('adminDeliveryModal');
-        if (!deliveryModal) {
-            deliveryModal = document.createElement('div');
-            deliveryModal.id = 'adminDeliveryModal';
-            deliveryModal.className = 'modal';
-            document.body.appendChild(deliveryModal);
-        }
-        
-        deliveryModal.innerHTML = modalContent;
-        showModal(deliveryModal);
-        
-        // Form submission
-        document.getElementById('adminDeliveryForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await createDeliveryAsAdmin();
-        });
-        
-        // Close modal
-        deliveryModal.querySelector('.close-modal').addEventListener('click', () => {
-            hideModal(deliveryModal);
-        });
-        
-        deliveryModal.querySelector('.cancel-modal').addEventListener('click', () => {
-            hideModal(deliveryModal);
-        });
-        
-    } catch (error) {
-        console.error("Error showing delivery modal:", error);
-        showToast("Error loading delivery form", "error");
+async function confirmDeleteDelivery(deliveryId) {
+    if (!confirm('Are you sure you want to delete this delivery? This action cannot be undone.')) {
+        return;
     }
-}
-
-async function createDeliveryAsAdmin() {
+    
     try {
-        const submitBtn = document.getElementById('adminDeliveryForm').querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        // Check if user has admin role
+        const user = auth.currentUser;
+        if (!user) throw new Error("Not authenticated");
         
-        const deliveryData = {
-            customerName: document.getElementById('adminCustomerName').value.trim(),
-            customerPhone: document.getElementById('adminCustomerPhone').value.trim(),
-            deliveryAddress: document.getElementById('adminDeliveryAddress').value.trim(),
-            notes: document.getElementById('adminDeliveryNotes').value.trim() || null,
-            status: 'pending',
-            createdAt: serverTimestamp()
-        };
-        
-        const driverId = document.getElementById('adminDeliveryDriver').value;
-        if (driverId) {
-            deliveryData.driverId = driverId;
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+            throw new Error("Admin privileges required");
         }
         
-        await addDoc(collection(db, "deliveries"), deliveryData);
+        await deleteDoc(doc(db, "deliveries", deliveryId));
+        showToast("Delivery deleted successfully!", "success");
         
-        showToast("Delivery created successfully", "success");
-        hideModal(document.getElementById('adminDeliveryModal'));
-        
-    } catch (error) {
-        console.error("Error creating delivery:", error);
-        showToast("Failed to create delivery", "error");
-    } finally {
-        const submitBtn = document.getElementById('adminDeliveryForm').querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Create Delivery';
-        }
-    }
-}
-
-async function editDeliveryAdmin(deliveryId) {
-    try {
-        const deliveryDoc = await getDoc(doc(db, "deliveries", deliveryId));
-        if (!deliveryDoc.exists()) {
-            showToast("Delivery not found", "error");
-            return;
-        }
-        
-        const delivery = deliveryDoc.data();
-        const driversQuery = query(collection(db, "users"), where("role", "==", "driver"));
-        const driversSnapshot = await getDocs(driversQuery);
-        
-        const modalContent = `
-            <div class="modal-header">
-                <h3><i class="fas fa-truck"></i> Edit Delivery</h3>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="editDeliveryFormAdmin">
-                    <input type="hidden" id="adminEditDeliveryId" value="${deliveryId}">
-                    <div class="form-group">
-                        <label for="adminEditCustomerName">Customer Name</label>
-                        <input type="text" id="adminEditCustomerName" class="form-control" value="${delivery.customerName || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminEditCustomerPhone">Phone Number</label>
-                        <input type="tel" id="adminEditCustomerPhone" class="form-control" value="${delivery.customerPhone || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminEditDeliveryAddress">Delivery Address</label>
-                        <input type="text" id="adminEditDeliveryAddress" class="form-control" value="${delivery.deliveryAddress || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminEditDeliveryDriver">Assign Driver</label>
-                        <select id="adminEditDeliveryDriver" class="form-control">
-                            <option value="">-- Select Driver --</option>
-                            ${driversSnapshot.docs.map(doc => 
-                                `<option value="${doc.id}" ${delivery.driverId === doc.id ? 'selected' : ''}>${doc.data().name}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminEditDeliveryStatus">Status</label>
-                        <select id="adminEditDeliveryStatus" class="form-control">
-                            <option value="pending" ${delivery.status === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="in-progress" ${delivery.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
-                            <option value="completed" ${delivery.status === 'completed' ? 'selected' : ''}>Completed</option>
-                            <option value="cancelled" ${delivery.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminEditDeliveryNotes">Notes</label>
-                        <textarea id="adminEditDeliveryNotes" class="form-control" rows="3">${delivery.notes || ''}</textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-admin btn-admin-outline cancel-modal">Cancel</button>
-                        <button type="submit" class="btn-admin">Save Changes</button>
-                    </div>
-                </form>
-            </div>
-        `;
-        
-        // Create modal if it doesn't exist
-        let editModal = document.getElementById('adminEditDeliveryModal');
-        if (!editModal) {
-            editModal = document.createElement('div');
-            editModal.id = 'adminEditDeliveryModal';
-            editModal.className = 'modal';
-            document.body.appendChild(editModal);
-        }
-        
-        editModal.innerHTML = modalContent;
-        showModal(editModal);
-        
-        // Form submission
-        document.getElementById('editDeliveryFormAdmin').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await updateDeliveryAsAdmin(deliveryId);
-        });
-        
-        // Close modal
-        editModal.querySelector('.close-modal').addEventListener('click', () => {
-            hideModal(editModal);
-        });
-        
-        editModal.querySelector('.cancel-modal').addEventListener('click', () => {
-            hideModal(editModal);
-        });
-        
-    } catch (error) {
-        console.error("Error editing delivery:", error);
-        showToast("Error loading delivery details", "error");
-    }
-}
-
-async function updateDeliveryAsAdmin(deliveryId) {
-    try {
-        const submitBtn = document.getElementById('editDeliveryFormAdmin').querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        
-        const updateData = {
-            customerName: document.getElementById('adminEditCustomerName').value.trim(),
-            customerPhone: document.getElementById('adminEditCustomerPhone').value.trim(),
-            deliveryAddress: document.getElementById('adminEditDeliveryAddress').value.trim(),
-            status: document.getElementById('adminEditDeliveryStatus').value,
-            notes: document.getElementById('adminEditDeliveryNotes').value.trim() || null,
-            updatedAt: serverTimestamp()
-        };
-        
-        const driverId = document.getElementById('adminEditDeliveryDriver').value;
-        if (driverId) {
-            updateData.driverId = driverId;
-        } else {
-            updateData.driverId = null;
-        }
-        
-        // If status changed to completed, add completedAt timestamp
-        const deliveryDoc = await getDoc(doc(db, "deliveries", deliveryId));
-        const currentStatus = deliveryDoc.data().status;
-        
-        if (updateData.status === 'completed' && currentStatus !== 'completed') {
-            updateData.completedAt = serverTimestamp();
-        }
-        
-        await updateDoc(doc(db, "deliveries", deliveryId), updateData);
-        
-        showToast("Delivery updated successfully", "success");
-        hideModal(document.getElementById('adminEditDeliveryModal'));
-        
-    } catch (error) {
-        console.error("Error updating delivery:", error);
-        showToast("Failed to update delivery", "error");
-    } finally {
-        const submitBtn = document.getElementById('editDeliveryFormAdmin').querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Save Changes';
-        }
-    }
-}
-
-async function assignDriverToDelivery(deliveryId) {
-    try {
-        const driversQuery = query(collection(db, "users"), where("role", "==", "driver"));
-        const driversSnapshot = await getDocs(driversQuery);
-        
-        const modalContent = `
-            <div class="modal-header">
-                <h3><i class="fas fa-user-tie"></i> Assign Driver</h3>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="assignDriverForm">
-                    <div class="form-group">
-                        <label for="assignDriverSelect">Select Driver</label>
-                        <select id="assignDriverSelect" class="form-control">
-                            <option value="">-- Unassign Driver --</option>
-                            ${driversSnapshot.docs.map(doc => 
-                                `<option value="${doc.id}">${doc.data().name}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-admin btn-admin-outline cancel-modal">Cancel</button>
-                        <button type="submit" class="btn-admin">Assign Driver</button>
-                    </div>
-                </form>
-            </div>
-        `;
-        
-        // Create modal if it doesn't exist
-        let assignModal = document.getElementById('assignDriverModal');
-        if (!assignModal) {
-            assignModal = document.createElement('div');
-            assignModal.id = 'assignDriverModal';
-            assignModal.className = 'modal';
-            document.body.appendChild(assignModal);
-        }
-        
-        assignModal.innerHTML = modalContent;
-        showModal(assignModal);
-        
-        // Form submission
-        document.getElementById('assignDriverForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const driverId = document.getElementById('assignDriverSelect').value;
-            const updateData = {
-                updatedAt: serverTimestamp()
-            };
-            
-            if (driverId) {
-                updateData.driverId = driverId;
-                // If delivery is pending and being assigned, set to in-progress
-                const deliveryDoc = await getDoc(doc(db, "deliveries", deliveryId));
-                if (deliveryDoc.data().status === 'pending') {
-                    updateData.status = 'in-progress';
-                }
-            } else {
-                updateData.driverId = null;
+        // Refresh the appropriate table
+        const currentSection = document.querySelector('.admin-nav a.active')?.dataset.section;
+        if (currentSection === 'drivers') {
+            const activeDriverId = document.getElementById('driverNameHeader')?.dataset.driverId;
+            if (activeDriverId) {
+                await loadDeliveriesForDriver(activeDriverId, 'all');
             }
-            
-            await updateDoc(doc(db, "deliveries", deliveryId), updateData);
-            
-            showToast("Driver assignment updated", "success");
-            hideModal(assignModal);
-        });
-        
-        // Close modal
-        assignModal.querySelector('.close-modal').addEventListener('click', () => {
-            hideModal(assignModal);
-        });
-        
-        assignModal.querySelector('.cancel-modal').addEventListener('click', () => {
-            hideModal(assignModal);
-        });
+        }
+        await loadAllDeliveries();
         
     } catch (error) {
-        console.error("Error assigning driver:", error);
-        showToast("Error assigning driver", "error");
+        console.error("Error deleting delivery:", error);
+        showToast(`Error deleting delivery: ${error.message}`, "error");
     }
-}
-
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    // Haversine formula to calculate distance between two coordinates
-    const R = 6371; // Earth radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
 }

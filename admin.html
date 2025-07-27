@@ -323,6 +323,15 @@
             color: #212529;
         }
 
+        .btn-admin-success { /* Added this class for the confirm button */
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-admin-success:hover {
+            background: #218838;
+        }
+
         .form-group {
             margin-bottom: 1.75rem;
         }
@@ -715,178 +724,76 @@
 
         /* Driver Stats Section */
         #driverStatsSection {
-        background: #f9f9f9;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 30px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .stats-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
         }
 
         .stat-card {
-        background: white;
-        padding: 15px;
-        border-radius: 6px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
         }
 
         .stat-card h4 {
-        margin: 0 0 10px 0;
-        color: #555;
-        font-size: 14px;
+            margin: 0 0 10px 0;
+            color: #555;
+            font-size: 14px;
         }
 
         .stat-card p {
-        margin: 0;
-        font-size: 24px;
-        font-weight: bold;
-        color: #008080;
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #008080;
         }
 
         /* Delivery Map */
         #deliveryMap {
-        height: 200px;
-        border-radius: 6px;
-        margin-top: 10px;
-        border: 1px solid #ddd;
+            height: 200px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
         }
 
         /* Delivery Status Badges */
         .badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 500;
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
         .badge-success {
-        background-color: #d4edda;
-        color: #155724;
+            background-color: #d4edda;
+            color: #155724;
         }
 
         .badge-warning {
-        background-color: #fff3cd;
-        color: #856404;
-        }
-
-        .badge-info {
-        background-color: #d1ecf1;
-        color: #0c5460;
+            background-color: #fff3cd;
+            color: #856404;
         }
 
         .badge-danger {
-        background-color: #f8d7da;
-        color: #721c24;
+            background-color: #f8d7da;
+            color: #721c24;
         }
 
-        /* Delivery Details Grid */
-        .delivery-details-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        }
-
-        .delivery-section {
-        background: white;
-        padding: 15px;
-        border-radius: 6px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .delivery-section h4 {
-        margin-top: 0;
-        color: #008080;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 8px;
-        }
-
-        /* Driver Marker Icons */
-        .driver-marker-icon {
-        color: #008080;
-        font-size: 20px;
-        text-align: center;
-        }
-
-        .delivery-marker-icon {
-        color: #dc3545;
-        font-size: 20px;
-        text-align: center;
-        }
-
-        /* Edit Delivery Form */
-        #editDeliveryForm .form-group {
-        margin-bottom: 15px;
-        }
-
-        #editDeliveryForm label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: 500;
-        }
-
-        #editDeliveryForm select,
-        #editDeliveryForm textarea {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        }
-
-        #editDeliveryForm textarea {
-        min-height: 100px;
-        resize: vertical;
-        }
-
-        .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-top: 20px;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-        #drivers-section .section-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        
-        #drivers-section .search-container {
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        .stats-cards {
-            grid-template-columns: 1fr;
-        }
-        
-        .delivery-details-grid {
-            grid-template-columns: 1fr;
-        }
-        }
-
-        /* Animation for status changes */
-        @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-        }
-
-        .status-updated {
-        animation: pulse 0.5s ease-in-out;
-        }
-
-        /* Add to admin.css */
-        .admin-only {
-            display: none;
+        .badge-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
         }
 
         .delivery-icon {
@@ -932,127 +839,147 @@
             margin-bottom: 15px;
         }
 
-        
-/* Product images in the table */
-.product-table-image {
-    max-width: 100px;
-    max-height: 100px;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    border-radius: 4px;
-    border: none;
-    background-color: #f8f9fa;
-    padding: 2px;
+        /* Product images in the table */
+        .product-table-image {
+            max-width: 100px;
+            max-height: 100px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 4px;
+            border: none;
+            background-color: #f8f9fa;
+            padding: 2px;
+        }
+
+        /* Preview image in the modal */
+        .product-image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            width: auto;
+            height: auto;
+            display: block;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            object-fit: contain;
+            background-color: #f8f9fa;
+        }
+
+        /* Clickable pending status */
+        .status-pending-clickable {
+            cursor: pointer;
+            text-decoration: underline;
+            color: var(--warning); /* Or any color to indicate clickability */
+            font-weight: bold;
+        }
+
+        .status-pending-clickable:hover {
+            color: var(--dark-teal);
+        }
+
+        /* Admin Header Styles */
+.admin-header-main {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--glass-border);
+  z-index: 1000;
+  padding: 1rem 0;
+  transition: all 0.3s ease;
 }
 
-/* Preview image in the modal */
-.product-image-preview {
-    max-width: 200px;
-    max-height: 200px;
-    width: auto;
-    height: auto;
-    display: block;
-    margin-top: 10px;
-    border-radius: 8px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    object-fit: contain;
-    background-color: #f8f9fa;
+.admin-header-main .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-@media (max-width: 992px) {
-    .admin-container {
-        grid-template-columns: 1fr;
-        padding: 0 1rem;
-    }
-    
-    .admin-sidebar {
-        order: 2;
-        position: static;
-    }
-
-    /* Change the order to put admin-content first */
-    .admin-content {
-        order: 1;
-    }
+.admin-header-main .logo a {
+  color: var(--teal);
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 1.8rem;
 }
 
-    /* html {
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    html.loaded {
-        opacity: 1;
-    } */
+.admin-header-main .auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 
+.admin-header-main .welcome-message {
+  margin-right: 15px;
+  color: var(--teal);
+  font-weight: 500;
+}
+
+.admin-header-main .logout-btn {
+  background: none;
+  border: 1px solid var(--teal);
+  color: var(--teal);
+  cursor: pointer;
+  padding: 8px 15px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.admin-header-main .logout-btn:hover {
+  background: var(--teal);
+  color: white;
+}
+
+/* Adjust main content padding for fixed header */
+.admin-main {
+  padding-top: 80px;
+}
     </style>
 </head>
 <body>
-    <!-- Header (matches main site) -->
-    <header class="header">
+    <header class="admin-header-main">
         <div class="container">
             <div class="logo">
-                <h1>Floyd's Distributors</h1>
+                <a href="index.html">Floyd's Distributors</a>
             </div>
-            <nav class="navbar">
-                <ul class="nav-links">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="products.html">Products</a></li>
-                    <li><a href="admin.html" class="active">Admin</a></li>
-                </ul>
-                <div class="auth-cart-container">
-                    <div class="auth-buttons" id="authButtons">
-                        <!-- Will be populated by JavaScript -->
-                    </div>
-                    <div class="hamburger">☰</div>
-                </div>
-            </nav>
+            <div class="auth-buttons">
+                <span class="welcome-message" id="adminWelcomeMessage">Welcome, Admin</span>
+                <button class="auth-btn logout-btn" id="logoutBtn">Logout</button>
+            </div>
         </div>
     </header>
-
-    <!-- Toast Notifications Container -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Admin Main Content -->
+    
     <main class="admin-main">
         <div class="admin-container">
-            <!-- Admin Sidebar -->
             <aside class="admin-sidebar">
-                <div class="admin-profile">
-                    <div class="profile-info">
-                        <div class="profile-name" id="adminProfileName">Loading...</div>
-                        <div class="profile-email" id="adminProfileEmail">admin@example.com</div>
-                    </div>
-                </div>
                 <nav class="admin-nav">
-                    <h3><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h3>
+                    <h3><i class="fas fa-th-large"></i> Dashboard</h3>
                     <ul>
                         <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                        <li><a href="#" data-section="products"><i class="fas fa-box-open"></i> Products</a></li>
+                    </ul>
+                    <h3><i class="fas fa-cogs"></i> Management</h3>
+                    <ul>
+                        <li><a href="#" data-section="products"><i class="fas fa-boxes"></i> Products</a></li>
                         <li><a href="#" data-section="users"><i class="fas fa-users"></i> Users</a></li>
                         <li><a href="#" data-section="orders"><i class="fas fa-shopping-cart"></i> Orders</a></li>
-                        <li><a href="#" data-section="drivers"><i class="fas fa-id-card"></i>Drivers</a></li>
-                        <li><a href="driver.html" id="driverPortalLink"><i class="fas fa-truck"></i> Driver Portal</a></li>
+                        <li><a href="#" data-section="drivers"><i class="fas fa-truck"></i> Drivers</a></li>
                         <li><a href="#" data-section="settings"><i class="fas fa-cog"></i> Settings</a></li>
                     </ul>
                 </nav>
-                <div class="admin-footer">
-                    <button id="logoutBtn" class="btn-admin btn-admin-outline" style="width: 100%;">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </div>
             </aside>
 
-            <!-- Admin Content Area -->
             <div class="admin-content">
-                <!-- Dashboard Section (Default View) -->
-                <section id="dashboard-section">
+                <section id="dashboard-section" class="content-section">
                     <div class="admin-header">
                         <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
                         <div class="last-updated">Last updated: <span id="lastUpdated">Just now</span></div>
                     </div>
-
                     <div class="stats-grid">
                         <div class="stat-card">
                             <h3>Total Users</h3>
@@ -1087,7 +1014,6 @@
                             <p id="onDutyDrivers">0</p>
                         </div>
                     </div>
-
                     <div class="recent-activity">
                         <div class="activity-header">
                             <h3><i class="fas fa-history"></i> Recent Activity</h3>
@@ -1106,14 +1032,12 @@
                                     </tr>
                                 </thead>
                                 <tbody id="recentActivity">
-                                    <!-- Will be populated by JavaScript -->
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
                 </section>
 
-                <!-- Products Management Section -->
                 <section id="products-section" style="display: none;">
                     <div class="admin-header">
                         <h2><i class="fas fa-box-open"></i> Product Management</h2>
@@ -1125,7 +1049,6 @@
                             <button class="btn-admin" id="addProductBtn"><i class="fas fa-plus"></i> Add Product</button>
                         </div>
                     </div>
-
                     <div class="products-list">
                         <div class="data-table-wrapper">
                             <table class="data-table" id="productsTable">
@@ -1133,21 +1056,20 @@
                                     <tr>
                                         <th>Image</th>
                                         <th>Name</th>
+                                        <th>Category</th>
                                         <th>Price</th>
                                         <th>Stock</th>
-                                        <th>Category</th>
+                                        <th>Featured</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="productsTableBody">
-                                    <!-- Will be populated by JavaScript -->
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
                 </section>
 
-                <!-- Users Management Section -->
                 <section id="users-section" style="display: none;">
                     <div class="admin-header">
                         <h2><i class="fas fa-users"></i> User Management</h2>
@@ -1156,10 +1078,9 @@
                                 <input type="text" placeholder="Search users..." class="search-input" id="userSearch">
                                 <button class="search-btn"><i class="fas fa-search"></i></button>
                             </div>
-                            <button class="btn-admin" id="addAdminBtn"><i class="fas fa-user-plus"></i> Create Admin</button>
+                            <button class="btn-admin" id="addUserBtn"><i class="fas fa-user-plus"></i> Add User</button>
                         </div>
                     </div>
-
                     <div class="users-list">
                         <div class="data-table-wrapper">
                             <table class="data-table" id="usersTable">
@@ -1167,56 +1088,54 @@
                                     <tr>
                                         <th>Name</th>
                                         <th>Email</th>
-                                        <th>Joined</th>
-                                        <th>Last Active</th>
+                                        <th>Role</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="usersTableBody">
-                                    <!-- Will be populated by JavaScript -->
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
                 </section>
 
-                <!-- Orders Management Section -->
-                <section id="orders-section" style="display: none;">
+                <section id="orders-section" class="content-section" style="display: none;">
                     <div class="admin-header">
                         <h2><i class="fas fa-shopping-cart"></i> Order Management</h2>
                         <div class="header-actions">
                             <div class="filter-group">
-                                <select id="orderFilter" class="filter-select">
+                                <label for="orderFilter">Status:</label>
+                                <select id="orderFilter" class="form-control filter-select">
                                     <option value="all">All Orders</option>
                                     <option value="pending">Pending</option>
                                     <option value="processing">Processing</option>
-                                    <option value="completed">Completed</option>
+                                    <option value="shipped">Shipped</option>
+                                    <option value="delivered">Delivered</option>
                                     <option value="cancelled">Cancelled</option>
                                 </select>
                             </div>
-                            <button class="btn-admin btn-admin-outline" id="exportOrdersBtn"><i class="fas fa-file-export"></i> Export</button>
+                            <div class="search-container">
+                                <input type="text" placeholder="Search orders..." class="search-input" id="orderSearch">
+                                <button class="search-btn"><i class="fas fa-search"></i></button>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="orders-list">
-                        <div class="data-table-wrapper">
-                            <table class="data-table" id="ordersTable">
-                                <thead>
-                                    <tr>
-                                        <th>Order ID</th>
-                                        <th>Customer</th>
-                                        <th>Date</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="ordersTableBody">
-                                    <!-- Will be populated by JavaScript -->
+                    <div class="data-table-wrapper">
+                        <table class="data-table" id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
                                 </tbody>
-                            </table>
-                        </div>
+                        </table>
                     </div>
                 </section>
 
@@ -1228,7 +1147,6 @@
                             <button class="search-btn"><i class="fas fa-search"></i></button>
                         </div>
                     </div>
-    
                     <div class="table-responsive">
                         <table class="admin-table">
                             <thead>
@@ -1243,11 +1161,9 @@
                             <tbody id="driversTableBody"></tbody>
                         </table>
                     </div>
-    
-                    <!-- Driver Details Section -->
+
                     <div id="driverStatsSection" style="display: none; margin-top: 30px;">
                         <h3 id="driverNameHeader"></h3>
-                        
                         <div class="stats-cards">
                             <div class="stat-card">
                                 <h4>Completed Deliveries</h4>
@@ -1262,7 +1178,6 @@
                                 <p id="driverTotalDeliveries">0</p>
                             </div>
                         </div>
-        
                         <div class="section-header">
                             <h3>Recent Deliveries</h3>
                             <select id="deliveryFilter">
@@ -1273,7 +1188,6 @@
                                 <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
-                        
                         <div class="table-responsive">
                             <table class="admin-table">
                                 <thead>
@@ -1299,7 +1213,6 @@
                             </button>
                         </div>
                     </div>
-                    
                     <div class="table-responsive">
                         <table class="admin-table">
                             <thead>
@@ -1317,62 +1230,40 @@
                     </div>
                 </section>
 
-                <!-- Settings Section -->
                 <section id="settings-section" style="display: none;">
                     <div class="admin-header">
                         <h2><i class="fas fa-cog"></i> System Settings</h2>
                     </div>
-
                     <form id="settingsForm">
                         <div class="form-group">
                             <label for="siteName">Site Name</label>
                             <input type="text" id="siteName" class="form-control" value="Floyd's Distributors">
                         </div>
-
                         <div class="form-group">
                             <label for="currency">Currency</label>
-                            <select id="currency" class="form-control">
-                                <option value="USD">US Dollar ($)</option>
-                                <option value="EUR">Euro (€)</option>
-                                <option value="GBP">British Pound (£)</option>
+                            <select id="currency" class="form-control form-select">
+                                <option value="USD">USD - United States Dollar</option>
+                                <option value="JMD">JMD - Jamaican Dollar</option>
+                                <option value="GBP">GBP - British Pound</option>
                             </select>
                         </div>
-
                         <div class="form-group">
-                            <label for="taxRate">Tax Rate (%)</label>
-                            <input type="number" id="taxRate" class="form-control" min="0" max="50" step="0.1" value="7.5">
+                            <label for="adminEmailForNotifications">Admin Notification Email</label>
+                            <input type="email" id="adminEmailForNotifications" class="form-control" value="admin@example.com">
                         </div>
-
-                        <div class="form-group">
-                            <label for="shippingCosts">Default Shipping Costs</label>
-                            <input type="number" id="shippingCosts" class="form-control" min="0" step="0.01" value="5.99">
+                        <div class="form-actions">
+                            <button type="submit" class="btn-admin">Save Settings</button>
                         </div>
-
-                        <div class="form-group">
-                            <label for="adminEmail">Admin Email</label>
-                            <input type="email" id="adminEmailSettings" class="form-control" value="admin@floydsdistributors.com">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="maintenanceMode">Maintenance Mode</label>
-                            <select id="maintenanceMode" class="form-control">
-                                <option value="false">Disabled</option>
-                                <option value="true">Enabled</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn-admin">Save Settings</button>
                     </form>
                 </section>
             </div>
         </div>
     </main>
 
-    <!-- Add Product Modal -->
     <div class="modal-overlay" id="productModalOverlay"></div>
     <div class="modal" id="productModal">
         <div class="modal-header">
-            <h3><i class="fas fa-box-open"></i> Add New Product</h3>
+            <h3 id="productModalTitle"><i class="fas fa-box-open"></i> Add New Product</h3>
             <button class="close-modal" id="closeProductModal">&times;</button>
         </div>
         <div class="modal-body">
@@ -1383,22 +1274,16 @@
                     <input type="text" id="productName" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label for="productPrice">Price</label>
-                    <input type="number" id="productPrice" class="form-control" step="0.01" required>
-                </div>
-                <div class="form-group">
                     <label for="productDescription">Description</label>
-                    <textarea id="productDescription" class="form-control" rows="3" required></textarea>
+                    <textarea id="productDescription" class="form-control" rows="3"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="productCategory">Category</label>
-                    <select id="productCategory" class="form-control" required>
-                        <option value="bags">Bags</option>
-                        <option value="lunchBoxes">Lunch Boxes</option>
-                        <option value="foodContainers">Food Containers</option>
-                        <option value="household-supplies">Household Supplies</option>
-                        <option value="other">Other</option>
-                    </select>
+                    <input type="text" id="productCategory" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Price</label>
+                    <input type="number" id="productPrice" class="form-control" step="0.01" required>
                 </div>
                 <div class="form-group">
                     <label for="productStock">Stock Quantity</label>
@@ -1415,14 +1300,13 @@
                     </label>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn-admin btn-admin-outline" id="cancelProductBtn">Cancel</button>
-                    <button type="submit" class="btn-admin">Save Product</button>
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelProductEditBtn">Cancel</button>
+                    <button type="submit" class="btn-admin" id="saveProductBtn">Save Product</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Add Admin Modal -->
     <div class="modal-overlay" id="adminModalOverlay"></div>
     <div class="modal" id="adminModal">
         <div class="modal-header">
@@ -1441,21 +1325,20 @@
                 </div>
                 <div class="form-group">
                     <label for="adminPassword">Password</label>
-                    <input type="password" id="adminPassword" class="form-control" required minlength="6">
+                    <input type="password" id="adminPassword" class="form-control" required>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn-admin btn-admin-outline" id="cancelAdminBtn">Cancel</button>
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelAddAdminBtn">Cancel</button>
                     <button type="submit" class="btn-admin">Create Admin</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- User Modal -->
     <div class="modal-overlay" id="userModalOverlay"></div>
     <div class="modal" id="userModal">
         <div class="modal-header">
-            <h3 id="productModalTitle"><i class="fas fa-user"></i> User Details</h3>
+            <h3 id="userModalTitle"><i class="fas fa-user-edit"></i> Edit User</h3>
             <button class="close-modal" id="closeUserModal">&times;</button>
         </div>
         <div class="modal-body">
@@ -1467,66 +1350,231 @@
                 </div>
                 <div class="form-group">
                     <label for="userEmail">Email</label>
-                    <input type="email" id="userEmail" class="form-control" required>
+                    <input type="email" id="userEmail" class="form-control" required readonly>
                 </div>
                 <div class="form-group">
                     <label for="userRole">Role</label>
-                    <select id="userRole" class="form-control" required>
+                    <select id="userRole" class="form-control form-select">
                         <option value="customer">Customer</option>
                         <option value="admin">Admin</option>
+                        <option value="driver">Driver</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="userStatus">Status</label>
-                    <select id="userStatus" class="form-control" required>
+                    <select id="userStatus" class="form-control form-select">
                         <option value="active">Active</option>
-                        <option value="suspended">Suspended</option>
+                        <option value="inactive">Inactive</option>
                     </select>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn-admin btn-admin-outline" id="cancelUserBtn">Cancel</button>
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelUserEditBtn">Cancel</button>
+                    <button type="submit" class="btn-admin" id="saveUserBtn">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editDriverModalOverlay"></div>
+    <div class="modal" id="editDriverModal">
+        <div class="modal-header">
+            <h3 id="editDriverModalTitle"><i class="fas fa-truck-moving"></i> Edit Driver</h3>
+            <button class="close-modal" id="closeEditDriverModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editDriverForm">
+                <input type="hidden" id="editDriverId">
+                <div class="form-group">
+                    <label for="editDriverName">Driver Name</label>
+                    <input type="text" id="editDriverName" class="form-control" required readonly>
+                </div>
+                <div class="form-group">
+                    <label for="editDriverEmail">Email</label>
+                    <input type="email" id="editDriverEmail" class="form-control" required readonly>
+                </div>
+                <div class="form-group">
+                    <label for="editDriverStatus">Status</label>
+                    <select id="editDriverStatus" class="form-control form-select">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="on-duty">On Duty</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelEditDriverBtn">Cancel</button>
                     <button type="submit" class="btn-admin">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div class="modal-overlay" id="confirmModalOverlay"></div>
-    <div class="modal" id="confirmModal">
+    <div class="modal-overlay" id="deliveryDetailsModalOverlay"></div>
+    <div class="modal" id="deliveryDetailsModal">
         <div class="modal-header">
-            <h3><i class="fas fa-exclamation-triangle"></i> Confirm Action</h3>
-            <button class="close-modal" id="closeConfirmModal">&times;</button>
+            <h3>Delivery Details</h3>
+            <button class="close-modal" id="closeDeliveryDetailsModal">&times;</button>
         </div>
         <div class="modal-body">
-            <p id="confirmMessage">Are you sure you want to perform this action?</p>
+            <div class="delivery-details-info">
+                <p><strong>Order ID:</strong> <span id="detailOrderId"></span></p>
+                <p><strong>Customer Name:</strong> <span id="detailCustomerName"></span></p>
+                <p><strong>Address:</strong> <span id="detailAddress"></span></p>
+                <p><strong>Phone:</strong> <span id="detailPhone"></span></p>
+                <p><strong>Notes:</strong> <span id="detailNotes"></span></p>
+                <p><strong>Status:</strong> <span id="detailStatus"></span></p>
+                <p><strong>Assigned Driver:</strong> <span id="detailAssignedDriver"></span></p>
+                <p><strong>Created At:</strong> <span id="detailCreatedAt"></span></p>
+                <p><strong>Updated At:</strong> <span id="detailUpdatedAt"></span></p>
+            </div>
+            <div id="deliveryMap" style="height: 300px; margin-top: 20px;"></div>
             <div class="form-actions">
-                <button type="button" class="btn-admin btn-admin-outline" id="cancelConfirmBtn">Cancel</button>
-                <button type="button" class="btn-admin btn-admin-danger" id="confirmActionBtn">Confirm</button>
+                <button type="button" class="btn-admin btn-admin-outline btn-admin-danger" id="cancelDeliveryBtnDetails">Cancel Delivery</button>
+                <button type="button" class="btn-admin btn-admin-warning" id="editDeliveryBtn">Edit Delivery</button>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Main Admin JavaScript -->
-    <script src="admin.js" type="module" defer></script>
+    <div class="modal-overlay" id="orderActionModalOverlay"></div>
+    <div id="orderActionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" data-modal="orderActionModal">&times;</span>
+            <h2>Order Details & Actions</h2>
+            <div id="orderActionDetails" class="modal-body">
+                <p><strong>Order ID:</strong> <span id="orderIdDisplay"></span></p>
+                <p><strong>Customer:</strong> <span id="orderCustomerName"></span></p>
+                <p><strong>Address:</strong> <span id="orderDeliveryAddress"></span></p>
+                <p><strong>Status:</strong> <span id="orderStatusDisplay"></span></p>
+                <p><strong>Driver:</strong> <span id="orderDeliveryDriver"></span></p>
+                <p><strong>Notes:</strong> <span id="orderNotes"></span></p>
+                <p><strong>Items:</strong> <span id="orderItems"></span></p>
+                <p><strong>Total:</strong> <span id="orderTotal"></span></p>
+            </div>
+
+            <div id="addDeliverySection" class="modal-section" style="display:none;">
+    <form id="adminDeliveryForm">
+        <div class="form-group">
+            <label for="adminCustomerName">Customer Name</label>
+            <input type="text" id="adminCustomerName" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="adminCustomerPhone">Customer Phone</label>
+            <input type="tel" id="adminCustomerPhone" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="adminDeliveryAddress">Delivery Address</label>
+            <input type="text" id="adminDeliveryAddress" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="adminDeliveryNotes">Notes</label>
+            <textarea id="adminDeliveryNotes" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="adminGpsCoordinates">GPS Coordinates</label>
+            <input type="text" id="adminGpsCoordinates" class="form-control" placeholder="e.g., 18.0000, -77.0000">
+        </div>
+        <div class="form-group">
+            <label for="adminDeliveryDriver">Assign Driver (Optional)</label>
+            <select id="adminDeliveryDriver" class="form-control">
+                <option value="">No Driver Assigned</option>
+                <!-- Options will be populated dynamically -->
+            </select>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn-admin btn-admin-outline" id="cancelAddDeliveryAdmin">Cancel</button>
+            <button type="submit" class="btn-admin">Create Delivery</button>
+        </div>
+    </form>
+</div>
+
+            <div id="assignDriverSection" class="modal-section" style="display:none;">
+                <h3>Assign Driver</h3>
+                <p>Select a driver for this order:</p>
+                <div class="form-group">
+                    <label for="assignDriverSelect">Driver:</label>
+                    <select id="assignDriverSelect" class="form-control"></select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelAssignDriverBtn">Cancel</button>
+                    <button type="button" class="btn-admin" id="assignDriverToOrderBtn">Assign Driver</button>
+                </div>
+            </div>
+
+            <div id="addDeliverySection" class="modal-section" style="display:none;">
+                <p>Order confirmed. Ready to create delivery?</p>
+                <div class="form-actions">
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelAddDeliveryBtn">Cancel</button>
+                    <button type="button" class="btn-admin" id="addDeliveryButton">Add Delivery</button>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-admin btn-admin-outline" id="cancelOrderBtn">Cancel</button>
+                <button type="button" class="btn-admin btn-admin-success" id="confirmOrderActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
     <script type="module" src="script.js"></script>
-    <!-- <script>
-    // Prevent FOUC and handle page transitions
-    document.addEventListener('DOMContentLoaded', function() {
-        document.documentElement.classList.add('loaded');
-        
-        // Show the transition overlay immediately if it exists (carried over from previous page)
-        const transitionOverlay = document.querySelector('.page-transition');
-        if (transitionOverlay) {
-            transitionOverlay.classList.add('active');
-        }
-    });
-</script> -->
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
+
+    <div class="modal-overlay" id="editDeliveryModalOverlay"></div>
+    <div class="modal" id="editDeliveryModal">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Edit Delivery</h3>
+            <button class="close-modal" id="closeEditDeliveryModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editDeliveryForm">
+                <input type="hidden" id="editDeliveryId">
+                <div class="form-group">
+                    <label for="editCustomerName">Customer Name</label>
+                    <input type="text" id="editCustomerName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCustomerPhone">Customer Phone</label>
+                    <input type="tel" id="editCustomerPhone" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="editDeliveryAddress">Delivery Address</label>
+                    <input type="text" id="editDeliveryAddress" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDeliveryNotes">Notes</label>
+                    <textarea id="editDeliveryNotes" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editGpsCoordinates">GPS Coordinates (Latitude, Longitude)</label>
+                    <input type="text" id="editGpsCoordinates" class="form-control" placeholder="e.g., 18.0000, -77.0000">
+                </div>
+                <div class="form-group">
+                    <label for="editDeliveryDriver">Assign Driver</label>
+                    <select id="editDeliveryDriver" class="form-control">
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label for="editDeliveryStatus">Delivery Status</label>
+                    <select id="editDeliveryStatus" class="form-control form-select">
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-admin btn-admin-outline" id="cancelEditDeliveryBtn">Cancel</button>
+                    <button type="submit" class="btn-admin">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- <div id="toastContainer" class="toast-container"></div> -->
+
+    <script type="module" src="script.js"></script>
+    <script type="module" src="admin.js"></script>
 </body>
 </html>

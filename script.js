@@ -1672,6 +1672,57 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// Add to script.js
+export const ModalUtils = {
+    show: (modalId, overlayId) => {
+        const modal = document.getElementById(modalId);
+        const overlay = document.getElementById(overlayId);
+        if (modal && overlay) {
+            overlay.classList.add('show');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+    },
+    
+    hide: (modalId, overlayId) => {
+        const modal = document.getElementById(modalId);
+        const overlay = document.getElementById(overlayId);
+        if (modal && overlay) {
+            modal.classList.remove('show');
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    }
+};
+
+/**
+ * Returns appropriate CSS class for delivery status badges
+ * @param {string} status - Delivery status
+ * @returns {string} CSS class for the status badge
+ */
+export function getDeliveryStatusBadgeClass(status) {
+    if (!status) return 'badge-secondary'; // Default for unknown/missing status
+    
+    const statusLower = status.toLowerCase();
+    
+    // Map statuses to Bootstrap badge classes
+    const statusClasses = {
+        'completed': 'badge-success',
+        'delivered': 'badge-success', // Alternative to completed
+        'cancelled': 'badge-danger',
+        'failed': 'badge-danger', // Alternative to cancelled
+        'in-progress': 'badge-warning',
+        'active': 'badge-warning', // Alternative to in-progress
+        'on-route': 'badge-warning', // Alternative to in-progress
+        'pending': 'badge-info',
+        'new': 'badge-info', // Alternative to pending
+        'scheduled': 'badge-primary', // Additional status
+        'returned': 'badge-dark' // Additional status
+    };
+    
+    return statusClasses[statusLower] || 'badge-secondary';
+}
+
 /*****************************
  * PRODUCT DETAIL TILES
  *****************************/

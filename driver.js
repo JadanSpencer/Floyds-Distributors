@@ -3,7 +3,8 @@ import {
     collection, getDocs, doc, getDoc, setDoc, 
     updateDoc, deleteDoc, serverTimestamp, query, 
     where, orderBy, limit, onSnapshot, addDoc,
-    signOut, onAuthStateChanged, getCurrentPosition, 
+    signOut, onAuthStateChanged, getCurrentPosition,
+    getDeliveryStatusBadgeClass
 } from './script.js';
 
 
@@ -76,64 +77,170 @@ async function initializeDriverPortal() {
     console.log("Driver portal initialization started");
     
     try {
-        // Check if admin is accessing
+        // Wait for authentication state
+        const user = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Authentication timeout')), 10000);
+            
+            const unsubscribe = onAuthStateChanged(auth, (user) => {
+                clearTimeout(timeout);
+                unsubscribe();
+                if (user) {
+                    resolve(user);
+                } else {
+                    reject(new Error('User not authenticated'));
+                }
+            });
+        });
+
+        console.log("Authenticated user:", user.uid);
+        
+        // Check if user document exists
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (!userDoc.exists()) {
+            throw new Error('User profile not found');
+        }
+        
+        const userRole = userDoc.data().role;
         const isAdminAccess = sessionStorage.getItem('adminAccessingDriverPortal') === 'true';
         sessionStorage.removeItem('adminAccessingDriverPortal');
         
-        // Check authentication
-        const user = auth.currentUser;
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
+        if (userRole !== 'driver' && !isAdminAccess) {
+            throw new Error('Driver access only');
         }
 
-        // Check if user is a driver or admin accessing as driver
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (!userDoc.exists() || (userDoc.data().role !== 'driver' && !isAdminAccess)) {
-            window.location.href = 'index.html';
-            return;
-        }
-
-        currentDriverId = isAdminAccess ? null : user.uid;
+        currentDriverId = user.uid;
         
-        // Load driver info if not admin
+        // Load UI components
         if (!isAdminAccess) {
             loadDriverInfo(user, userDoc.data());
         } else {
-            // Set admin view in driver portal
             document.getElementById('driverName').textContent = "Admin View";
             document.getElementById('driverEmail').textContent = "Admin Mode";
             document.getElementById('driverAvatar').textContent = "A";
-            
-            // Hide driver-specific features
-            document.getElementById('addDeliveryBtn').style.display = 'none';
-            document.getElementById('startDeliveryBtn').style.display = 'none';
-            document.getElementById('completeDeliveryBtn').style.display = 'none';
         }
         
-        // Initialize navigation
         setupNavigation();
-        
-        // Set up event listeners
         setupEventListeners();
         
-        // Load initial data
-        loadDashboardStats();
-        loadDeliveries();
-        loadDeliveryHistory();
+        // Initialize data loading
+        await Promise.all([
+            loadDashboardStats(),
+            loadDeliveries(),
+            loadDeliveryHistory()
+        ]);
         
         // Set current date for history filters
         const today = new Date().toISOString().split('T')[0];
-        historyDateFrom.value = today;
-        historyDateTo.value = today;
+        if (historyDateFrom) historyDateFrom.value = today;
+        if (historyDateTo) historyDateTo.value = today;
+        
+        console.log("Driver portal initialization completed successfully");
         
     } catch (error) {
         console.error("Initialization error:", error);
-        showToast('error', 'Failed to initialize driver portal');
+        
+        let errorMessage = 'Failed to initialize driver portal';
+        if (error.message.includes('permission-denied')) {
+            errorMessage = 'Access denied. Please contact administrator.';
+        } else if (error.message.includes('Authentication timeout')) {
+            errorMessage = 'Authentication failed. Please login again.';
+        } else if (error.message.includes('Driver access only')) {
+            errorMessage = 'You do not have driver permissions.';
+        }
+        
+        showToast('error', errorMessage);
+        
+        // Redirect to login after showing error
+        setTimeout(() => {
+            window.location.href = user ? 'index.html' : 'login.html';
+        }, 3000);
     }
 }
 
+window.addEventListener('beforeunload', () => {
+    // Clean up all listeners
+    if (window.driverDeliveriesUnsubscribe) {
+        window.driverDeliveriesUnsubscribe();
+    }
+    if (window.deliveriesUnsubscribe) {
+        window.deliveriesUnsubscribe();
+    }
+    
+    // Stop position tracking
+    stopPositionTracking();
+    
+    // Clear session storage
+    sessionStorage.removeItem('adminAccessingDriverPortal');
+});
+
 initializeDriverPortal();
+
+function validateCoordinates(lat, lng) {
+    return !isNaN(lat) && !isNaN(lng) && 
+           Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+}
+
+async function setupRealtimeListeners() {
+    console.log("Setting up realtime listeners for driver:", currentDriverId);
+    
+    if (!currentDriverId) {
+        console.error("No driver ID available for listeners");
+        throw new Error("Driver ID not set");
+    }
+
+    try {
+        // Test if we can access deliveries first
+        const testQuery = query(
+            collection(db, "deliveries"),
+            where("driverId", "==", currentDriverId),
+            limit(1)
+        );
+        
+        // Try to get one document to test permissions
+        await getDocs(testQuery);
+        console.log("Delivery access confirmed");
+        
+        // Set up the real listener
+        const deliveriesQuery = query(
+            collection(db, "deliveries"),
+            where("driverId", "==", currentDriverId),
+            orderBy("createdAt", "desc")
+        );
+        
+        const unsubscribe = onSnapshot(
+            deliveriesQuery,
+            (snapshot) => {
+                console.log("Deliveries snapshot received, count:", snapshot.size);
+                deliveries = [];
+                snapshot.forEach(doc => {
+                    deliveries.push({ id: doc.id, ...doc.data() });
+                });
+                updateDeliveryCounts();
+                renderDeliveriesTable();
+            },
+            (error) => {
+                console.error("Delivery listener error:", error);
+                if (error.code === 'permission-denied') {
+                    showToast('error', 'Permission denied accessing deliveries');
+                } else {
+                    showToast('error', 'Failed to load deliveries: ' + error.message);
+                }
+            }
+        );
+        
+        // Store unsubscribe function for cleanup
+        window.deliveriesUnsubscribe = unsubscribe;
+        
+        return unsubscribe;
+        
+    } catch (error) {
+        console.error("Failed to set up delivery listeners:", error);
+        if (error.code === 'permission-denied') {
+            throw new Error('You do not have permission to access delivery data');
+        }
+        throw error;
+    }
+}
 
 function loadDriverInfo(user, userData) {
     console.log("Loading driver info");
@@ -245,24 +352,6 @@ function showModal(modal, overlay) {
     overlay.classList.add('show');
 }
 
-// function hideModal(modal, overlay) {
-//     modal.classList.remove('show');
-//     overlay.classList.remove('show');
-    
-//     // Clean up map if this is the delivery details modal
-//     if (modal.id === 'deliveryDetailsModal') {
-//         const mapElement = document.getElementById('deliveryMap');
-//         if (mapElement._leaflet_id) {
-//             for (const id in L.Map._instances) {
-//                 if (L.Map._instances[id]._container.id === 'deliveryMap') {
-//                     L.Map._instances[id].remove();
-//                     break;
-//                 }
-//             }
-//         }
-//     }
-// }
-
 function hideModal(modal, overlay) {
     modal.classList.remove('show');
     overlay.classList.remove('show');
@@ -290,41 +379,43 @@ function hideModal(modal, overlay) {
 }
 
 async function loadDashboardStats() {
-    console.log("Loading dashboard stats");
-    try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        // Get pending deliveries count
-        const pendingQuery = query(
-            collection(db, "deliveries"),
-            where("driverId", "==", currentDriverId),
-            where("status", "==", "pending"),
-            where("createdAt", ">=", today)
-        );
-        const pendingSnapshot = await getDocs(pendingQuery);
-        pendingDeliveries.textContent = pendingSnapshot.size;
-        
-        // Get completed deliveries count
-        const completedQuery = query(
-            collection(db, "deliveries"),
-            where("driverId", "==", currentDriverId),
-            where("status", "==", "completed"),
-            where("completedAt", ">=", today)
-        );
-        const completedSnapshot = await getDocs(completedQuery);
-        completedDeliveries.textContent = completedSnapshot.size;
-        
-        // Calculate average delivery time (mock data for now)
-        avgDeliveryTime.textContent = "32m";
-        
-        // Load recent activity
-        loadRecentActivity();
-        
-    } catch (error) {
-        console.error("Error loading dashboard stats:", error);
-        showToast('error', 'Failed to load dashboard stats');
+  console.log("Loading dashboard stats");
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Get pending deliveries count
+    const pendingQuery = query(
+      collection(db, "deliveries"),
+      where("driverId", "==", currentDriverId),
+      where("status", "==", "pending"),
+      where("createdAt", ">=", today)
+    );
+    
+    const completedQuery = query(
+      collection(db, "deliveries"),
+      where("driverId", "==", currentDriverId),
+      where("status", "==", "completed"),
+      where("completedAt", ">=", today)
+    );
+
+    const [pendingSnapshot, completedSnapshot] = await Promise.all([
+      getDocs(pendingQuery),
+      getDocs(completedQuery)
+    ]);
+
+    pendingDeliveries.textContent = pendingSnapshot.size;
+    completedDeliveries.textContent = completedSnapshot.size;
+    avgDeliveryTime.textContent = "32m"; // Consider calculating this from actual data
+    
+  } catch (error) {
+    console.error("Error loading dashboard stats:", error);
+    let errorMessage = 'Failed to load dashboard stats';
+    if (error.code === 'permission-denied') {
+      errorMessage = 'You do not have permission to view delivery data';
     }
+    showToast('error', errorMessage);
+  }
 }
 
 async function loadRecentActivity() {
@@ -368,97 +459,99 @@ async function loadRecentActivity() {
         recentActivity.innerHTML = '<div class="empty-state">Error loading activity</div>';
     }
 }
-
+/**
+ * Loads and manages real-time updates of deliveries for the current driver
+ * @returns {function} Unsubscribe function to stop listening to updates
+ */
+// In driver.js, update the loadDeliveries function
 async function loadDeliveries() {
-    console.log("Loading deliveries");
+    console.log("Loading deliveries for driver:", currentDriverId);
+    
+    if (!currentDriverId) {
+        console.error("No driver ID available for loading deliveries");
+        showToast('error', 'Driver ID not available');
+        return;
+    }
+    
     try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        let deliveriesQuery;
-        
-        if (currentDriverId) {
-            // Regular driver view - only show their deliveries
-            deliveriesQuery = query(
-                collection(db, "deliveries"),
-                where("driverId", "==", currentDriverId),
-                where("createdAt", ">=", today),
-                orderBy("createdAt", "desc")
-            );
-        } else {
-            // Admin view - show all today's deliveries
-            deliveriesQuery = query(
-                collection(db, "deliveries"),
-                where("createdAt", ">=", today),
-                orderBy("createdAt", "desc")
-            );
+        const user = auth.currentUser;
+        if (!user) {
+            throw new Error('Not authenticated');
         }
+
+        console.log("Setting up deliveries query for driver:", currentDriverId);
         
-        const unsubscribe = onSnapshot(deliveriesQuery, (snapshot) => {
-            deliveries = [];
-            deliveriesTableBody.innerHTML = '';
-            
-            if (snapshot.empty) {
-                const message = currentDriverId 
-                    ? "No deliveries scheduled for today" 
-                    : "No deliveries created today";
-                deliveriesTableBody.innerHTML = `<tr><td colspan="5" class="empty-state">${message}</td></tr>`;
-                return;
-            }
-            
-            snapshot.forEach(doc => {
-                const delivery = {
-                    id: doc.id,
-                    ...doc.data()
-                };
-                deliveries.push(delivery);
+        const deliveriesQuery = query(
+            collection(db, "deliveries"),
+            where("driverId", "==", currentDriverId),
+            orderBy("createdAt", "desc")
+        );
+
+        const unsubscribe = onSnapshot(
+            deliveriesQuery,
+            (snapshot) => {
+                console.log("Deliveries snapshot received, count:", snapshot.size);
+                deliveries = [];
                 
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${delivery.customerName}</td>
-                    <td>${delivery.deliveryAddress}</td>
-                    <td>${delivery.createdAt?.toDate().toLocaleTimeString() || 'N/A'}</td>
-                    <td><span class="status-badge status-${delivery.status}">${delivery.status}</span></td>
-                    <td class="actions">
-                        <button class="action-btn view-btn" data-id="${doc.id}">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        ${!currentDriverId ? `
-                        <button class="action-btn edit-btn" data-id="${doc.id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        ` : ''}
-                    </td>
-                `;
-                
-                // Add click event to view button
-                row.querySelector('.view-btn').addEventListener('click', () => viewDeliveryDetails(delivery));
-                
-                // Add click event to edit button (admin only)
-                if (!currentDriverId) {
-                    row.querySelector('.edit-btn').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        editDeliveryAsAdmin(doc.id);
+                snapshot.forEach(doc => {
+                    const deliveryData = doc.data();
+                    
+                    // Handle different GPS coordinate formats
+                    let gpsCoordinates = null;
+                    if (deliveryData.gpsCoordinates) {
+                        if (deliveryData.gpsCoordinates.latitude && deliveryData.gpsCoordinates.longitude) {
+                            // Firestore GeoPoint format
+                            gpsCoordinates = `${deliveryData.gpsCoordinates.latitude},${deliveryData.gpsCoordinates.longitude}`;
+                        } else if (typeof deliveryData.gpsCoordinates === 'string') {
+                            // String format
+                            gpsCoordinates = deliveryData.gpsCoordinates;
+                        }
+                    }
+                    
+                    deliveries.push({ 
+                        id: doc.id, 
+                        ...deliveryData,
+                        gpsCoordinates: gpsCoordinates
                     });
+                });
+                
+                console.log("Processed deliveries:", deliveries.length);
+                updateDeliveryCounts();
+                renderDeliveriesTable();
+            },
+            (error) => {
+                console.error("Delivery listener error:", error);
+                let errorMessage = 'Failed to load deliveries';
+                
+                if (error.code === 'permission-denied') {
+                    errorMessage = 'Permission denied. Contact administrator.';
+                } else if (error.code === 'failed-precondition') {
+                    errorMessage = 'Database index required. Contact administrator.';
                 }
                 
-                deliveriesTableBody.appendChild(row);
-            });
-            
-            // Update dashboard stats
-            updateDeliveryCounts();
-            
-            // If map is active, update deliveries on map
-            if (document.getElementById('map-section').classList.contains('active')) {
-                showAllDeliveriesOnMap();
+                showToast('error', errorMessage);
+                
+                // Show error in table
+                if (deliveriesTableBody) {
+                    deliveriesTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                ${errorMessage}
+                            </td>
+                        </tr>
+                    `;
+                }
             }
-        });
-        
+        );
+
+        // Store unsubscribe function for cleanup
+        window.driverDeliveriesUnsubscribe = unsubscribe;
         return unsubscribe;
+        
     } catch (error) {
-        console.error("Error loading deliveries:", error);
-        deliveriesTableBody.innerHTML = '<tr><td colspan="5" class="empty-state">Error loading deliveries</td></tr>';
-        showToast('error', 'Failed to load deliveries');
+        console.error("Initial delivery load error:", error);
+        showToast('error', 'Failed to initialize delivery system');
+        return () => {};
     }
 }
 
@@ -670,9 +763,9 @@ async function saveDelivery() {
             driverId: currentDriverId,
             customerName: customerNameInput.value.trim(),
             customerPhone: customerPhoneInput.value.trim(),
-            deliveryAddress: gpsCoordinatesInput.value.trim(), // Changed from deliveryAddressInput
-            gpsCoordinates: `${lat},${lng}`,
-            notes: deliveryNotesInput.value.trim() || null,
+            deliveryAddress: deliveryAddressInput.value.trim(), // Use the address input
+            gpsCoordinates: new GeoPoint(lat, lng), // Store as GeoPoint for consistency
+            deliveryNotes: deliveryNotesInput.value.trim() || null,
             status: 'pending',
             createdAt: serverTimestamp()
         };
@@ -782,80 +875,69 @@ async function viewDeliveryDetails(delivery) {
     
     try {
         // Populate details
-        document.getElementById('detailCustomerName').textContent = delivery.customerName;
-        document.getElementById('detailAddress').textContent = delivery.deliveryAddress;
+        document.getElementById('detailCustomerName').textContent = delivery.customerName || 'N/A';
+        document.getElementById('detailAddress').textContent = delivery.deliveryAddress || 'N/A';
         document.getElementById('detailPhone').textContent = delivery.customerPhone || 'N/A';
-        document.getElementById('detailStatus').textContent = delivery.status;
-        document.getElementById('detailNotes').textContent = delivery.notes || 'None';
+        document.getElementById('detailStatus').textContent = delivery.status || 'N/A';
+        document.getElementById('detailNotes').textContent = delivery.deliveryNotes || delivery.notes || 'None';
         
         // Set button states based on status
-        startDeliveryBtn.style.display = delivery.status === 'pending' ? 'block' : 'none';
-        completeDeliveryBtn.style.display = delivery.status === 'in-progress' ? 'block' : 'none';
+        const startBtn = document.getElementById('startDeliveryBtn');
+        const completeBtn = document.getElementById('completeDeliveryBtn');
+        
+        if (startBtn) startBtn.style.display = delivery.status === 'pending' ? 'block' : 'none';
+        if (completeBtn) completeBtn.style.display = delivery.status === 'in-progress' ? 'block' : 'none';
         
         showModal(deliveryDetailsModal, deliveryDetailsOverlay);
         
-        // Initialize or reuse map for this delivery
+        // Initialize map for this delivery
         const deliveryMap = await initializeDeliveryMap(delivery);
         
-        // If we have coordinates, center the map
+        // Handle GPS coordinates
+        let deliveryLocation = null;
         if (delivery.gpsCoordinates) {
-            const [lat, lng] = delivery.gpsCoordinates.split(',').map(Number);
-            const deliveryLocation = L.latLng(lat, lng);
+            let lat, lng;
             
-            // Add marker for delivery location
-            const deliveryMarker = L.marker(deliveryLocation, {
-                icon: L.divIcon({
-                    className: 'delivery-marker-icon',
-                    html: '<i class="fas fa-map-marker-alt"></i>',
-                    iconSize: [30, 30]
-                })
-            }).addTo(deliveryMap)
-            .bindPopup(`Delivery to ${delivery.customerName}`)
-            .openPopup();
+            if (typeof delivery.gpsCoordinates === 'string') {
+                // String format: "lat,lng"
+                const coords = delivery.gpsCoordinates.split(',');
+                lat = parseFloat(coords[0]);
+                lng = parseFloat(coords[1]);
+            } else if (delivery.gpsCoordinates.latitude && delivery.gpsCoordinates.longitude) {
+                // GeoPoint format
+                lat = delivery.gpsCoordinates.latitude;
+                lng = delivery.gpsCoordinates.longitude;
+            }
             
-            // Add route if we have current location
-            if (currentLocation) {
-                await showRoute(deliveryMap, currentLocation, deliveryLocation);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                deliveryLocation = L.latLng(lat, lng);
+                
+                // Add marker for delivery location
+                const deliveryMarker = L.marker(deliveryLocation, {
+                    icon: L.divIcon({
+                        className: 'delivery-marker-icon',
+                        html: '<i class="fas fa-map-marker-alt"></i>',
+                        iconSize: [30, 30]
+                    })
+                }).addTo(deliveryMap)
+                .bindPopup(`Delivery to ${delivery.customerName}`)
+                .openPopup();
+                
+                // Center map on delivery location
+                deliveryMap.setView(deliveryLocation, 15);
+                
+                // Add route if we have current location
+                if (currentLocation) {
+                    await showRoute(deliveryMap, currentLocation, deliveryLocation);
+                }
             }
         }
+        
     } catch (error) {
         console.error("Error showing delivery details:", error);
         showToast('error', 'Failed to load delivery details');
     }
 }
-
-// async function initializeDeliveryMap(delivery) {
-//     const mapElement = document.getElementById('deliveryMap');
-    
-//     // Clear any existing map
-//     if (mapElement._leaflet_id) {
-//         for (const id in L.Map._instances) {
-//             if (L.Map._instances[id]._container.id === 'deliveryMap') {
-//                 L.Map._instances[id].remove();
-//                 break;
-//             }
-//         }
-//     }
-    
-//     // Create new map
-//     const deliveryMap = L.map('deliveryMap', {
-//         zoomControl: false
-//     });
-    
-//     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-//         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-//     }).addTo(deliveryMap);
-    
-//     // Set initial view based on delivery location or default
-//     if (delivery.gpsCoordinates) {
-//         const [lat, lng] = delivery.gpsCoordinates.split(',').map(Number);
-//         deliveryMap.setView([lat, lng], 15);
-//     } else {
-//         deliveryMap.setView([0, 0], 2);
-//     }
-    
-//     return deliveryMap;
-// }
 
 async function initializeDeliveryMap(delivery) {
     const mapElement = document.getElementById('deliveryMap');
@@ -908,76 +990,71 @@ async function startDelivery() {
     }
 
     try {
-        // Show loading state
-        startDeliveryBtn.disabled = true;
-        startDeliveryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+        const startBtn = document.getElementById('startDeliveryBtn');
+        if (startBtn) {
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+        }
 
-        // 1. Check geolocation permissions
-        const hasPermission = await checkGeolocationPermission();
-        if (!hasPermission) {
-            const permissionGranted = await requestGeolocationPermission();
-            if (!permissionGranted) {
-                showToast('warning', 'Delivery cannot start without location access');
-                return;
+        // Get current position
+        const position = await getCurrentPositionWithTimeout(10000);
+        currentLocation = L.latLng(position.coords.latitude, position.coords.longitude);
+
+        // Prepare update data
+        const updateData = {
+            status: 'in-progress',
+            startedAt: serverTimestamp(),
+            startLocation: new GeoPoint(position.coords.latitude, position.coords.longitude),
+            updatedAt: serverTimestamp() // Always include updatedAt
+        };
+
+        // Update delivery document
+        await updateDoc(doc(db, "deliveries", selectedDelivery.id), updateData);
+
+        // Switch to map view
+        switchToMapPanel();
+        if (!map) initMap('map');
+
+        // Parse delivery coordinates
+        let deliveryLat, deliveryLng;
+        if (selectedDelivery.gpsCoordinates) {
+            if (typeof selectedDelivery.gpsCoordinates === 'string') {
+                const coords = selectedDelivery.gpsCoordinates.split(',');
+                deliveryLat = parseFloat(coords[0]);
+                deliveryLng = parseFloat(coords[1]);
+            } else if (selectedDelivery.gpsCoordinates.latitude) {
+                deliveryLat = selectedDelivery.gpsCoordinates.latitude;
+                deliveryLng = selectedDelivery.gpsCoordinates.longitude;
+            }
+            
+            if (!isNaN(deliveryLat) && !isNaN(deliveryLng)) {
+                const deliveryLoc = L.latLng(deliveryLat, deliveryLng);
+                clearMapLayers();
+                addDriverMarker(currentLocation);
+                await showRoute(map, currentLocation, deliveryLoc);
+                showToast('success', 'Delivery started! Follow the route.');
+                hideModal(deliveryDetailsModal, deliveryDetailsOverlay);
+                startPositionTracking();
             }
         }
 
-        // 2. Get current position with timeout
-        const position = await getCurrentPositionWithTimeout(10000); // 10 second timeout
-        currentLocation = L.latLng(position.coords.latitude, position.coords.longitude);
-
-        // 3. Update Firestore delivery status
-        await updateDoc(doc(db, "deliveries", selectedDelivery.id), {
-            status: 'in-progress',
-            startedAt: serverTimestamp(),
-            startLocation: new GeoPoint(position.coords.latitude, position.coords.longitude)
-        });
-
-        // 4. Switch to map view and initialize if needed
-        switchToMapPanel();
-        if (!map) {
-            initMap('map');
-        }
-
-        // 5. Parse delivery coordinates
-        const [lat, lng] = selectedDelivery.gpsCoordinates.split(',').map(Number);
-        const deliveryLoc = L.latLng(lat, lng);
-
-        // 6. Clear existing map layers
-        clearMapLayers();
-
-        // 7. Add marker for current location
-        addDriverMarker(currentLocation);
-
-        // 8. Show route to delivery location
-        await showRoute(map, currentLocation, deliveryLoc);
-
-        // 9. Show success message and close modal
-        showToast('success', 'Delivery started! Follow the route.');
-        hideModal(deliveryDetailsModal, deliveryDetailsOverlay);
-
-        // 10. Start tracking position updates
-        startPositionTracking(selectedDelivery.id);
-
     } catch (error) {
         console.error("Delivery start error:", error);
-        
         let errorMessage = 'Failed to start delivery';
-        if (error.code === error.PERMISSION_DENIED) {
-            errorMessage = 'Location access denied. Please enable in browser settings.';
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-            errorMessage = 'Location unavailable. Check your network/GPS.';
-        } else if (error.code === error.TIMEOUT) {
-            errorMessage = 'Location request timed out. Please try again.';
-        } else if (error.message.includes('coordinates')) {
-            errorMessage = 'Invalid delivery location coordinates';
+        
+        if (error.code === 'permission-denied') {
+            errorMessage = 'Permission denied. Contact administrator.';
+        } else if (error.code === 'failed-precondition') {
+            errorMessage = 'Database error. Please try again.';
         }
-
+        
         showToast('error', errorMessage);
     } finally {
-        // Reset button state
-        startDeliveryBtn.disabled = false;
-        startDeliveryBtn.innerHTML = '<i class="fas fa-play"></i> Start Delivery';
+        const startBtn = document.getElementById('startDeliveryBtn');
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="fas fa-play"></i> Start Delivery';
+        }
     }
 }
 
@@ -1173,62 +1250,100 @@ async function showAllDeliveriesOnMap() {
     // Add markers for all deliveries with status-based icons
     deliveries.forEach(delivery => {
         if (delivery.gpsCoordinates) {
-            const [lat, lng] = delivery.gpsCoordinates.split(',').map(Number);
-            const deliveryLocation = L.latLng(lat, lng);
+            let lat, lng;
             
-            // Create custom icon based on status
-            let icon;
-            if (delivery.status === 'completed') {
-                icon = L.divIcon({
-                    className: 'delivery-icon completed',
-                    html: '<i class="fas fa-check-circle"></i>',
-                    iconSize: [30, 30]
-                });
-            } else if (delivery.status === 'in-progress') {
-                icon = L.divIcon({
-                    className: 'delivery-icon in-progress',
-                    html: '<i class="fas fa-truck-moving"></i>',
-                    iconSize: [30, 30]
-                });
-            } else { // pending
-                icon = L.divIcon({
-                    className: 'delivery-icon pending',
-                    html: '<i class="fas fa-clock"></i>',
-                    iconSize: [30, 30]
-                });
+            if (typeof delivery.gpsCoordinates === 'string') {
+                const coords = delivery.gpsCoordinates.split(',');
+                lat = parseFloat(coords[0]);
+                lng = parseFloat(coords[1]);
+            } else if (delivery.gpsCoordinates.latitude) {
+                lat = delivery.gpsCoordinates.latitude;
+                lng = delivery.gpsCoordinates.longitude;
             }
             
-            const deliveryMarker = L.marker(deliveryLocation, { icon }).addTo(map)
-                .bindPopup(`<b>${delivery.customerName}</b><br>${delivery.deliveryAddress}<br>Status: ${delivery.status}`);
-            
-            // Add click handler to view details
-            deliveryMarker.on('click', () => {
-                viewDeliveryDetails(delivery);
-            });
+            if (!isNaN(lat) && !isNaN(lng)) {
+                const deliveryLocation = L.latLng(lat, lng);
+                
+                // Create custom icon based on status
+                let icon;
+                if (delivery.status === 'completed') {
+                    icon = L.divIcon({
+                        className: 'delivery-icon completed',
+                        html: '<i class="fas fa-check-circle"></i>',
+                        iconSize: [30, 30]
+                    });
+                } else if (delivery.status === 'in-progress') {
+                    icon = L.divIcon({
+                        className: 'delivery-icon in-progress',
+                        html: '<i class="fas fa-truck-moving"></i>',
+                        iconSize: [30, 30]
+                    });
+                } else { // pending
+                    icon = L.divIcon({
+                        className: 'delivery-icon pending',
+                        html: '<i class="fas fa-clock"></i>',
+                        iconSize: [30, 30]
+                    });
+                }
+                
+                const deliveryMarker = L.marker(deliveryLocation, { icon }).addTo(map)
+                    .bindPopup(`<b>${delivery.customerName}</b><br>${delivery.deliveryAddress}<br>Status: ${delivery.status}`);
+                
+                // Add click handler to view details
+                deliveryMarker.on('click', () => {
+                    viewDeliveryDetails(delivery);
+                });
+            }
         }
     });
     
-    // Add customer locations
-    await showCustomerLocations();
-    
-    // If we have current location, show all routes to pending deliveries
+    // Add current location marker if available
     if (currentLocation) {
+        addDriverMarker(currentLocation);
+        
+        // Show routes to pending deliveries
         deliveries.forEach(delivery => {
             if (delivery.gpsCoordinates && delivery.status === 'pending') {
-                const [lat, lng] = delivery.gpsCoordinates.split(',').map(Number);
-                const deliveryLocation = L.latLng(lat, lng);
-                showRoute(currentLocation, deliveryLocation);
+                let lat, lng;
+                
+                if (typeof delivery.gpsCoordinates === 'string') {
+                    const coords = delivery.gpsCoordinates.split(',');
+                    lat = parseFloat(coords[0]);
+                    lng = parseFloat(coords[1]);
+                } else if (delivery.gpsCoordinates.latitude) {
+                    lat = delivery.gpsCoordinates.latitude;
+                    lng = delivery.gpsCoordinates.longitude;
+                }
+                
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const deliveryLocation = L.latLng(lat, lng);
+                    showRoute(map, currentLocation, deliveryLocation);
+                }
             }
         });
     }
     
     // Fit map to show all markers if we have any
-    const deliveryLocations = deliveries
-        .filter(d => d.gpsCoordinates)
-        .map(d => {
-            const [lat, lng] = d.gpsCoordinates.split(',').map(Number);
-            return L.latLng(lat, lng);
-        });
+    const deliveryLocations = [];
+    
+    deliveries.forEach(delivery => {
+        if (delivery.gpsCoordinates) {
+            let lat, lng;
+            
+            if (typeof delivery.gpsCoordinates === 'string') {
+                const coords = delivery.gpsCoordinates.split(',');
+                lat = parseFloat(coords[0]);
+                lng = parseFloat(coords[1]);
+            } else if (delivery.gpsCoordinates.latitude) {
+                lat = delivery.gpsCoordinates.latitude;
+                lng = delivery.gpsCoordinates.longitude;
+            }
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+                deliveryLocations.push(L.latLng(lat, lng));
+            }
+        }
+    });
     
     if (deliveryLocations.length > 0) {
         const bounds = L.latLngBounds(deliveryLocations);
@@ -1239,6 +1354,99 @@ async function showAllDeliveriesOnMap() {
         
         map.fitBounds(bounds, { padding: [50, 50] });
     }
+}
+
+function renderDeliveriesTable() {
+    console.log("Rendering deliveries table with", deliveries.length, "deliveries");
+    
+    if (!deliveriesTableBody) {
+        console.error("Deliveries table body not found");
+        return;
+    }
+    
+    // Clear existing table content
+    deliveriesTableBody.innerHTML = '';
+    
+    // Handle empty state
+    if (deliveries.length === 0) {
+        deliveriesTableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="empty-state">
+                    No deliveries assigned to you
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Render each delivery
+    deliveries.forEach(delivery => {
+        const row = document.createElement('tr');
+        
+        // Format dates safely
+        const createdAt = delivery.createdAt?.toDate ? delivery.createdAt.toDate() : new Date(delivery.createdAt);
+        const completedAt = delivery.completedAt?.toDate ? delivery.completedAt.toDate() : null;
+        
+        // Handle address display - prefer deliveryAddress over gpsCoordinates
+        let displayAddress = delivery.deliveryAddress || 'N/A';
+        if (!delivery.deliveryAddress && delivery.gpsCoordinates) {
+            displayAddress = `GPS: ${delivery.gpsCoordinates}`;
+        }
+        
+        row.innerHTML = `
+            <td>${delivery.customerName || 'N/A'}</td>
+            <td>${displayAddress}</td>
+            <td>${createdAt ? createdAt.toLocaleString() : 'N/A'}</td>
+            <td>
+                <span class="badge ${getDeliveryStatusBadgeClass(delivery.status)}">
+                    ${delivery.status}
+                </span>
+            </td>
+            <td class="actions">
+                <button class="action-btn view-btn" data-id="${delivery.id}">
+                    <i class="fas fa-eye"></i> View
+                </button>
+                ${delivery.status === 'pending' ? `
+                    <button class="action-btn start-btn" data-id="${delivery.id}">
+                        <i class="fas fa-play"></i> Start
+                    </button>
+                ` : ''}
+                ${delivery.status === 'in-progress' ? `
+                    <button class="action-btn complete-btn" data-id="${delivery.id}">
+                        <i class="fas fa-check"></i> Complete
+                    </button>
+                ` : ''}
+            </td>
+        `;
+        
+        // Add event listeners
+        const viewBtn = row.querySelector('.view-btn');
+        if (viewBtn) {
+            viewBtn.addEventListener('click', () => {
+                viewDeliveryDetails(delivery);
+            });
+        }
+        
+        const startBtn = row.querySelector('.start-btn');
+        if (startBtn && delivery.status === 'pending') {
+            startBtn.addEventListener('click', () => {
+                selectedDelivery = delivery;
+                startDelivery();
+            });
+        }
+        
+        const completeBtn = row.querySelector('.complete-btn');
+        if (completeBtn && delivery.status === 'in-progress') {
+            completeBtn.addEventListener('click', () => {
+                selectedDelivery = delivery;
+                completeDelivery();
+            });
+        }
+        
+        deliveriesTableBody.appendChild(row);
+    });
+    
+    console.log("Deliveries table rendered successfully");
 }
 
 async function showCustomerLocations() {
@@ -1276,7 +1484,12 @@ async function showCustomerLocations() {
 }
 
 async function showRoute(mapInstance, start, end) {
-    // Prevent multiple simultaneous route calculations
+    if (!validateCoordinates(start.lat, start.lng) || !validateCoordinates(end.lat, end.lng)) {
+        console.error("Invalid coordinates:", start, end);
+        showToast('error', 'Invalid delivery location coordinates');
+        return;
+    }
+    // Check if route calculation is already in progress
     if (routeCalculationInProgress) return;
     routeCalculationInProgress = true;
 
@@ -1290,21 +1503,37 @@ async function showRoute(mapInstance, start, end) {
     }
 
     try {
-        // Show loading state
         showToast('info', 'Calculating optimal route...');
         
-        // Format coordinates for OpenRouteService API
+        // Validate coordinates
+        if (Math.abs(start.lat) > 90 || Math.abs(start.lng) > 180 || 
+            Math.abs(end.lat) > 90 || Math.abs(end.lng) > 180) {
+            throw new Error('Invalid coordinates');
+        }
+
+        // Format coordinates for OpenRouteService API (longitude first)
         const startCoords = `${start.lng},${start.lat}`;
         const endCoords = `${end.lng},${end.lat}`;
         
-        // Make request to OpenRouteService
         const response = await fetch(
-            `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${OPENROUTE_API_KEY}&start=${startCoords}&end=${endCoords}`
+            `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${OPENROUTE_API_KEY}&start=${startCoords}&end=${endCoords}`,
+            {
+                headers: {
+                    'Accept': 'application/json, application/geo+json'
+                }
+            }
         );
         
-        if (!response.ok) throw new Error('Routing service unavailable');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'Routing service unavailable');
+        }
         
         const data = await response.json();
+        
+        if (!data.features || data.features.length === 0) {
+            throw new Error('No route found');
+        }
         
         // Extract coordinates from response
         const routeCoordinates = data.features[0].geometry.coordinates.map(coord => 
@@ -1337,10 +1566,9 @@ async function showRoute(mapInstance, start, end) {
         }).addTo(mapInstance).bindPopup('Delivery Point');
         
         // Calculate and display route info
-        const distance = (data.features[0].properties.summary.distance / 1000).toFixed(1); // km
-        const duration = Math.round(data.features[0].properties.summary.duration / 60); // minutes
+        const distance = (data.features[0].properties.summary.distance / 1000).toFixed(1);
+        const duration = Math.round(data.features[0].properties.summary.duration / 60);
         
-        // Store references for cleanup
         currentRoute = {
             line: routeLine,
             markers: [startMarker, endMarker],
@@ -1354,14 +1582,13 @@ async function showRoute(mapInstance, start, end) {
                 .openOn(mapInstance)
         };
         
-        // Fit map to show entire route
         mapInstance.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
         
     } catch (error) {
         console.error("Routing error:", error);
-        
-        // Fallback to straight line if API fails
         showToast('warning', 'Using straight-line approximation');
+        
+        // Fallback to straight line
         L.polyline([start, end], {
             color: '#008080',
             weight: 3,
@@ -1571,6 +1798,4 @@ function stopPositionTracking() {
     }
 }
 
-window.addEventListener('beforeunload', () => {
-    sessionStorage.removeItem('adminAccessingDriverPortal');
-});
+

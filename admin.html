@@ -940,6 +940,272 @@
 .admin-main {
   padding-top: 80px;
 }
+
+/* Improved Action Buttons */
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-table-action {
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    min-width: 80px;
+    transition: all 0.2s ease;
+}
+
+.btn-table-action i {
+    font-size: 0.75rem;
+}
+
+.btn-table-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Specific action button colors */
+.btn-edit {
+    background-color: rgba(0, 128, 128, 0.1);
+    color: var(--teal);
+    border: 1px solid rgba(0, 128, 128, 0.3);
+}
+
+.btn-edit:hover {
+    background-color: rgba(0, 128, 128, 0.2);
+}
+
+.btn-delete {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.btn-delete:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+}
+
+.btn-view {
+    background-color: rgba(23, 162, 184, 0.1);
+    color: #17a2b8;
+    border: 1px solid rgba(23, 162, 184, 0.3);
+}
+
+.btn-view:hover {
+    background-color: rgba(23, 162, 184, 0.2);
+}
+
+/* Product table specific styles */
+.product-table-image {
+    max-width: 60px;
+    max-height: 60px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 128, 128, 0.1);
+    object-fit: cover;
+}
+
+/* Ensure the table actions are consistent */
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-table-action {
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    min-width: 80px;
+    transition: all 0.2s ease;
+}
+
+.btn-table-action i {
+    font-size: 0.75rem;
+}
+
+.btn-table-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Specific action button colors */
+.btn-edit {
+    background-color: rgba(0, 128, 128, 0.1);
+    color: var(--teal);
+    border: 1px solid rgba(0, 128, 128, 0.3);
+}
+
+.btn-edit:hover {
+    background-color: rgba(0, 128, 128, 0.2);
+}
+
+.btn-delete {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.btn-delete:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+}
+
+.data-table-wrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-top: 1.5rem;
+    background: white;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.data-table th, .data-table td {
+    padding: 1.25rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 128, 128, 0.1);
+}
+
+.data-table th {
+    background: rgba(0, 128, 128, 0.08);
+    color: var(--teal);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tr:hover {
+    background: rgba(0, 128, 128, 0.05);
+}
+
+/* Add this to your existing CSS */
+#productsTable .product-table-image {
+    max-width: 150px;
+    max-height: 150px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 128, 128, 0.1);
+    background-color: #f8f9fa;
+    padding: 4px;
+}
+
+/* Enhanced Search Container Styles */
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 250px;
+    max-width: 400px;
+    flex-grow: 1;
+    margin-right: 1rem;
+    margin-top: 3.9rem;
+    border-radius: 15px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1.25rem 0.75rem 2.75rem;
+    border: 1px solid rgba(0, 128, 128, 0.2);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background-color: white;
+    color: var(--gray);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.1);
+}
+
+.search-btn {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: transparent;
+    border: none;
+    padding: 0 1rem;
+    color: var(--teal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px 0 0 8px;
+}
+
+.search-btn i {
+    font-size: 1rem;
+}
+
+.search-clear {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--gray);
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+    display: none;
+}
+
+.search-clear:hover {
+    opacity: 1;
+    color: var(--danger);
+}
+
+.search-input:not(:placeholder-shown) + .search-btn + .search-clear {
+    display: block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .search-container {
+        min-width: 100%;
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+    }
+}
+
+.search-btn i.fa-search {
+    display: none !important;
+}
+
+#drivers-section .search-container button {
+    display: none !important;
+}
+
+.admin-header {
+    margin-top: 3rem;
+}
+
     </style>
 </head>
 <body>
@@ -1051,22 +1317,23 @@
                     </div>
                     <div class="products-list">
                         <div class="data-table-wrapper">
-                            <table class="data-table" id="productsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Image</th>
-                                        <th>Name</th>
-                                        <th>Category</th>
-                                        <th>Price</th>
-                                        <th>Stock</th>
-                                        <th>Featured</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="productsTableBody">
-                                    </tbody>
-                            </table>
-                        </div>
+    <table class="data-table" id="productsTable">
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Featured</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="productsTableBody">
+            <!-- Rows will be inserted here -->
+        </tbody>
+    </table>
+</div>
                     </div>
                 </section>
 
@@ -1139,7 +1406,7 @@
                     </div>
                 </section>
 
-                <section id="drivers-section" style="display: none;">
+                <!-- <section id="drivers-section" style="display: none;">
                     <div class="section-header">
                         <h2>Drivers Management</h2>
                         <div class="search-container">
@@ -1228,7 +1495,113 @@
                             <tbody id="allDeliveriesTableBody"></tbody>
                         </table>
                     </div>
-                </section>
+                </section> -->
+
+                <section id="drivers-section" class="content-section" style="display: none;">
+    <div class="admin-header">
+        <h2><i class="fas fa-truck"></i> Driver Management</h2>
+        <div class="header-actions">
+            <div class="search-container">
+                <input type="text" placeholder="Search drivers..." class="search-input" id="driverSearch">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <button class="btn-admin" id="addDriverBtn"><i class="fas fa-user-plus"></i> Add Driver</button>
+        </div>
+    </div>
+
+    <div class="data-table-wrapper">
+        <table class="data-table" id="driversTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Last Login</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="driversTableBody"></tbody>
+        </table>
+    </div>
+
+    <div id="driverStatsSection" style="display: none; margin-top: 30px;">
+        <div class="admin-header">
+            <h3 id="driverNameHeader"></h3>
+            <div class="header-actions">
+                <select id="deliveryFilter" class="form-control filter-select">
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Completed Deliveries</h3>
+                <div class="value" id="driverCompletedDeliveries">0</div>
+                <div class="label"><i class="fas fa-check-circle"></i> Successful</div>
+            </div>
+            <div class="stat-card">
+                <h3>In Progress</h3>
+                <div class="value" id="driverInProgressDeliveries">0</div>
+                <div class="label"><i class="fas fa-truck-moving"></i> Active</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Deliveries</h3>
+                <div class="value" id="driverTotalDeliveries">0</div>
+                <div class="label"><i class="fas fa-clipboard-list"></i> All Time</div>
+            </div>
+        </div>
+
+        <div class="admin-header">
+            <h3><i class="fas fa-history"></i> Recent Deliveries</h3>
+        </div>
+        
+        <div class="data-table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Address</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th>Completed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="driverDeliveriesTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-header">
+        <h3><i class="fas fa-list"></i> All Deliveries</h3>
+        <div class="header-actions">
+            <!-- <button class="btn-admin" id="addDeliveryBtnAdmin">
+                <i class="fas fa-plus"></i> Create Delivery
+            </button> -->
+        </div>
+    </div>
+    
+    <div class="data-table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Driver</th>
+                    <th>Address</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="allDeliveriesTableBody"></tbody>
+        </table>
+    </div>
+</section>
 
                 <section id="settings-section" style="display: none;">
                     <div class="admin-header">

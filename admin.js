@@ -128,7 +128,12 @@ function initAdminPanel() {
   initOrderFilter();
 
   initDriverSearch();
+  
   initDeliveryFilter();
+
+
+  initEnhancedSearch();
+  console.log("Admin panel components initialized");
   
 }
 
@@ -376,18 +381,30 @@ async function loadProducts(searchTerm = '') {
         snapshot.forEach(doc => {
             const product = doc.data();
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><img src="${product.imageUrl || 'https://via.placeholder.com/50'}" alt="${product.name}" class="product-table-image"></td>
-                <td>${product.name}</td>
-                <td>${product.category}</td>
-                <td>$${parseFloat(product.price).toFixed(2)}</td>
-                <td>${product.stock}</td>
-                <td>${product.featured ? '<i class="fas fa-check-circle badge-success"></i>' : '<i class="fas fa-times-circle badge-danger"></i>'}</td>
-                <td>
-                    <button class="btn-admin btn-admin-sm btn-admin-outline edit-product" data-id="${doc.id}">Edit</button>
-                    <button class="btn-admin btn-admin-sm btn-admin-danger delete-product" data-id="${doc.id}">Delete</button>
-                </td>
-            `;
+            // In your loadProducts() function, update the row generation:
+row.innerHTML = `
+    <td><img src="${product.imageUrl || 'https://via.placeholder.com/50'}" alt="${product.name}" class="product-table-image"></td>
+    <td>${product.name}</td>
+    <td>${product.category}</td>
+    <td>$${parseFloat(product.price).toFixed(2)}</td>
+    <td>${product.stock}</td>
+    <td>
+        <span class="badge ${product.featured ? 'badge-success' : 'badge-danger'}">
+            <i class="fas ${product.featured ? 'fa-check-circle' : 'fa-times-circle'}"></i> 
+            ${product.featured ? 'Yes' : 'No'}
+        </span>
+    </td>
+    <td>
+        <div class="table-actions">
+            <button class="btn-table-action btn-edit edit-product" data-id="${doc.id}">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn-table-action btn-delete delete-product" data-id="${doc.id}">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </div>
+    </td>
+`;
             productsTableBody.appendChild(row);
         });
     } catch (error) {
@@ -413,15 +430,26 @@ async function loadUsers(searchTerm = '') {
         snapshot.forEach(doc => {
             const user = doc.data();
             if (user.role === 'admin') return; // Don't list admins here
+            
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${user.name || 'N/A'}</td>
                 <td>${user.email}</td>
-                <td><span class="badge badge-info">${user.role || 'customer'}</span></td>
-                <td><span class="badge ${user.status === 'active' ? 'badge-success' : 'badge-danger'}">${user.status || 'inactive'}</span></td>
+                <td>${user.role || 'customer'}</td>
                 <td>
-                    <button class="btn-admin btn-admin-sm btn-admin-outline edit-user" data-id="${doc.id}">Edit</button>
-                    <button class="btn-admin btn-admin-sm btn-admin-danger delete-user" data-id="${doc.id}">Delete</button>
+                    <span class="badge ${user.status === 'active' ? 'badge-success' : 'badge-danger'}">
+                        ${user.status || 'inactive'}
+                    </span>
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn-table-action btn-edit edit-user" data-id="${doc.id}">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn-table-action btn-delete delete-user" data-id="${doc.id}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
                 </td>
             `;
             usersTableBody.appendChild(row);
@@ -471,16 +499,22 @@ async function loadOrders(filterStatus = 'all', searchTerm = '') {
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${orderId}</td>
-                <td>${order.customerName || 'N/A'}</td>
-                <td>${createdAt}</td>
-                <td>$${parseFloat(order.totalAmount || 0).toFixed(2)}</td>
-                <td>${statusHtml}</td>
-                <td>
-                    <button class="btn-admin btn-admin-sm btn-admin-outline view-order" data-id="${orderId}">View</button>
-                    <button class="btn-admin btn-admin-sm btn-admin-danger delete-order" data-id="${orderId}">Delete</button>
-                </td>
-            `;
+            <td>${orderId}</td>
+            <td>${order.customerName || 'N/A'}</td>
+            <td>${createdAt}</td>
+            <td>$${parseFloat(order.totalAmount || 0).toFixed(2)}</td>
+            <td>${statusHtml}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn-table-action btn-view view-order" data-id="${orderId}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn-table-action btn-delete delete-order" data-id="${orderId}">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </td>
+        `;
             ordersTableBody.appendChild(row);
         });
     } catch (error) {
@@ -778,6 +812,52 @@ async function createDelivery(event) {
     }
 }
 
+// Enhanced search functionality
+function initEnhancedSearch() {
+    document.querySelectorAll('.search-container').forEach(container => {
+        const input = container.querySelector('.search-input');
+        const clearBtn = document.createElement('button');
+        clearBtn.className = 'search-clear';
+        clearBtn.innerHTML = '<i class="fas fa-times"></i>';
+        clearBtn.type = 'button';
+        container.appendChild(clearBtn);
+        
+        // Clear search
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            input.focus();
+            triggerSearch(input);
+            clearBtn.style.display = 'none';
+        });
+        
+        // Show/hide clear button based on input
+        input.addEventListener('input', () => {
+            clearBtn.style.display = input.value ? 'block' : 'none';
+            triggerSearch(input);
+        });
+    });
+}
+
+function triggerSearch(input) {
+    const section = input.closest('section').id;
+    const searchTerm = input.value.trim();
+    
+    switch(section) {
+        case 'products-section':
+            loadProducts(searchTerm);
+            break;
+        case 'users-section':
+            loadUsers(searchTerm);
+            break;
+        case 'orders-section':
+            loadOrders(document.getElementById('orderFilter').value, searchTerm);
+            break;
+        case 'drivers-section':
+            loadDrivers(searchTerm);
+            break;
+    }
+}
+
 async function logAdminActivity(action) {
     try {
         await addDoc(collection(db, "activity"), {
@@ -821,24 +901,56 @@ async function loadDrivers(searchTerm = '') {
                 <td>${driver.email}</td>
                 <td>${driver.lastLogin ? new Date(driver.lastLogin.toDate()).toLocaleString() : 'Never'}</td>
                 <td>
-                    <span class="badge ${driver.status === 'active' ? 'badge-success' : 'badge-danger'}">
-                        ${driver.status || 'inactive'}
+                    <span class="badge ${getDriverStatusBadgeClass(driver.status)}">
+                        <i class="fas ${getDriverStatusIcon(driver.status)}"></i> ${driver.status || 'inactive'}
                     </span>
                 </td>
                 <td>
-                    <button class="btn-admin btn-admin-outline edit-driver" data-id="${doc.id}">Edit</button>
-                    <button class="btn-admin btn-admin-outline view-driver-deliveries" data-id="${doc.id}" data-driver-name="${driver.name || driver.email}">Deliveries</button>
+                    <button class="btn-admin btn-admin-sm btn-admin-outline edit-driver" data-id="${doc.id}">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn-admin btn-admin-sm btn-admin-outline view-driver-deliveries" 
+                            data-id="${doc.id}" 
+                            data-driver-name="${driver.name || driver.email}">
+                        <i class="fas fa-truck-loading"></i> Deliveries
+                    </button>
                 </td>
             `;
             driversTableBody.appendChild(row);
         });
 
-        // Set up real-time listener for all deliveries
         setupDeliveriesListener();
         
     } catch (error) {
         console.error("Error loading drivers:", error);
         showToast("Error loading drivers", "error");
+    }
+}
+
+// Helper functions for driver status
+function getDriverStatusBadgeClass(status) {
+    switch(status) {
+        case 'active':
+            return 'badge-success';
+        case 'on-duty':
+            return 'badge-info';
+        case 'inactive':
+            return 'badge-danger';
+        default:
+            return 'badge-warning';
+    }
+}
+
+function getDriverStatusIcon(status) {
+    switch(status) {
+        case 'active':
+            return 'fa-user-check';
+        case 'on-duty':
+            return 'fa-truck-moving';
+        case 'inactive':
+            return 'fa-user-slash';
+        default:
+            return 'fa-question-circle';
     }
 }
 
@@ -1531,17 +1643,15 @@ async function viewDriverDeliveries(driverId) {
         const driverNameHeader = document.getElementById('driverNameHeader');
         
         if (driverNameHeader) {
-            driverNameHeader.textContent = `Deliveries for ${driver.name || driver.email}`;
-            driverNameHeader.dataset.driverId = driverId; // Store driver ID for filtering
+            driverNameHeader.innerHTML = `<i class="fas fa-truck"></i> ${driver.name || driver.email}`;
+            driverNameHeader.dataset.driverId = driverId;
         }
         
-        // Load stats for this driver
+        // Load stats and deliveries
         await loadDriverStats(driverId);
-        
-        // Load deliveries for this specific driver
         await loadDeliveriesForDriver(driverId, 'all');
 
-        // Show the driver stats and deliveries section
+        // Show the section and scroll to it
         if (driverStatsSection) {
             driverStatsSection.style.display = 'block';
             driverStatsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1611,17 +1721,22 @@ async function loadDeliveriesForDriver(driverId, filterStatus = 'all') {
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${delivery.customerName || 'N/A'}</td>
-                <td>${delivery.deliveryAddress || 'N/A'}</td>
-                <td>${createdAt}</td>
-                <td><span class="badge ${statusClass}">${delivery.status}</span></td>
-                <td>${completedAt}</td>
-                <td>
-                    <button class="btn-admin btn-admin-sm btn-admin-outline view-delivery" data-id="${deliveryId}">View</button>
-                    <button class="btn-admin btn-admin-sm btn-admin-outline edit-delivery" data-id="${deliveryId}">Edit</button>
-                    <button class="btn-admin btn-admin-sm btn-admin-danger delete-delivery" data-id="${deliveryId}">Delete</button>
-                </td>
-            `;
+            <td>${delivery.customerName || 'N/A'}</td>
+            <td>${delivery.deliveryAddress || 'N/A'}</td>
+            <td>${createdAt}</td>
+            <td><span class="badge ${statusClass}">${delivery.status}</span></td>
+            <td>${completedAt}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn-table-action btn-view view-delivery" data-id="${deliveryId}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn-table-action btn-edit edit-delivery" data-id="${deliveryId}">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </div>
+            </td>
+        `;
             driverDeliveriesTableBody.appendChild(row);
         });
     } catch (error) {
@@ -2019,17 +2134,25 @@ async function loadAllDeliveries() {
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${delivery.customerName || 'N/A'}</td>
-                <td>${delivery.deliveryAddress || 'N/A'}</td>
-                <td>${createdAt}</td>
-                <td><span class="badge ${statusClass}">${delivery.status}</span></td>
-                <td>${completedAt}</td>
-                <td>
-                    <button class="btn-admin btn-admin-sm btn-admin-outline view-delivery" data-id="${deliveryId}">View</button>
-                    <button class="btn-admin btn-admin-sm btn-admin-outline edit-delivery" data-id="${deliveryId}">Edit</button>
-                    <button class="btn-admin btn-admin-sm btn-admin-danger delete-delivery" data-id="${deliveryId}" onclick="confirmDeleteDelivery('${deliveryId}')">Delete</button>
-                </td>
-            `;
+    <td>${delivery.customerName || 'N/A'}</td>
+    <td>${delivery.deliveryAddress || 'N/A'}</td>
+    <td>${createdAt}</td>
+    <td><span class="badge ${statusClass}">${delivery.status}</span></td>
+    <td>${completedAt}</td>
+    <td>
+        <div class="table-actions">
+            <button class="btn-table-action btn-view view-delivery" data-id="${deliveryId}">
+                <i class="fas fa-eye"></i> View
+            </button>
+            <button class="btn-table-action btn-edit edit-delivery" data-id="${deliveryId}">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn-table-action btn-delete delete-delivery" data-id="${deliveryId}">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </div>
+    </td>
+`;
             driverDeliveriesTableBody.appendChild(row);
         });
         

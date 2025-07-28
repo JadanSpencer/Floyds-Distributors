@@ -1,17 +1,776 @@
-// In account.html
-async function loadUserOrders() {
-    const user = auth.currentUser;
-    if (!user) return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account | Floyd's Distributors</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        /* Account Page Specific Styles */
+        .account-page {
+            padding: 3rem 0;
+            background-color: #f9f9f9;
+            min-height: calc(100vh - 80px);
+        }
 
-    const q = query(
-        collection(db, 'orders'),
-        where('customer.email', '==', user.email),
-        orderBy('createdAt', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach(doc => {
-        console.log('Order:', doc.id, doc.data());
-        // Display orders in UI
-    });
-}
+        .account-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .account-sidebar {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+
+        .account-content {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .user-profile-card {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .user-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--teal);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+        }
+
+        .user-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--gray);
+        }
+
+        .user-email {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .account-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .account-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .account-menu a {
+            display: block;
+            padding: 0.8rem 1rem;
+            color: var(--gray);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .account-menu a:hover, .account-menu a.active {
+            background: rgba(0, 128, 128, 0.1);
+            color: var(--teal);
+        }
+
+        .account-menu a i {
+            margin-right: 0.8rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--dark-teal);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid rgba(0, 128, 128, 0.1);
+        }
+
+        /* Delivery Tracking Styles */
+        .delivery-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .delivery-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-color: rgba(0, 128, 128, 0.2);
+        }
+
+        .delivery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .delivery-id {
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .delivery-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .status-in-progress {
+            background: #CCE5FF;
+            color: #004085;
+        }
+
+        .status-completed {
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #F8D7DA;
+            color: #721C24;
+        }
+
+        .delivery-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .detail-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.2rem;
+        }
+
+        .detail-value {
+            font-weight: 500;
+        }
+
+        .delivery-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .track-btn {
+            background: var(--teal);
+            color: white;
+        }
+
+        .track-btn:hover {
+            background: var(--dark-teal);
+        }
+
+        .contact-btn {
+            background: white;
+            color: var(--teal);
+            border: 1px solid var(--teal);
+        }
+
+        .contact-btn:hover {
+            background: rgba(0, 128, 128, 0.1);
+        }
+
+        /* Delivery Map */
+        #deliveryMap {
+            height: 300px;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid #eee;
+        }
+
+        /* Order History */
+        .order-history {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .order-history th {
+            text-align: left;
+            padding: 0.8rem;
+            background: rgba(0, 128, 128, 0.05);
+            color: var(--dark-teal);
+            font-weight: 600;
+        }
+
+        .order-history td {
+            padding: 0.8rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-history tr:hover {
+            background: rgba(0, 128, 128, 0.03);
+        }
+
+        .order-id {
+            color: var(--teal);
+            font-weight: 500;
+        }
+
+        .order-total {
+            font-weight: 600;
+        }
+
+        .view-order-btn {
+            background: none;
+            border: 1px solid var(--teal);
+            color: var(--teal);
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-order-btn:hover {
+            background: var(--teal);
+            color: white;
+        }
+
+        /* Account Settings Form */
+        .account-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .account-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .account-form input, .account-form select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .save-btn {
+            background: var(--teal);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn:hover {
+            background: var(--dark-teal);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .account-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .account-sidebar {
+                order: 2;
+            }
+            
+            .delivery-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .delivery-actions {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #ccc;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>Floyd's Distributors</h1>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li class="dropdown">
+                        <a href="products.html">Products <span class="dropdown-arrow">▼</span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="products.html">All Products</a></li>
+                            <li><a href="category.html?cat=food-containers">Food Containers</a></li>
+                            <li><a href="category.html?cat=eco-friendly">Eco-Friendly Packaging</a></li>
+                            <li><a href="category.html?cat=custom">Custom Solutions</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="delivery.html">Delivery</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <div class="auth-cart-container">
+                    <div id="userProfile" class="user-profile" style="display: none;">
+                        <span class="username">John Doe</span>
+                        <button id="logoutBtn" class="logout-btn">Logout</button>
+                    </div>
+                    <div class="hamburger">☰</div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Account Page Content -->
+    <section class="account-page">
+        <div class="account-container">
+            <!-- Sidebar Navigation -->
+            <div class="account-sidebar">
+                <div class="user-profile-card">
+                    <div class="user-avatar" id="userAvatar">JD</div>
+                    <h3 class="user-name" id="userName">John Doe</h3>
+                    <p class="user-email" id="userEmail">john.doe@example.com</p>
+                </div>
+                
+                <ul class="account-menu">
+                    <li><a href="#dashboard" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="#deliveries"><i class="fas fa-truck"></i> My Deliveries</a></li>
+                    <li><a href="#orders"><i class="fas fa-shopping-bag"></i> Order History</a></li>
+                    <li><a href="#addresses"><i class="fas fa-map-marker-alt"></i> Saved Addresses</a></li>
+                    <li><a href="#settings"><i class="fas fa-cog"></i> Account Settings</a></li>
+                    <li><a href="#logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="account-content">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section">
+                    <h2 class="section-title">Dashboard</h2>
+                    <div class="welcome-message">
+                        <p>Welcome back, <span id="dashboardUserName">John</span>!</p>
+                    </div>
+                    
+                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0;">
+                        <div class="stat-card" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; text-align: center;">
+                            <h3 style="color: var(--teal); margin-bottom: 0.5rem;">5</h3>
+                            <p style="color: #666; font-size: 0.9rem;">Active Deliveries</p>
+                        </div>
+                        <div class="stat-card" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; text-align: center;">
+                            <h3 style="color: var(--teal); margin-bottom: 0.5rem;">12</h3>
+                            <p style="color: #666; font-size: 0.9rem;">Completed Orders</p>
+                        </div>
+                        <div class="stat-card" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; text-align: center;">
+                            <h3 style="color: var(--teal); margin-bottom: 0.5rem;">$1,245</h3>
+                            <p style="color: #666; font-size: 0.9rem;">Total Spent</p>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin: 2rem 0 1rem; color: var(--dark-teal);">Recent Activity</h3>
+                    <div class="activity-list">
+                        <div class="activity-item" style="display: flex; align-items: center; padding: 1rem; border-bottom: 1px solid #eee;">
+                            <div class="activity-icon" style="margin-right: 1rem; color: var(--teal);">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p style="margin: 0;">Your order #FD-10025 is out for delivery</p>
+                                <small style="color: #999;">Today, 10:30 AM</small>
+                            </div>
+                        </div>
+                        <div class="activity-item" style="display: flex; align-items: center; padding: 1rem; border-bottom: 1px solid #eee;">
+                            <div class="activity-icon" style="margin-right: 1rem; color: var(--teal);">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p style="margin: 0;">Order #FD-10024 has been delivered</p>
+                                <small style="color: #999;">Yesterday, 3:15 PM</small>
+                            </div>
+                        </div>
+                        <div class="activity-item" style="display: flex; align-items: center; padding: 1rem;">
+                            <div class="activity-icon" style="margin-right: 1rem; color: var(--teal);">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p style="margin: 0;">Your order #FD-10023 has shipped</p>
+                                <small style="color: #999;">2 days ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Deliveries Section (Hidden by default) -->
+                <div id="deliveries-section" style="display: none;">
+                    <h2 class="section-title">My Deliveries</h2>
+                    
+                    <div class="delivery-card">
+                        <div class="delivery-header">
+                            <span class="delivery-id">Delivery #FD-10025</span>
+                            <span class="delivery-status status-in-progress">In Progress</span>
+                        </div>
+                        <div class="delivery-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Delivery Address</div>
+                                <div class="detail-value">123 Main St, Nashville, Mandeville, Manchester</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Estimated Delivery</div>
+                                <div class="detail-value">Today by 5:00 PM</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Driver</div>
+                                <div class="detail-value">Michael Johnson (Contact: 876-555-1234)</div>
+                            </div>
+                        </div>
+                        <div id="deliveryMap"></div>
+                        <div class="delivery-actions">
+                            <button class="action-btn track-btn"><i class="fas fa-map-marked-alt"></i> Live Tracking</button>
+                            <button class="action-btn contact-btn"><i class="fas fa-phone"></i> Contact Driver</button>
+                        </div>
+                    </div>
+                    
+                    <div class="delivery-card">
+                        <div class="delivery-header">
+                            <span class="delivery-id">Delivery #FD-10024</span>
+                            <span class="delivery-status status-completed">Completed</span>
+                        </div>
+                        <div class="delivery-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Delivery Address</div>
+                                <div class="detail-value">123 Main St, Nashville, Mandeville, Manchester</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Delivered On</div>
+                                <div class="detail-value">June 15, 2023 at 3:15 PM</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Driver</div>
+                                <div class="detail-value">Michael Johnson</div>
+                            </div>
+                        </div>
+                        <div class="delivery-actions">
+                            <button class="action-btn track-btn" disabled><i class="fas fa-map-marked-alt"></i> Delivery Completed</button>
+                            <button class="action-btn contact-btn"><i class="fas fa-headset"></i> Contact Support</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order History Section (Hidden by default) -->
+                <div id="orders-section" style="display: none;">
+                    <h2 class="section-title">Order History</h2>
+                    
+                    <table class="order-history">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="order-id">FD-10025</td>
+                                <td>June 18, 2023</td>
+                                <td>3 items</td>
+                                <td class="order-total">$145.99</td>
+                                <td><span class="delivery-status status-in-progress">In Delivery</span></td>
+                                <td><button class="view-order-btn">View</button></td>
+                            </tr>
+                            <tr>
+                                <td class="order-id">FD-10024</td>
+                                <td>June 10, 2023</td>
+                                <td>5 items</td>
+                                <td class="order-total">$224.50</td>
+                                <td><span class="delivery-status status-completed">Completed</span></td>
+                                <td><button class="view-order-btn">View</button></td>
+                            </tr>
+                            <tr>
+                                <td class="order-id">FD-10023</td>
+                                <td>May 28, 2023</td>
+                                <td>2 items</td>
+                                <td class="order-total">$89.99</td>
+                                <td><span class="delivery-status status-completed">Completed</span></td>
+                                <td><button class="view-order-btn">View</button></td>
+                            </tr>
+                            <tr>
+                                <td class="order-id">FD-10022</td>
+                                <td>May 15, 2023</td>
+                                <td>7 items</td>
+                                <td class="order-total">$310.25</td>
+                                <td><span class="delivery-status status-completed">Completed</span></td>
+                                <td><button class="view-order-btn">View</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Addresses Section (Hidden by default) -->
+                <div id="addresses-section" style="display: none;">
+                    <h2 class="section-title">Saved Addresses</h2>
+                    
+                    <div class="empty-state">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h3>No Saved Addresses</h3>
+                        <p>You haven't saved any delivery addresses yet.</p>
+                        <button class="save-btn" style="margin-top: 1rem;">Add New Address</button>
+                    </div>
+                </div>
+                
+                <!-- Settings Section (Hidden by default) -->
+                <div id="settings-section" style="display: none;">
+                    <h2 class="section-title">Account Settings</h2>
+                    
+                    <form class="account-form">
+                        <div class="form-group">
+                            <label for="settings-name">Full Name</label>
+                            <input type="text" id="settings-name" value="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-email">Email Address</label>
+                            <input type="email" id="settings-email" value="john.doe@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-phone">Phone Number</label>
+                            <input type="tel" id="settings-phone" value="(876) 555-1234">
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-password">Change Password</label>
+                            <input type="password" id="settings-password" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-confirm">Confirm Password</label>
+                            <input type="password" id="settings-confirm" placeholder="Confirm new password">
+                        </div>
+                        <button type="submit" class="save-btn">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <!-- Company Info -->
+                <div class="footer-col footer-company">
+                    <div class="footer-logo">
+                        <h3>Floyd's Distributors</h3>
+                    </div>
+                    <p class="footer-description">Premium food packaging solutions for businesses of all sizes. Eco-friendly, durable, and customizable.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="footer-col">
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="delivery.html">Delivery Info</a></li>
+                    </ul>
+                </div>
+
+                <!-- Categories -->
+                <div class="footer-col">
+                    <h3 class="footer-title">Categories</h3>
+                    <ul class="footer-links">
+                        <li><a href="category.html?cat=food-containers">Food Containers</a></li>
+                        <li><a href="category.html?cat=eco-friendly">Eco-Friendly Packaging</a></li>
+                        <li><a href="category.html?cat=custom">Custom Solutions</a></li>
+                        <li><a href="category.html?cat=special-offers">Special Offers</a></li>
+                        <li><a href="category.html?cat=new-arrivals">New Arrivals</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="footer-col footer-contact">
+                    <h3 class="footer-title">Contact Us</h3>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-map-marker-alt"></i> <span>Nashville Subdivision, Mandeville, Manchester</span></li>
+                        <li><i class="fas fa-phone"></i> <span>+1(876) 000-floyds</span></li>
+                        <li><i class="fas fa-envelope"></i> <span>info@floydsdistributors.com</span></li>
+                        <li><i class="fas fa-clock"></i> <span>Mon-Fri: 8:30AM - 5:00PM</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Footer Bottom -->
+            <div class="footer-bottom">
+                <p>&copy; 2025 Floyd's Distributors. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="sitemap.html">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script type="module">
+        // Import Firebase modules
+        import { 
+            app, db, auth, 
+            collection, getDocs, doc, getDoc, setDoc, 
+            updateDoc, deleteDoc, serverTimestamp, query, 
+            where, orderBy, limit, onSnapshot, addDoc,
+            signOut, onAuthStateChanged
+        } from './script.js';
+
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize map for delivery tracking
+            const deliveryMap = L.map('deliveryMap').setView([18.0339, -77.5078], 13); // Default to Mandeville coordinates
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(deliveryMap);
+
+            // Add marker for delivery location
+            const deliveryLocation = L.latLng(18.0339, -77.5078);
+            L.marker(deliveryLocation).addTo(deliveryMap)
+                .bindPopup('Delivery Location')
+                .openPopup();
+
+            // Check authentication state
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    // User is signed in
+                    document.getElementById('userProfile').style.display = 'flex';
+                    
+                    // Get user data from Firestore
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        
+                        // Update UI with user data
+                        document.getElementById('userName').textContent = userData.name || 'User';
+                        document.getElementById('userEmail').textContent = user.email;
+                        document.getElementById('dashboardUserName').textContent = userData.name?.split(' ')[0] || 'User';
+                        
+                        // Set avatar initials
+                        const nameParts = (userData.name || 'User').split(' ');
+                        const initials = nameParts.map(part => part[0]).join('').toUpperCase();
+                        document.getElementById('userAvatar').textContent = initials;
+                    }
+                } else {
+                    // User is not signed in, redirect to login
+                    window.location.href = 'login.html';
+                }
+            });
+
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error("Logout error:", error);
+                    alert('Failed to logout. Please try again.');
+                }
+            });
+
+            // Navigation between sections
+            const menuLinks = document.querySelectorAll('.account-menu a');
+            const sections = {
+                'dashboard': document.getElementById('dashboard-section'),
+                'deliveries': document.getElementById('deliveries-section'),
+                'orders': document.getElementById('orders-section'),
+                'addresses': document.getElementById('addresses-section'),
+                'settings': document.getElementById('settings-section')
+            };
+
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = link.getAttribute('href').substring(1);
+                    
+                    // Update active menu item
+                    menuLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    
+                    // Show the selected section
+                    Object.values(sections).forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    
+                    if (sections[target]) {
+                        sections[target].style.display = 'block';
+                    }
+                    
+                    // Special handling for logout
+                    if (target === 'logout') {
+                        document.getElementById('logoutBtn').click();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

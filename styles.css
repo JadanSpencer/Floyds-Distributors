@@ -1735,3 +1735,80 @@ body.page-transitioning {
   }
 }
 
+
+/* Update the header container */
+.header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Update the auth buttons container */
+.auth-cart-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: fit-content; /* Prevent wrapping */
+}
+
+/* Update the user profile display */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.username {
+    font-weight: 600;
+    color: var(--teal);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+/* Make logout button more compact */
+.logout-btn {
+    padding: 0.5rem 0.8rem !important;
+    font-size: 0.9rem !important;
+}
+
+/* Ensure navbar stays aligned */
+.navbar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+/* For mobile view */
+@media (max-width: 900px) {
+    .header .container {
+        grid-template-columns: 1fr auto;
+    }
+    
+    .navbar {
+        order: 3;
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .auth-cart-container {
+        order: 2;
+    }
+    
+    .user-profile {
+        max-width: 120px;
+    }
+    
+    .username {
+        max-width: 80px;
+    }
+}

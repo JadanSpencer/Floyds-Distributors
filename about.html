@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | Floyd's Distributors</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="products.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* About Page Specific Styles */
+        .about-hero {
+            background: linear-gradient(135deg, rgba(0, 128, 128, 0.9) 0%, rgba(0, 102, 102, 0.95) 100%);
+            color: white;
+            text-align: center;
+            padding: 8rem 0 5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path fill="rgba(255,255,255,0.05)" d="M0,0 L100,0 L100,100 Q50,80 0,100 Z"></path></svg>');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: bottom;
+            z-index: 1;
+        }
+
+        .about-hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .about-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .about-hero p {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        /* Our Story Section */
+        .our-story {
+            padding: 5rem 0;
+            background-color: var(--light-gray);
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            color: var(--teal);
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: var(--teal);
+        }
+
+        .section-header p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .story-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .story-text p {
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+            color: #555;
+        }
+
+        .story-image {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: transform 0.5s ease;
+        }
+
+        .story-image:hover {
+            transform: translateY(-10px);
+        }
+
+        .story-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .story-image:hover img {
+            transform: scale(1.05);
+        }
+
+        /* Values Section */
+        .our-values {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, rgba(0, 128, 128, 0.05) 0%, rgba(0, 102, 102, 0.08) 100%);
+        }
+
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .value-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .value-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .value-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--teal);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            box-shadow: 0 10px 20px rgba(0, 128, 128, 0.2);
+        }
+
+        .value-card h3 {
+            color: var(--teal);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .value-card p {
+            color: #555;
+            line-height: 1.7;
+        }
+
+        /* Meet Our Team Section */
+        .our-team {
+            padding: 5rem 0;
+            background-color: var(--light-gray);
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .team-member {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .member-image {
+            height: 300px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .member-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .team-member:hover .member-image img {
+            transform: scale(1.1);
+        }
+
+        .member-info {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .member-info h3 {
+            color: var(--teal);
+            margin-bottom: 0.5rem;
+        }
+
+        .member-info p.position {
+            color: var(--dark-teal);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .member-info p.bio {
+            color: #555;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 128, 128, 0.1);
+            color: var(--teal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: var(--teal);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, rgba(0, 128, 128, 0.9) 0%, rgba(0, 102, 102, 0.95) 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat-item {
+            padding: 2rem 1rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .stat-number::after {
+            content: '+';
+            position: absolute;
+            top: 0;
+            right: -15px;
+            font-size: 1.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Floating Shapes Background */
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            border-radius: 50%;
+            background: var(--teal);
+            filter: blur(60px);
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            50% {
+                transform: translate(50px, 100px) rotate(180deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .story-content {
+                grid-template-columns: 1fr;
+            }
+
+            .story-image {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .about-hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .about-hero p {
+                font-size: 1.1rem;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .about-hero h1 {
+                font-size: 2rem;
+            }
+
+            .value-card, .team-member {
+                padding: 1.5rem;
+            }
+
+            .member-image {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>Floyd's Distributors</h1>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li class="dropdown">
+                        <a href="products.html">Products <span class="dropdown-arrow">▼</span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="products.html">All Products</a></li>
+                            <li><a href="category.html?cat=food-containers">Food Containers</a></li>
+                            <li><a href="category.html?cat=eco-friendly">Eco-Friendly Packaging</a></li>
+                            <li><a href="category.html?cat=custom">Custom Solutions</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="delivery.html">Delivery</a></li>
+                    <li><a href="about.html" class="active">About Us</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <div class="auth-cart-container">
+                    <div class="auth-buttons">
+                        <a href="login.html" class="auth-btn">Login</a>
+                        <a href="login.html?signup=true" class="auth-btn auth-btn-primary">Sign Up</a>
+                    </div>
+                    <div class="hamburger">☰</div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Floating Shapes Background -->
+    <div class="floating-shapes" id="floatingShapes"></div>
+
+    <!-- Hero Section -->
+    <section class="about-hero">
+        <div class="container about-hero-content">
+            <h1>Our Story, Your Success</h1>
+            <p>Delivering quality packaging solutions with passion, innovation, and dedication since 1995.</p>
+        </div>
+    </section>
+
+    <!-- Our Story Section -->
+    <section class="our-story">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Story</h2>
+                <p>From humble beginnings to industry leaders in food packaging distribution</p>
+            </div>
+            <div class="story-content">
+                <div class="story-text">
+                    <p>Founded in 1995 by Robert Floyd, Floyd's Distributors began as a small family business with a single warehouse in Portland, Oregon. What started as a local supplier of basic food containers has grown into a nationally recognized distributor of premium packaging solutions.</p>
+                    <p>Our journey has been marked by continuous innovation, strategic partnerships with manufacturers, and an unwavering commitment to customer satisfaction. We've expanded our product lines to include eco-friendly options and custom branding services, always staying ahead of industry trends.</p>
+                    <p>Today, with over 25 years in business, we serve thousands of restaurants, catering companies, and food service businesses across the country, while maintaining the personal touch that made us successful in the first place.</p>
+                </div>
+                <div class="story-image">
+                    <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="Our first warehouse">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Values Section -->
+    <section class="our-values">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Core Values</h2>
+                <p>The principles that guide everything we do</p>
+            </div>
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <h3>Quality Assurance</h3>
+                    <p>We rigorously test all products to ensure they meet our high standards for durability, safety, and performance before they reach your business.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h3>Sustainability</h3>
+                    <p>Committed to eco-friendly solutions, we prioritize products that reduce environmental impact without compromising quality or functionality.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <h3>Customer Focus</h3>
+                    <p>Your success is our success. We tailor solutions to your specific needs and provide exceptional support at every step of your journey.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3>Innovation</h3>
+                    <p>We continuously explore new materials, designs, and technologies to bring you the most advanced packaging solutions in the industry.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h3>Reliability</h3>
+                    <p>Consistent quality, on-time delivery, and dependable service you can count on, order after order.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3>Integrity</h3>
+                    <p>We build relationships on trust, transparency, and doing what's right - even when no one is watching.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Meet Our Team Section -->
+    <section class="our-team">
+        <div class="container">
+            <div class="section-header">
+                <h2>Meet Our Team</h2>
+                <p>The dedicated professionals behind Floyd's Distributors</p>
+            </div>
+            <div class="team-grid">
+                <!-- Team Member 1 -->
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Robert Floyd">
+                    </div>
+                    <div class="member-info">
+                        <h3>Robert Floyd</h3>
+                        <p class="position">Founder & CEO</p>
+                        <p class="bio">With 30+ years in the packaging industry, Robert's vision continues to guide our company's growth and innovation.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Member 2 -->
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sarah Johnson">
+                    </div>
+                    <div class="member-info">
+                        <h3>Sarah Johnson</h3>
+                        <p class="position">Chief Operations Officer</p>
+                        <p class="bio">Sarah oversees our daily operations, ensuring seamless processes from order to delivery with her 15 years of logistics expertise.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Member 3 -->
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Michael Chen">
+                    </div>
+                    <div class="member-info">
+                        <h3>Michael Chen</h3>
+                        <p class="position">Director of Product Development</p>
+                        <p class="bio">Michael leads our product innovation team, sourcing and testing new packaging solutions to meet evolving market needs.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Member 4 -->
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://randomuser.me/api/portraits/women/63.jpg" alt="Emily Rodriguez">
+                    </div>
+                    <div class="member-info">
+                        <h3>Emily Rodriguez</h3>
+                        <p class="position">Sales Director</p>
+                        <p class="bio">Emily heads our sales team, building lasting relationships with clients and helping businesses find their perfect packaging solutions.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Member 5 -->
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="David Wilson">
+                    </div>
+                    <div class="member-info">
+                        <h3>David Wilson</h3>
+                        <p class="position">Sustainability Officer</p>
+                        <p class="bio">David ensures our products and operations meet the highest environmental standards while maintaining cost-effectiveness.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Member 6 -->
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://randomuser.me/api/portraits/women/28.jpg" alt="Jessica Lee">
+                    </div>
+                    <div class="member-info">
+                        <h3>Jessica Lee</h3>
+                        <p class="position">Customer Experience Manager</p>
+                        <p class="bio">Jessica and her team provide exceptional support, ensuring every customer interaction with Floyd's is positive and productive.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Member 7 -->
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="Thomas Baker">
+                    </div>
+                    <div class="member-info">
+                        <h3>Thomas Baker</h3>
+                        <p class="position">Warehouse Operations Manager</p>
+                        <p class="bio">Thomas manages our distribution centers, optimizing inventory and fulfillment processes for maximum efficiency.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Member 8 -->
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://randomuser.me/api/portraits/women/52.jpg" alt="Amanda Park">
+                    </div>
+                    <div class="member-info">
+                        <h3>Amanda Park</h3>
+                        <p class="position">Marketing Director</p>
+                        <p class="bio">Amanda leads our branding and digital strategy, communicating our value proposition to customers across all channels.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Member 9 -->
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://randomuser.me/api/portraits/men/19.jpg" alt="Daniel Kim">
+                    </div>
+                    <div class="member-info">
+                        <h3>Daniel Kim</h3>
+                        <p class="position">IT & Systems Manager</p>
+                        <p class="bio">Daniel oversees our technology infrastructure, developing tools that enhance both customer and employee experiences.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Member 10 -->
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://randomuser.me/api/portraits/women/37.jpg" alt="Olivia Martinez">
+                    </div>
+                    <div class="member-info">
+                        <h3>Olivia Martinez</h3>
+                        <p class="position">Human Resources Director</p>
+                        <p class="bio">Olivia fosters our company culture and develops talent, ensuring Floyd's remains a great place to work and grow.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>By The Numbers</h2>
+                <p>Our impact in the packaging industry</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" data-count="25">0</div>
+                    <div class="stat-label">Years in Business</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-count="12000">0</div>
+                    <div class="stat-label">Satisfied Clients</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-count="500">0</div>
+                    <div class="stat-label">Products Offered</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-count="45">0</div>
+                    <div class="stat-label">States Served</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>Floyd's Distributors</h3>
+                    <p>Quality food packaging solutions for businesses of all sizes. Eco-friendly, durable, and customizable.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="category.html?cat=food-containers">Food Containers</a></li>
+                        <li><a href="category.html?cat=eco-friendly">Eco-Friendly Packaging</a></li>
+                        <li><a href="category.html?cat=custom">Custom Solutions</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Contact Us</h3>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Packaging Way, Portland, OR 97201</li>
+                        <li><i class="fas fa-phone"></i> (800) 555-1234</li>
+                        <li><i class="fas fa-envelope"></i> info@floydsdistributors.com</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 Floyd's Distributors. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Floating Shapes Animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('floatingShapes');
+            const colors = ['#008080', '#006666', '#00a3a3', '#4a6fa5'];
+            
+            for (let i = 0; i < 15; i++) {
+                const shape = document.createElement('div');
+                shape.classList.add('shape');
+                
+                // Random size between 100 and 300px
+                const size = Math.random() * 200 + 100;
+                shape.style.width = `${size}px`;
+                shape.style.height = `${size}px`;
+                
+                // Random position
+                shape.style.left = `${Math.random() * 100}%`;
+                shape.style.top = `${Math.random() * 100}%`;
+                
+                // Random color
+                shape.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Random animation duration and delay
+                shape.style.animationDuration = `${Math.random() * 20 + 10}s`;
+                shape.style.animationDelay = `${Math.random() * 5}s`;
+                
+                container.appendChild(shape);
+            }
+
+            // Animated counter for stats
+            const counters = document.querySelectorAll('.stat-number');
+            const speed = 200;
+            
+            function animateCounters() {
+                counters.forEach(counter => {
+                    const target = +counter.getAttribute('data-count');
+                    const count = +counter.innerText;
+                    const increment = target / speed;
+                    
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + increment);
+                        setTimeout(animateCounters, 1);
+                    } else {
+                        counter.innerText = target;
+                    }
+                });
+            }
+            
+            // Start counter animation when stats section is in view
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounters();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            observer.observe(document.querySelector('.stats-section'));
+        });
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -161,6 +161,110 @@
                 height: 380px;
             }
         }
+
+        /* Update the product slider button styles to match product card buttons */
+    .card-add-to-cart {
+        background: var(--teal);
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.4s cubic-bezier(0.98, 0.55, 0.265, 1.55);
+        margin-top: auto;
+        align-self: center;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        will-change: transform;
+    }
+
+    .card-add-to-cart::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--dark-teal);
+        z-index: -1;
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        border-radius: 4px;
+    }
+
+    .card-add-to-cart:hover::before {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .card-add-to-cart:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 102, 102, 0.3);
+    }
+
+    .card-add-to-cart:active {
+        transform: translateY(-1px);
+    }
+
+    /* For odd cards: inverse colors */
+    .product-card:nth-child(odd) .card-add-to-cart {
+        background: white;
+        color: var(--teal);
+    }
+
+    .product-card:nth-child(odd) .card-add-to-cart::before {
+        background: var(--light-gray);
+    }
+
+    .product-card:nth-child(odd) .card-add-to-cart:hover {
+        color: var(--teal-dark);
+        box-shadow: 0 10px 20px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Disabled state */
+    .card-add-to-cart:disabled {
+        background: #cccccc !important;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .card-add-to-cart:disabled::before {
+        display: none;
+    }
+
+    .view-btn {
+        background: var(--white);
+        color: var(--teal);
+        border: 1px solid var(--teal);
+        padding: 0.6rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .view-btn:hover {
+        background: var(--teal);
+        color: white;
+    }
+
+    .product-card:nth-child(odd) .view-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-color: white;
+    }
+
+    .product-card:nth-child(odd) .view-btn:hover {
+        background: white;
+        color: var(--teal);
+    }
     </style>
 </head>
 <body>

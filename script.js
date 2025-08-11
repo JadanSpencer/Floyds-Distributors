@@ -685,6 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminSignup();
     debugFirestoreConnection();
     initPageTransitions();
+    initScrollAnimations();
 
     const loginEmail = document.getElementById('loginEmail');
     const signupEmail = document.getElementById('signupEmail');
@@ -732,20 +733,57 @@ document.addEventListener('DOMContentLoaded', () => {
  *****************************/
 function initMobileMenu() {
     const hamburger = document.querySelector('.hamburger');
-    const navLinks = document.querySelector('.nav-links');
+    const navbar = document.querySelector('.navbar');
     
-    if (!hamburger || !navLinks) return;
+    if (!hamburger || !navbar) return;
     
-    hamburger.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
+    hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navbar.classList.toggle('active');
+        hamburger.textContent = navbar.classList.contains('active') ? '✕' : '☰';
     });
-
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!navbar.contains(e.target) && !hamburger.contains(e.target)) {
+            navbar.classList.remove('active');
+            hamburger.textContent = '☰';
+        }
+    });
+    
     // Close menu when clicking a link
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', () => {
-            navLinks.classList.remove('active');
+            navbar.classList.remove('active');
+            hamburger.textContent = '☰';
         });
     });
+}
+
+/*****************************
+ * SCROLL ANIMATIONS
+ *****************************/
+function initScrollAnimations() {
+    const animationElements = document.querySelectorAll('[data-aos]');
+    
+    if (!animationElements.length) return;
+    
+    const animateOnScroll = () => {
+        animationElements.forEach(element => {
+            const elementPosition = element.getBoundingClientRect().top;
+            const windowHeight = window.innerHeight;
+            
+            if (elementPosition < windowHeight * 0.75) {
+                element.classList.add('aos-animate');
+            }
+        });
+    };
+    
+    // Initial check
+    animateOnScroll();
+    
+    // Check on scroll
+    window.addEventListener('scroll', animateOnScroll);
 }
 
 /*****************************

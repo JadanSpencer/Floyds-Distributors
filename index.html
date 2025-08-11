@@ -7,162 +7,336 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Additional styles for the hero section */
-        .hero {
-            background: linear-gradient(135deg, rgba(0, 128, 128, 0.9) 0%, rgba(0, 102, 102, 0.95) 100%);
-            color: white;
-            text-align: center;
-            padding: 8rem 0 5rem;
-            margin-top: 0;
-        }
+    /* CSS Variables */
+    :root {
+        --teal: #008080;
+        --dark-teal: #006666;
+        --light-teal: #e6f2f2;
+        --white: #ffffff;
+        --light-gray: #f5f5f5;
+        --gray: #777777;
+        --dark-gray: #333333;
+    }
 
-        .hero h2 {
-            font-size: 2.8rem;
-            margin-bottom: 1rem;
-        }
+    /* Base Styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        color: var(--dark-gray);
+        line-height: 1.6;
+    }
 
-        .hero p {
-            font-size: 1.3rem;
-            max-width: 700px;
-            margin: 0 auto 2rem;
-        }
-        
+    .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
 
-        /* Featured products section */
-        .featured-products {
-            padding: 4rem 0;
-            background-color: var(--light-gray);
-        }
+    /* Header Styles */
+    .header {
+        background: var(--white);
+        box-shadow: 0 2px 15px rgba(0, 102, 102, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        padding: 0.5rem 0;
+        transition: all 0.3s ease;
+    }
 
-        .featured-products h2 {
-            text-align: center;
-            color: var(--gray);
-            margin-bottom: 2rem;
-            font-size: 2rem;
-        }
+    .header .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 1rem;
+    }
 
-        /* Product slider styles */
-        .products-slider-container {
-            overflow: hidden;
-            position: relative;
-            margin: 2rem 0;
-            padding: 1rem 0;
-        }
+    .logo h1 {
+        color: var(--teal);
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+        background: linear-gradient(to right, var(--teal), var(--dark-teal));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-        .products-slider {
-            width: 100%;
-            overflow: hidden;
-        }
+    .nav-links {
+        display: flex;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        align-items: center;
+    }
 
-        .slider-track {
-            display: flex;
-            gap: 20px;
-            will-change: transform;
-            backface-visibility: hidden;
-        }
+    .nav-links li {
+        margin: 0 0.8rem;
+        position: relative;
+    }
 
-        .product-card {
-            width: 250px;
-            height: 420px;
-            border-radius: 10px;
-            padding: 20px;
-            flex-shrink: 0;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            background: linear-gradient(145deg, var(--white), var(--light-gray));
-            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), 
-                        -8px -8px 16px rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
+    .nav-links a {
+        color: var(--gray);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 0;
+        position: relative;
+        transition: color 0.3s ease;
+    }
 
-        .product-card:nth-child(odd) {
-            background: linear-gradient(145deg, #00a3a3, #008080);
-            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.15), 
-                        -8px -8px 16px rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+    .nav-links a:hover {
+        color: var(--teal);
+    }
 
-        .product-card h3 {
-            color: var(--teal);
-            margin-bottom: 0.5rem;
-        }
+    .nav-links a::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: var(--teal);
+        transition: width 0.3s ease;
+    }
 
-        .product-card:nth-child(odd) h3,
-        .product-card:nth-child(odd) .price {
-            color: white;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-        }
+    .nav-links a:hover::after {
+        width: 100%;
+    }
 
-        .product-card .price {
-            color: var(--dark-teal);
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
+    /* Dropdown Menu */
+    .dropdown {
+        position: relative;
+    }
 
-        .product-image {
-            width: 70%;
-            height: 140px;
-            object-fit: contain;
-            border-radius: 8px;
-            margin: 0 auto 1rem;
-            display: block;
-        }
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: var(--white);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 0.5rem 0;
+        min-width: 200px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 100;
+    }
 
-        .card-add-to-cart {
-            background: var(--teal);
-            color: white;
-            border: none;
-            padding: 0.6rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin-top: auto;
-            width: 100%;
-        }
+    .dropdown:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
 
-        .product-card:nth-child(odd) .card-add-to-cart {
-            background: white;
-            color: var(--teal);
-        }
+    .dropdown-menu li {
+        margin: 0;
+        padding: 0.3rem 1rem;
+    }
 
-        .card-add-to-cart:hover {
-            background: var(--dark-teal);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 102, 102, 0.3);
-        }
+    .dropdown-menu a {
+        display: block;
+        padding: 0.5rem 0;
+        color: var(--gray);
+    }
 
-        .product-card:nth-child(odd) .card-add-to-cart:hover {
-            background: var(--light-gray);
-            color: var(--teal-dark);
-        }
+    .dropdown-menu a:hover {
+        color: var(--teal);
+    }
 
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-        }
+    .dropdown-arrow {
+        font-size: 0.6rem;
+        margin-left: 0.3rem;
+    }
 
-        @media (max-width: 768px) {
-            .hero h2 {
-                font-size: 2.2rem;
-            }
-            
-            .hero p {
-                font-size: 1.1rem;
-            }
+    /* Auth Buttons */
+    .auth-buttons {
+        display: flex;
+        gap: 0.8rem;
+        margin-left: 1.5rem;
+    }
 
-            .product-card {
-                width: 220px;
-                height: 380px;
-            }
-        }
+    .auth-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
 
-        /* Update the product slider button styles to match product card buttons */
+    .auth-btn:not(.auth-btn-primary) {
+        color: var(--teal);
+        border: 1px solid var(--teal);
+    }
+
+    .auth-btn:not(.auth-btn-primary):hover {
+        background: rgba(0, 128, 128, 0.05);
+    }
+
+    .auth-btn-primary {
+        background: var(--teal);
+        color: var(--white);
+    }
+
+    .auth-btn-primary:hover {
+        background: var(--dark-teal);
+        transform: translateY(-2px);
+    }
+
+    /* Hamburger Menu */
+    .hamburger {
+        display: none;
+        visibility: hidden;
+    }
+
+    .hamburger:hover {
+        background: var(--dark-teal);
+        transform: scale(1.05);
+    }
+
+    .hamburger:active {
+        transform: scale(0.95);
+    }
+
+    /* Hero Section */
+    .hero {
+        background: linear-gradient(135deg, rgba(0, 128, 128, 0.9) 0%, rgba(0, 102, 102, 0.95) 100%);
+        color: white;
+        text-align: center;
+        padding: 8rem 0 5rem;
+        margin-top: 0;
+    }
+
+    .hero h2 {
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero p {
+        font-size: 1.3rem;
+        max-width: 700px;
+        margin: 0 auto 2rem;
+    }
+
+    /* Search Container */
+    .search-container {
+        max-width: 550px;
+        margin: 0 auto 2rem;
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        border: none;
+        font-size: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-btn {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        font-size: 1.2rem;
+        color: var(--teal);
+        cursor: pointer;
+    }
+
+    /* Featured Products */
+    .featured-products {
+        padding: 4rem 0;
+        background-color: var(--light-gray);
+    }
+
+    .featured-products h2 {
+        text-align: center;
+        color: var(--gray);
+        margin-bottom: 2rem;
+        font-size: 2rem;
+    }
+
+    /* Product Slider */
+    .products-slider-container {
+        overflow: hidden;
+        position: relative;
+        margin: 2rem 0;
+        padding: 1rem 0;
+    }
+
+    .products-slider {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .slider-track {
+        display: flex;
+        gap: 20px;
+        will-change: transform;
+        backface-visibility: hidden;
+    }
+
+    .product-card {
+        width: 250px;
+        height: 420px;
+        border-radius: 10px;
+        padding: 20px;
+        flex-shrink: 0;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: linear-gradient(145deg, var(--white), var(--light-gray));
+        box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), 
+                    -8px -8px 16px rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .product-card:nth-child(odd) {
+        background: linear-gradient(145deg, #00a3a3, #008080);
+        box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.15), 
+                    -8px -8px 16px rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .product-card h3 {
+        color: var(--teal);
+        margin-bottom: 0.5rem;
+    }
+
+    .product-card:nth-child(odd) h3,
+    .product-card:nth-child(odd) .price {
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .product-card .price {
+        color: var(--dark-teal);
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .product-image {
+        width: 70%;
+        height: 140px;
+        object-fit: contain;
+        border-radius: 8px;
+        margin: 0 auto 1rem;
+        display: block;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
     .card-add-to-cart {
         background: var(--teal);
         color: white;
@@ -221,7 +395,7 @@
     }
 
     .product-card:nth-child(odd) .card-add-to-cart:hover {
-        color: var(--teal-dark);
+        color: var(--dark-teal);
         box-shadow: 0 10px 20px rgba(255, 255, 255, 0.3);
     }
 
@@ -265,7 +439,538 @@
         background: white;
         color: var(--teal);
     }
-    </style>
+
+    /* Benefits Section */
+    .benefits-section {
+        padding: 5rem 0;
+        background: linear-gradient(135deg, rgba(0, 128, 128, 0.05) 0%, rgba(0, 102, 102, 0.08) 100%);
+    }
+    
+    .benefits-section .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .benefits-section .section-header h2 {
+        color: var(--dark-teal);
+        font-size: 2.2rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .benefits-section .section-header p {
+        color: var(--gray);
+        font-size: 1.1rem;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .benefit-card {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+    }
+    
+    .benefit-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .benefit-icon {
+        width: 70px;
+        height: 70px;
+        background: var(--teal);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 1.8rem;
+    }
+    
+    .benefit-card h3 {
+        color: var(--dark-teal);
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+    }
+    
+    .benefit-card p {
+        color: var(--gray);
+        line-height: 1.6;
+    }
+
+    /* Deals Section */
+    .deals-section {
+        padding: 5rem 0;
+        background-color: #f9f9f9;
+    }
+    
+    .deals-section .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .deals-section .section-header h2 {
+        color: var(--teal);
+        font-size: 2.2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .deals-section .section-header p {
+        color: var(--gray);
+        font-size: 1.1rem;
+    }
+    
+    .deals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .deal-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+    }
+    
+    .deal-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .deal-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background-color: var(--teal);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.9rem;
+        z-index: 2;
+    }
+    
+    .deal-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .deal-content {
+        padding: 1.5rem;
+    }
+    
+    .deal-content h3 {
+        color: var(--dark-teal);
+        margin-bottom: 0.8rem;
+    }
+    
+    .price-container {
+        margin-bottom: 1rem;
+    }
+    
+    .original-price {
+        text-decoration: line-through;
+        color: var(--gray);
+        margin-right: 0.8rem;
+    }
+    
+    .deal-price {
+        color: var(--teal);
+        font-weight: bold;
+        font-size: 1.3rem;
+    }
+    
+    .deal-content p {
+        color: var(--gray);
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .deal-btn {
+        background-color: var(--teal);
+        color: white;
+        border: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        width: 100%;
+        transition: background-color 0.3s ease;
+    }
+    
+    .deal-btn:hover {
+        background-color: var(--dark-teal);
+    }
+
+    /* Footer */
+    .footer {
+        background-color: var(--dark-gray);
+        color: white;
+        padding: 3rem 0 0;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .footer-col {
+        margin-bottom: 1.5rem;
+    }
+
+    .footer-title {
+        color: white;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+
+    .footer-title::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 2px;
+        background: var(--teal);
+    }
+
+    .footer-links {
+        list-style: none;
+        padding: 0;
+    }
+
+    .footer-links li {
+        margin-bottom: 0.8rem;
+    }
+
+    .footer-links a {
+        color: #ccc;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .footer-links a:hover {
+        color: var(--teal);
+    }
+
+    .footer-logo h3 {
+        color: white;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .footer-description {
+        color: #ccc;
+        margin-bottom: 1.5rem;
+    }
+
+    .social-links {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .social-links a {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .social-links a:hover {
+        background: var(--teal);
+        transform: translateY(-3px);
+    }
+
+    .contact-info {
+        list-style: none;
+        padding: 0;
+    }
+
+    .contact-info li {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .contact-info i {
+        margin-right: 0.8rem;
+        color: var(--teal);
+    }
+
+    .footer-bottom {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1rem 0;
+        text-align: center;
+    }
+
+    .footer-bottom p {
+        margin: 0;
+        color: #ccc;
+        font-size: 0.9rem;
+    }
+
+    .footer-legal {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 0.8rem;
+    }
+
+    .footer-legal a {
+        color: #ccc;
+        font-size: 0.8rem;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .footer-legal a:hover {
+        color: var(--teal);
+    }
+
+    /* Scroll Animation Styles */
+    [data-aos] {
+        transition: all 0.6s ease;
+    }
+    
+    [data-aos="fade-up"] {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    
+    [data-aos="fade-up"].aos-animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    [data-aos="fade-down"] {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    
+    [data-aos="fade-down"].aos-animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    [data-aos="fade-left"] {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    
+    [data-aos="fade-left"].aos-animate {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    [data-aos="fade-right"] {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    
+    [data-aos="fade-right"].aos-animate {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    [data-aos="zoom-in"] {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    
+    [data-aos="zoom-in"].aos-animate {
+        opacity: 1;
+        transform: scale(1);
+    }
+    
+    [data-aos="flip-up"] {
+        opacity: 0;
+        transform: perspective(1000px) rotateX(30deg);
+    }
+    
+    [data-aos="flip-up"].aos-animate {
+        opacity: 1;
+        transform: perspective(1000px) rotateX(0);
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+        .header .container {
+            flex-wrap: wrap;
+            padding: 0.5rem 1rem;
+        }
+
+        .hamburger {
+            display: flex;
+            order: 2;
+        }
+
+        .navbar {
+            display: none;
+            width: 100%;
+            order: 3;
+        }
+
+        .navbar.active {
+            display: block;
+        }
+
+        .nav-links {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .nav-links li {
+            margin: 0.5rem 0;
+            width: 100%;
+        }
+
+        .dropdown-menu {
+            position: static;
+            box-shadow: none;
+            padding-left: 1rem;
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+            display: none;
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        .auth-buttons {
+            margin: 1rem 0 0;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .auth-btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .benefits-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .benefit-card {
+            padding: 1.5rem;
+        }
+
+        .deals-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hero h2 {
+            font-size: 2.2rem;
+        }
+        
+        .hero p {
+            font-size: 1.1rem;
+        }
+
+        .product-card {
+            width: 220px;
+            height: 380px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .logo h1 {
+            font-size: 1.5rem;
+        }
+
+        .hamburger {
+            visibility: visible;
+            background: var(--teal);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 1rem;
+            width: 36px;
+            height: 36px;
+            font-size: 1.3rem;
+        }
+
+        /* Mobile menu animation */
+        .navbar {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .navbar.active {
+            max-height: 500px;
+            display: block !important;
+        }
+
+        .search-container {
+            top: -70px;
+            width: 90%;
+        }
+    }
+
+    /* Hero Section */
+.hero {
+    position: relative;
+    color: white;
+    text-align: center;
+    padding: 8rem 0 5rem;
+    margin-top: 0;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(0, 128, 128, 0.9) 0%, rgba(0, 102, 102, 0.95) 100%);
+}
+
+.hero-blob {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.search-container {
+    position: relative;
+    z-index: 1;
+}
+</style>
 </head>
 <body>
     <!-- Header -->
@@ -274,7 +979,10 @@
             <div class="logo">
                 <h1>Floyd's Distributors</h1>
             </div>
-            <nav class="navbar">
+
+            <div class="hamburger">☰</div>
+
+            <nav class="navbar" data-aos="fade-down">
                 <ul class="nav-links">
                     <li><a href="index.html">Home</a></li>
                     <li class="dropdown">
@@ -295,26 +1003,62 @@
                         <a href="login.html" class="auth-btn">Login</a>
                         <a href="login.html?signup=true" class="auth-btn auth-btn-primary">Sign Up</a>
                     </div>
-                    <div class="hamburger">☰</div>
                 </div>
             </nav>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="search-container">
-            <input type="text" placeholder="Search products..." class="search-input" id="searchInput">
-            <button class="search-btn" id="searchBtn">🔍</button>
+    <!-- Hero Section -->
+<section class="hero" data-aos="fade-down">
+    <!-- Animated Blob Background -->
+    <svg class="hero-blob" preserveAspectRatio="xMidYMid slice" viewBox="10 10 80 80">
+        <defs>
+            <style>
+                @keyframes rotate {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .out-top {
+                    animation: rotate 20s linear infinite;
+                    transform-origin: 13px 25px;
+                    opacity: 0.7;
+                }
+                .in-top {
+                    animation: rotate 10s linear infinite;
+                    transform-origin: 13px 25px;
+                    opacity: 0.7;
+                }
+                .out-bottom {
+                    animation: rotate 25s linear infinite;
+                    transform-origin: 84px 93px;
+                    opacity: 0.7;
+                }
+                .in-bottom {
+                    animation: rotate 15s linear infinite;
+                    transform-origin: 84px 93px;
+                    opacity: 0.7;
+                }
+            </style>
+        </defs>
+        <path fill="var(--light-teal)" class="out-top" d="M37-5C25.1-14.7,5.7-19.1-9.2-10-28.5,1.8-32.7,31.1-19.8,49c15.5,21.5,52.6,22,67.2,2.3C59.4,35,53.7,8.5,37-5Z"/>
+        <path fill="var(--teal)" class="in-top" d="M20.6,4.1C11.6,1.5-1.9,2.5-8,11.2-16.3,23.1-8.2,45.6,7.4,50S42.1,38.9,41,24.5C40.2,14.1,29.4,6.6,20.6,4.1Z"/>
+        <path fill="var(--dark-teal)" class="out-bottom" d="M105.9,48.6c-12.4-8.2-29.3-4.8-39.4.8-23.4,12.8-37.7,51.9-19.1,74.1s63.9,15.3,76-5.6c7.6-13.3,1.8-31.1-2.3-43.8C117.6,63.3,114.7,54.3,105.9,48.6Z"/>
+        <path fill="rgba(0, 128, 128, 0.5)" class="in-bottom" d="M102,67.1c-9.6-6.1-22-3.1-29.5,2-15.4,10.7-19.6,37.5-7.6,47.8s35.9,3.9,44.5-12.5C115.5,92.6,113.9,74.6,102,67.1Z"/>
+    </svg>
+    
+    <div class="search-container" data-aos="fade-down">
+        <input type="text" placeholder="Search products..." class="search-input" id="searchInput">
+        <button class="search-btn" id="searchBtn">🔍</button>
+    </div>
+    <div class="container">
+        <h2 data-aos="fade-down">Quality Food Packaging Solutions</h2>
+        <p>Eco-friendly, durable, and customizable packaging for your business needs.</p>
+        <div class="hero-buttons">
+            <a href="products.html" class="btn">Shop Now</a>
         </div>
-        <div class="container">
-            <h2>Quality Food Packaging Solutions</h2>
-            <p>Eco-friendly, durable, and customizable packaging for your business needs.</p>
-            <div class="hero-buttons">
-                <a href="products.html" class="btn">Shop Now</a>
-            </div>
-        </div>
-    </section>
+    </div>
+</section>
 
 
     <!-- Featured Products -->
@@ -322,7 +1066,7 @@
         <div class="container">
             <h2>Featured Products</h2>
             <div class="products-slider-container">
-                <div class="products-slider">
+                <div class="products-slider" data-aos="fade-down">
                     <div class="slider-track">
                         <!-- Product cards will be inserted by JavaScript -->
                     </div>
@@ -331,14 +1075,13 @@
         </div>
     </section>
 
-    <!-- Add this right after the Featured Products section -->
-    <section class="deals-section">
+    <!-- Deals Section-->
         <div class="container">
             <div class="section-header">
                 <h2>Special Deals</h2>
                 <p>Limited-time offers on our best-selling products</p>
             </div>
-            <div class="deals-grid">
+            <div class="deals-grid" data-aos="fade-down">
                 <!-- Deal 1 -->
                 <div class="deal-card">
                     <div class="deal-badge">30% OFF</div>
@@ -394,9 +1137,9 @@
                 <h2>Why Choose Floyd's Distributors</h2>
                 <p>We go beyond just supplying packaging - we're your partners in success</p>
             </div>
-            <div class="benefits-grid">
+            <div class="benefits-grid" data-aos="fade-down">
                 <!-- Benefit 1 -->
-                <div class="benefit-card">
+                <div class="benefit-card" data-aos="fade-down">
                     <div class="benefit-icon">
                         <i class="fas fa-leaf"></i>
                     </div>
@@ -434,272 +1177,72 @@
         </div>
     </section>
 
-    <!-- Add this to your style section -->
-    <style>
-        /* Benefits Section */
-        .benefits-section {
-            padding: 5rem 0;
-            background: linear-gradient(135deg, rgba(0, 128, 128, 0.05) 0%, rgba(0, 102, 102, 0.08) 100%);
-        }
-        
-        .benefits-section .section-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .benefits-section .section-header h2 {
-            color: var(--dark-teal);
-            font-size: 2.2rem;
-            margin-bottom: 0.8rem;
-        }
-        
-        .benefits-section .section-header p {
-            color: var(--gray);
-            font-size: 1.1rem;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        .benefits-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        
-        .benefit-card {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
-        }
-        
-        .benefit-card:hover {
-            transform: translateY(-10px);
-        }
-        
-        .benefit-icon {
-            width: 70px;
-            height: 70px;
-            background: var(--teal);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 1.8rem;
-        }
-        
-        .benefit-card h3 {
-            color: var(--dark-teal);
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-        
-        .benefit-card p {
-            color: var(--gray);
-            line-height: 1.6;
-        }
-        
-        @media (max-width: 768px) {
-            .benefits-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .benefit-card {
-                padding: 1.5rem;
-            }
-        }
-    </style>
-
-    <!-- Add this to your style section -->
-    <style>
-        /* Deals Section */
-        .deals-section {
-            padding: 5rem 0;
-            background-color: #f9f9f9;
-        }
-        
-        .deals-section .section-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .deals-section .section-header h2 {
-            color: var(--teal);
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .deals-section .section-header p {
-            color: var(--gray);
-            font-size: 1.1rem;
-        }
-        
-        .deals-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-        
-        .deal-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
-        }
-        
-        .deal-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-        
-        .deal-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: var(--teal);
-            color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            z-index: 2;
-        }
-        
-        .deal-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-        
-        .deal-content {
-            padding: 1.5rem;
-        }
-        
-        .deal-content h3 {
-            color: var(--dark-teal);
-            margin-bottom: 0.8rem;
-        }
-        
-        .price-container {
-            margin-bottom: 1rem;
-        }
-        
-        .original-price {
-            text-decoration: line-through;
-            color: var(--gray);
-            margin-right: 0.8rem;
-        }
-        
-        .deal-price {
-            color: var(--teal);
-            font-weight: bold;
-            font-size: 1.3rem;
-        }
-        
-        .deal-content p {
-            color: var(--gray);
-            margin-bottom: 1.5rem;
-            font-size: 0.95rem;
-        }
-        
-        .deal-btn {
-            background-color: var(--teal);
-            color: white;
-            border: none;
-            padding: 0.7rem 1.5rem;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-            transition: background-color 0.3s ease;
-        }
-        
-        .deal-btn:hover {
-            background-color: var(--dark-teal);
-        }
-        
-        @media (max-width: 768px) {
-            .deals-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-
-
-
+    
     <!-- Footer -->
-    <!-- Footer -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-grid">
-            <!-- Company Info -->
-            <div class="footer-col footer-company">
-                <div class="footer-logo">
-                    <h3>Floyd's Distributors</h3>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <!-- Company Info -->
+                <div class="footer-col footer-company">
+                    <div class="footer-logo">
+                        <h3>Floyd's Distributors</h3>
+                    </div>
+                    <p class="footer-description">Premium food packaging solutions for businesses of all sizes. Eco-friendly, durable, and customizable.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
                 </div>
-                <p class="footer-description">Premium food packaging solutions for businesses of all sizes. Eco-friendly, durable, and customizable.</p>
-                <div class="social-links">
-                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+
+                <!-- Quick Links -->
+                <div class="footer-col">
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="delivery.html">Delivery Info</a></li>
+                    </ul>
+                </div>
+
+                <!-- Categories -->
+                <div class="footer-col">
+                    <h3 class="footer-title">Categories</h3>
+                    <ul class="footer-links">
+                        <li><a href="category.html?cat=food-containers">Food Containers</a></li>
+                        <li><a href="category.html?cat=eco-friendly">Eco-Friendly Packaging</a></li>
+                        <li><a href="category.html?cat=custom">Custom Solutions</a></li>
+                        <li><a href="category.html?cat=special-offers">Special Offers</a></li>
+                        <li><a href="category.html?cat=new-arrivals">New Arrivals</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="footer-col footer-contact">
+                    <h3 class="footer-title">Contact Us</h3>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-map-marker-alt"></i> <span>Nashville Subdivision, Mandeville, Manchester</span></li>
+                        <li><i class="fas fa-phone"></i> <span>+1(876) 000-floyds</span></li>
+                        <li><i class="fas fa-envelope"></i> <span>info@floydsdistributors.com</span></li>
+                        <li><i class="fas fa-clock"></i> <span>Mon-Fri: 8:30AM - 5:00PM</span></li>
+                    </ul>
                 </div>
             </div>
 
-            <!-- Quick Links -->
-            <div class="footer-col">
-                <h3 class="footer-title">Quick Links</h3>
-                <ul class="footer-links">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="products.html">Products</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                    <li><a href="delivery.html">Delivery Info</a></li>
-                </ul>
-            </div>
-
-            <!-- Categories -->
-            <div class="footer-col">
-                <h3 class="footer-title">Categories</h3>
-                <ul class="footer-links">
-                    <li><a href="category.html?cat=food-containers">Food Containers</a></li>
-                    <li><a href="category.html?cat=eco-friendly">Eco-Friendly Packaging</a></li>
-                    <li><a href="category.html?cat=custom">Custom Solutions</a></li>
-                    <li><a href="category.html?cat=special-offers">Special Offers</a></li>
-                    <li><a href="category.html?cat=new-arrivals">New Arrivals</a></li>
-                </ul>
-            </div>
-
-            <!-- Contact Info -->
-            <div class="footer-col footer-contact">
-                <h3 class="footer-title">Contact Us</h3>
-                <ul class="contact-info">
-                    <li><i class="fas fa-map-marker-alt"></i> <span>Nashville Subdivision, Mandeville, Manchester</span></li>
-                    <li><i class="fas fa-phone"></i> <span>+1(876) 000-floyds</span></li>
-                    <li><i class="fas fa-envelope"></i> <span>info@floydsdistributors.com</span></li>
-                    <li><i class="fas fa-clock"></i> <span>Mon-Fri: 8:30AM - 5:00PM</span></li>
-                </ul>
+            <!-- Footer Bottom -->
+            <div class="footer-bottom">
+                <p>&copy; 2025 Floyd's Distributors. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="sitemap.html">Sitemap</a>
+                </div>
             </div>
         </div>
-
-        <!-- Footer Bottom -->
-        <div class="footer-bottom">
-            <p>&copy; 2025 Floyd's Distributors. All rights reserved.</p>
-            <div class="footer-legal">
-                <a href="privacy.html">Privacy Policy</a>
-                <a href="terms.html">Terms of Service</a>
-                <a href="sitemap.html">Sitemap</a>
-            </div>
-        </div>
-    </div>
-</footer>
+    </footer>
 
     <!-- Admin Signup Modal (Hidden by default) -->
     <div class="auth-overlay" id="adminSignupOverlay" style="display: none;"></div>

@@ -723,5 +723,173 @@
         }
     });
 </script>
+
+<script>
+    async function processOrder(orderData) {
+        // Get form data
+        const email = document.getElementById('email').value;
+        const firstName = document.getElementById('first-name').value;
+        const lastName = document.getElementById('last-name').value;
+        const phone = document.getElementById('phone').value;
+        const address = document.getElementById('address').value;
+        const city = document.getElementById('city').value;
+        const parish = document.getElementById('parish').value;
+        const instructions = document.getElementById('instructions').value;
+        const paymentMethod = document.querySelector('input[name="payment"]:checked').id;
+        const orderNotes = document.getElementById('order-notes').value;
+        
+        // Prepare order data for submission
+        const order = {
+            customerInfo: {
+                email,
+                name: `${firstName} ${lastName}`,
+                phone,
+                address: {
+                    street: address,
+                    city,
+                    parish,
+                    instructions
+                }
+            },
+            items: orderData.items,
+            subtotal: orderData.subtotal,
+            tax: orderData.tax,
+            total: orderData.total,
+            paymentMethod,
+            notes: orderNotes,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            // Show loading state
+            const placeOrderBtn = document.getElementById('placeOrder');
+            placeOrderBtn.disabled = true;
+            placeOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            // Save order to database (you'll need to implement this in script.js)
+            const orderId = await saveOrderToDatabase(order);
+            
+            // Send confirmation email to customer
+            await sendCustomerConfirmationEmail(order, orderId);
+            
+            // Optionally send SMS if phone number is provided
+            if (order.customerInfo.phone) {
+                await sendCustomerConfirmationSMS(order, orderId);
+            }
+
+            // Clear cart and redirect to confirmation page
+            localStorage.removeItem('cart');
+            localStorage.removeItem('currentOrder');
+            window.location.href = `order-confirmation.html?orderId=${orderId}`;
+            
+        } catch (error) {
+            console.error('Error processing order:', error);
+            alert('There was an error processing your order. Please try again.');
+            document.getElementById('placeOrder').disabled = false;
+            document.getElementById('placeOrder').innerHTML = 'Place Order';
+        }
+    }
+
+    function validateDeliveryInfo() {
+        let isValid = true;
+        const requiredFields = [
+            'email', 'first-name', 'last-name', 'phone', 
+            'address', 'city', 'parish'
+        ];
+
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                field.classList.add('invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('invalid');
+            }
+        });
+
+        // Validate email format
+        const email = document.getElementById('email');
+        if (!/^\S+@\S+\.\S+$/.test(email.value)) {
+            email.classList.add('invalid');
+            isValid = false;
+        }
+
+        // Validate phone number (basic validation)
+        const phone = document.getElementById('phone');
+        if (!/^[\d\s\-\(\)]{7,}$/.test(phone.value)) {
+            phone.classList.add('invalid');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function validatePaymentInfo() {
+        // Basic validation - just ensure a payment method is selected
+        const selectedPayment = document.querySelector('input[name="payment"]:checked');
+        if (!selectedPayment) {
+            alert('Please select a payment method');
+            return false;
+        }
+        return true;
+    }
+
+    function updateReviewSection() {
+        // Update delivery info review
+        const deliveryInfo = `
+            <p>${document.getElementById('first-name').value} ${document.getElementById('last-name').value}</p>
+            <p>${document.getElementById('email').value}</p>
+            <p>${document.getElementById('phone').value}</p>
+            <p>${document.getElementById('address').value}</p>
+            <p>${document.getElementById('city').value}, ${document.getElementById('parish').value}</p>
+            ${document.getElementById('instructions').value ? 
+                `<p><strong>Delivery Instructions:</strong> ${document.getElementById('instructions').value}</p>` : ''}
+        `;
+        document.getElementById('reviewDeliveryInfo').innerHTML = deliveryInfo;
+
+        // Update payment method review
+        const paymentMethod = document.querySelector('input[name="payment"]:checked').id;
+        let paymentText = '';
+        switch(paymentMethod) {
+            case 'cod':
+                paymentText = 'Cash on Delivery';
+                break;
+            case 'bank-transfer':
+                paymentText = 'Bank Transfer';
+                break;
+            case 'deposit':
+                paymentText = 'Deposit to Our Account';
+                break;
+            case 'net14':
+                paymentText = 'Net 14 Days (Credit Account)';
+                break;
+        }
+        document.getElementById('reviewPaymentMethod').innerHTML = `<p>${paymentText}</p>`;
+    }
+
+    function showStep(stepNumber) {
+        // Hide all sections
+        document.querySelectorAll('.form-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Show current section
+        document.getElementById(`${['deliveryInfo', 'paymentMethod', 'reviewOrder'][stepNumber-1]}Section`).classList.add('active');
+        
+        // Update step indicators
+        document.querySelectorAll('.delivery-step').forEach((step, index) => {
+            step.classList.remove('active', 'completed');
+            if (index + 1 < stepNumber) {
+                step.classList.add('completed');
+            } else if (index + 1 === stepNumber) {
+                step.classList.add('active');
+            }
+        });
+        
+        // Update progress line
+        document.getElementById('stepProgress').style.width = `${((stepNumber-1)/2)*100}%`;
+    }
+</script>
 </body>
 </html>

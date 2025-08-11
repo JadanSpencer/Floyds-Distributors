@@ -128,9 +128,7 @@ function initAdminPanel() {
   initOrderFilter();
 
   initDriverSearch();
-  
   initDeliveryFilter();
-
 
   initEnhancedSearch();
   console.log("Admin panel components initialized");
@@ -491,30 +489,47 @@ async function loadOrders(filterStatus = 'all', searchTerm = '') {
             const statusClass = getDeliveryStatusBadgeClass(order.status);
 
             // Make pending status clickable
+            const isNewPending = order.status.toLowerCase() === 'pending' && 
+            order.createdAt && 
+            new Date() - order.createdAt.toDate() < 24 * 60 * 60 * 1000; // Less than 24 hours old
+
             const statusHtml = order.status.toLowerCase() === 'pending'
-                ? `<span class="badge ${statusClass} status-pending-clickable" data-order-id="${orderId}">Pending</span>`
+                ? `<div class="status-cell">
+                    ${isNewPending ? '<span class="badge-ribbon">NEW</span>' : ''}
+                    <span class="badge ${statusClass} status-pending-clickable" data-order-id="${orderId}">
+                        Pending
+                    </span>
+                </div>`
                 : `<span class="badge ${getDeliveryStatusBadgeClass(order.status)}">
                     ${order.status}
-                  </span>`;
+                </span>`;
 
             const row = document.createElement('tr');
             row.innerHTML = `
-            <td>${orderId}</td>
-            <td>${order.customerName || 'N/A'}</td>
-            <td>${createdAt}</td>
-            <td>$${parseFloat(order.totalAmount || 0).toFixed(2)}</td>
-            <td>${statusHtml}</td>
-            <td>
-                <div class="table-actions">
-                    <button class="btn-table-action btn-view view-order" data-id="${orderId}">
-                        <i class="fas fa-eye"></i> View
-                    </button>
-                    <button class="btn-table-action btn-delete delete-order" data-id="${orderId}">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
-            </td>
-        `;
+                <td class="order-id-cell">
+                    ${isNewPending ? '<span class="badge-ribbon">NEW</span>' : ''}
+                    ${orderId}
+                </td>
+                <td>${order.customerName || 'N/A'}</td>
+                <td>${createdAt}</td>
+                <td>$${parseFloat(order.totalAmount || 0).toFixed(2)}</td>
+                <td>
+                    <span class="badge ${getDeliveryStatusBadgeClass(order.status)} ${order.status.toLowerCase() === 'pending' ? 'status-pending-clickable' : ''}" 
+                        ${order.status.toLowerCase() === 'pending' ? `data-order-id="${orderId}"` : ''}>
+                        ${order.status}
+                    </span>
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn-table-action btn-view view-order" data-id="${orderId}">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="btn-table-action btn-delete delete-order" data-id="${orderId}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </td>
+            `;
             ordersTableBody.appendChild(row);
         });
     } catch (error) {

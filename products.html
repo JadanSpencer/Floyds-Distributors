@@ -213,6 +213,36 @@
     const sortBy = document.getElementById('sortBy');
     const resetFilters = document.getElementById('resetFilters');
 
+    const categoryVariations = {
+        'food-containers': {
+            sizes: ['Small', 'Medium', 'Large'],
+            colors: ['White', 'Clear', 'Black'],
+            types: ['Standard', 'Premium', 'Eco'],
+            packages: ['Single', 'Packs', 'Case']
+        },
+        'bags': {
+            sizes: ['Small Roll (100ft)', 'Large Roll (500ft)'],
+            types: ['Standard', 'Premium', 'Antibacterial'],
+            packages: ['Single', 'Packs', 'Case']
+        },
+        'lunch-boxes': {
+            colors: ['White', 'Blue', 'Black', 'Green'],
+            types: ['Disposable', 'Reusable', 'KN95'],
+            packages: ['Single', 'Packs', 'Case']
+        },
+        'eco-friendly': {
+            sizes: ['Small', 'Medium', 'Large'],
+            colors: ['Green', 'Brown', 'Beige'],
+            materials: ['Bamboo', 'Recycled Paper', 'Plant-based'],
+            packages: ['Single', 'Packs', 'Case']
+        },
+        'household-supplies': {
+            sizes: ['Single', 'Pack of 5', 'Pack of 10'],
+            colors: ['White', 'Blue', 'Multicolor'],
+            packages: ['Single', 'Packs', 'Case']
+        }
+    };
+
     // Initialize the page
     document.addEventListener('DOMContentLoaded', async () => {
         // Check for search query in URL
@@ -424,6 +454,9 @@
             product = { id: productSnap.id, ...productSnap.data() };
         }
         
+        // Get variations for this product's category
+        const variations = categoryVariations[product.category] || {};
+        
         // Create overlay
         const overlay = document.createElement('div');
         overlay.className = 'tile-overlay active';
@@ -433,54 +466,118 @@
         const detailTile = document.createElement('div');
         detailTile.className = 'product-detail-tile active';
         detailTile.dataset.id = product.id;
+        
+        // Build the options HTML based on available variations
+        let optionsHtml = '';
+        
+        if (variations.sizes) {
+            optionsHtml += `
+                <div class="option-group">
+                    <label>Size:</label>
+                    <div class="option-selector">
+                        ${variations.sizes.map((size, i) => 
+                            `<div class="option-item ${i === 0 ? 'selected' : ''}">${size}</div>`
+                        ).join('')}
+                    </div>
+                </div>`;
+        }
+        
+        if (variations.colors) {
+            optionsHtml += `
+                <div class="option-group">
+                    <label>Color:</label>
+                    <div class="option-selector">
+                        ${variations.colors.map((color, i) => 
+                            `<div class="option-item ${i === 0 ? 'selected' : ''}">${color}</div>`
+                        ).join('')}
+                    </div>
+                </div>`;
+        }
+        
+        if (variations.types) {
+            optionsHtml += `
+                <div class="option-group">
+                    <label>Type:</label>
+                    <div class="option-selector">
+                        ${variations.types.map((type, i) => 
+                            `<div class="option-item ${i === 0 ? 'selected' : ''}">${type}</div>`
+                        ).join('')}
+                    </div>
+                </div>`;
+        }
+        
+        if (variations.materials) {
+            optionsHtml += `
+                <div class="option-group">
+                    <label>Material:</label>
+                    <div class="option-selector">
+                        ${variations.materials.map((material, i) => 
+                            `<div class="option-item ${i === 0 ? 'selected' : ''}">${material}</div>`
+                        ).join('')}
+                    </div>
+                </div>`;
+        }
+
+        if (variations.packages) {
+            optionsHtml += `
+                <div class="option-group">
+                    <label>Packages:</label>
+                    <div class="option-selector">
+                        ${variations.packages.map((pkg, i) => 
+                            `<div class="option-item ${i === 0 ? 'selected' : ''}">${pkg}</div>`
+                        ).join('')}
+                    </div>
+                </div>`;
+        }
+        
         detailTile.innerHTML = `
             <button class="close-tile">×</button>
             <div class="tile-content">
                 <div class="product-images">
                     <img src="${product.image}" alt="${product.name}" class="detail-image"
                         onerror="this.src='https://placehold.co/300x200?text=Product+Image'">
-                    <div class="thumbnail-container">
-                        <!-- Thumbnails would go here -->
-                    </div>
                 </div>
                 <div class="product-info">
                     <h2>${product.name}</h2>
-                    <p class="price">$${product.price}</p>
-                    <p class="product-description">${product.description}</p>
+                    <div class="price-container">
+                        <span class="current-price">$${product.price}</span>
+                        ${product.originalPrice ? `<span class="original-price">$${product.originalPrice}</span>` : ''}
+                        ${product.discount ? `<span class="discount-badge">${product.discount}% OFF</span>` : ''}
+                    </div>
                     
-                    <div class="product-options">
-                        <div class="option-group">
-                            <label>Size:</label>
-                            <div class="option-selector">
-                                <div class="option-item selected">Small</div>
-                                <div class="option-item">Medium</div>
-                                <div class="option-item">Large</div>
-                            </div>
+                    <div class="product-description">${product.description}</div>
+                    
+                    ${optionsHtml}
+                    
+                    <div class="option-group">
+                        <label>Quantity:</label>
+                        <div class="quantity-selector">
+                            <button class="quantity-btn minus">-</button>
+                            <input type="number" value="1" min="1" max="${product.stock}" class="quantity-input">
+                            <button class="quantity-btn plus">+</button>
                         </div>
-                        
-                        <div class="option-group">
-                            <label>Color:</label>
-                            <div class="option-selector">
-                                <div class="option-item selected">White</div>
-                                <div class="option-item">Green</div>
-                                <div class="option-item">Brown</div>
-                            </div>
-                        </div>
-                        
-                        <div class="option-group">
-                            <label>Quantity:</label>
-                            <div class="quantity-selector">
-                                <button class="quantity-btn minus">-</button>
-                                <input type="number" value="1" min="1" max="${product.stock}" class="quantity-input">
-                                <button class="quantity-btn plus">+</button>
-                            </div>
+                        <div class="product-stock ${getStockClass(product.stock)}">
+                            ${getStockText(product.stock)}
                         </div>
                     </div>
                     
-                    <button class="btn add-to-cart-btn" ${product.stock <= 0 ? 'disabled' : ''}>
-                        ${product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
-                    </button>
-                    <a href="product-detail.html?id=${product.id}" class="btn btn-outline">View Full Details</a>
+                    <div class="product-actions">
+                        <button class="btn add-to-cart" ${product.stock <= 0 ? 'disabled' : ''}>
+                            ${product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                        </button>
+                        <a href="product-detail.html?id=${product.id}" class="btn btn-outline">View Full Details</a>
+                    </div>
+                    
+                    <div class="product-shipping">
+                        <div class="shipping-info">
+                            <i class="fas fa-truck"></i>
+                            <span>Free shipping on orders over $50</span>
+                        </div>
+                        <div class="delivery-info">
+                            <i class="fas fa-clock"></i>
+                            <span>Estimated delivery: 2-5 business days</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -507,23 +604,28 @@
         });
         
         // Add to cart from detail view
-        const addToCartBtn = detailTile.querySelector('.add-to-cart-btn');
+        const addToCartBtn = detailTile.querySelector('.add-to-cart');
         if (addToCartBtn && product.stock > 0) {
             addToCartBtn.addEventListener('click', function() {
                 const quantity = parseInt(detailTile.querySelector('.quantity-input').value);
-                const selectedSize = detailTile.querySelector('.option-group:nth-child(1) .selected').textContent;
-                const selectedColor = detailTile.querySelector('.option-group:nth-child(2) .selected').textContent;
+                const options = {};
+                
+                // Collect all selected options
+                detailTile.querySelectorAll('.option-group').forEach(group => {
+                    const label = group.querySelector('label').textContent.replace(':', '').toLowerCase();
+                    const selected = group.querySelector('.option-item.selected');
+                    if (selected) {
+                        options[label] = selected.textContent;
+                    }
+                });
                 
                 const productWithOptions = {
                     ...product,
                     quantity,
-                    options: {
-                        size: selectedSize,
-                        color: selectedColor
-                    }
+                    options: Object.keys(options).length > 0 ? options : undefined
                 };
                 
-                window.addToCart(productWithOptions); // Use the global addToCart function from script.js
+                window.addToCart(productWithOptions);
                 this.textContent = "Added to Cart!";
                 setTimeout(() => {
                     detailTile.remove();
@@ -543,6 +645,7 @@
             overlay.remove();
         });
     }
+
 
     // Helper function for stock status
     function getStockClass(stock) {

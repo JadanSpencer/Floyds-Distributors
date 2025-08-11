@@ -35,11 +35,10 @@
             margin: 0 auto;
         }
 
-        
-
         /* Confirmation styles */
         .confirmation-main {
             padding: 3rem 0;
+            min-height: 70vh;
         }
 
         .confirmation-card {
@@ -50,73 +49,155 @@
             border-radius: 10px;
             box-shadow: 0 5px 15px var(--dark-shadow);
             border: 1px solid var(--dark-border);
+            text-align: center;
         }
 
         .confirmation-icon {
-            font-size: 4rem;
+            font-size: 5rem;
             color: var(--dark-success);
             margin-bottom: 1.5rem;
+            animation: bounce 1s ease;
         }
 
-        .confirmation-details {
-            text-align: left;
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+
+        .confirmation-header {
+            margin-bottom: 2rem;
+        }
+
+        .confirmation-header h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark-accent);
+        }
+
+        .confirmation-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .order-details-container {
+            display: flex;
+            gap: 2rem;
             margin: 2rem 0;
-            padding: 1.5rem;
+            text-align: left;
+        }
+
+        .customer-details, .order-summary {
+            flex: 1;
             background: var(--darker-bg);
+            padding: 1.5rem;
             border-radius: 8px;
             border: 1px solid var(--dark-border);
         }
 
+        .detail-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-section h4 {
+            color: var(--dark-accent);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
         .detail-row {
             display: flex;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
         }
 
         .detail-label {
             font-weight: 600;
-            color: var(--dark-accent);
-            min-width: 150px;
+            min-width: 120px;
+            opacity: 0.8;
         }
 
         .order-items {
-            margin: 2rem 0;
+            margin-top: 1rem;
         }
 
         .order-item {
             display: flex;
             justify-content: space-between;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--dark-border);
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed var(--dark-border);
         }
 
-        .order-item-image {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-right: 1rem;
+        .order-item:last-child {
+            border-bottom: none;
         }
 
         .order-item-info {
-            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .order-item-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .order-item-name {
+            font-weight: 500;
+        }
+
+        .order-item-qty {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .order-item-price {
+            font-weight: 500;
+            color: var(--dark-accent);
+        }
+
+        .order-totals {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--dark-border);
+        }
+
+        .order-total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
         }
 
         .order-total {
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--dark-accent);
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 2px solid var(--dark-accent);
+        }
+
+        .payment-method {
             display: flex;
-            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .payment-method i {
+            color: var(--dark-accent);
         }
 
         .action-buttons {
-            margin-top: 2rem;
             display: flex;
             gap: 1rem;
             justify-content: center;
+            margin-top: 2rem;
         }
 
         .btn {
@@ -125,6 +206,8 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn-primary {
@@ -136,6 +219,7 @@
         .btn-primary:hover {
             background: var(--dark-accent-hover);
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .btn-outline {
@@ -146,53 +230,38 @@
 
         .btn-outline:hover {
             background: rgba(0, 188, 212, 0.1);
+            transform: translateY(-2px);
         }
 
-        .loading-spinner {
-            display: inline-block;
-            width: 2rem;
-            height: 2rem;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: var(--dark-accent);
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .error-details {
-            margin-top: 2rem;
+        .delivery-estimate {
+            margin-top: 1.5rem;
             padding: 1rem;
-            background: rgba(244, 67, 54, 0.1);
-            border-radius: 8px;
-            border-left: 4px solid #F44336;
+            background: rgba(0, 188, 212, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid var(--dark-accent);
         }
 
-        .error-details .contact-info {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .error-details .contact-info li {
-            margin: 0.5rem 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .delivery-estimate i {
+            margin-right: 0.5rem;
+            color: var(--dark-accent);
         }
 
         @media (max-width: 768px) {
             .confirmation-card {
-                padding: 2rem 1rem;
+                padding: 2rem 1.5rem;
             }
             
-            .detail-row {
+            .order-details-container {
                 flex-direction: column;
             }
             
             .action-buttons {
                 flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
             }
         }
     </style>
@@ -222,74 +291,114 @@
                 <div class="confirmation-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <h2>Order Received!</h2>
-                <p>Thank you for your purchase. Your order has been received and is being processed.</p>
                 
-                <!-- Order Summary -->
-                <div class="confirmation-details">
-                    <div class="detail-row">
-                        <span class="detail-label">Order Number:</span>
-                        <span id="order-id">Loading...</span>
+                <div class="confirmation-header">
+                    <h2>Order Confirmed!</h2>
+                    <p>Thank you for your purchase. Your order has been received and is being processed.</p>
+                </div>
+                
+                <div class="order-details-container">
+                    <div class="customer-details">
+                        <div class="detail-section">
+                            <h4>Order Information</h4>
+                            <div class="detail-row">
+                                <span class="detail-label">Order Number:</span>
+                                <span id="order-number">FD-2024-0567</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Date:</span>
+                                <span id="order-date">July 29, 2024</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Status:</span>
+                                <span id="order-status" style="color: var(--dark-success);">Processing</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h4>Customer Details</h4>
+                            <div class="detail-row">
+                                <span class="detail-label">Name:</span>
+                                <span id="customer-name">John Doe</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Email:</span>
+                                <span id="customer-email">john.doe@example.com</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Phone:</span>
+                                <span id="customer-phone">(876) 555-1234</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h4>Delivery Address</h4>
+                            <div id="delivery-address">
+                                123 Main Street<br>
+                                Kingston<br>
+                                St. Andrew, Jamaica
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h4>Payment Method</h4>
+                            <div class="payment-method">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <span>Cash on Delivery</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Date:</span>
-                        <span id="order-date"></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Email:</span>
-                        <span id="order-email"></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Total:</span>
-                        <span id="order-total"></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Payment Method:</span>
-                        <span id="payment-method"></span>
+                    
+                    <div class="order-summary">
+                        <h4>Order Summary</h4>
+                        <div class="order-items">
+                            <div class="order-item">
+                                <div class="order-item-info">
+                                    <img src="https://placehold.co/100x100?text=Product" alt="Product" class="order-item-image">
+                                    <div>
+                                        <div class="order-item-name">Plastic Food Container (Large)</div>
+                                        <div class="order-item-qty">Qty: 2</div>
+                                    </div>
+                                </div>
+                                <div class="order-item-price">$12.00</div>
+                            </div>
+                            <div class="order-item">
+                                <div class="order-item-info">
+                                    <img src="https://placehold.co/100x100?text=Product" alt="Product" class="order-item-image">
+                                    <div>
+                                        <div class="order-item-name">Paper Cups (12oz, 50pk)</div>
+                                        <div class="order-item-qty">Qty: 1</div>
+                                    </div>
+                                </div>
+                                <div class="order-item-price">$8.50</div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-totals">
+                            <div class="order-total-row">
+                                <span>Subtotal:</span>
+                                <span>$20.50</span>
+                            </div>
+                            <div class="order-total-row">
+                                <span>Tax (15%):</span>
+                                <span>$3.08</span>
+                            </div>
+                            <div class="order-total-row order-total">
+                                <span>Total:</span>
+                                <span>$23.58</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Shipping Information -->
-                <h3>Shipping Information</h3>
-                <div class="confirmation-details">
-                    <div class="detail-row">
-                        <span class="detail-label">Name:</span>
-                        <span id="shipping-name"></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Address:</span>
-                        <span id="shipping-address"></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">City/Parish:</span>
-                        <span id="shipping-city"></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Phone:</span>
-                        <span id="shipping-phone"></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Estimated Delivery:</span>
-                        <span id="delivery-estimate">3-5 business days</span>
-                    </div>
+                <div class="delivery-estimate">
+                    <i class="fas fa-truck"></i>
+                    <span>Expected delivery: 1-3 business days</span>
                 </div>
                 
-                <!-- Order Items -->
-                <h3>Your Order</h3>
-                <div class="order-items" id="order-items">
-                    <!-- Items will be populated by JavaScript -->
-                </div>
-                
-                <!-- Order Total -->
-                <div class="order-total">
-                    <span>Order Total:</span>
-                    <span id="order-summary-total"></span>
-                </div>
-                
-                <!-- Action Buttons -->
                 <div class="action-buttons">
                     <a href="products.html" class="btn btn-primary">Continue Shopping</a>
-                    <a href="account.html" class="btn btn-outline">View Order History</a>
+                    <a href="index.html" class="btn btn-outline">Back to Home</a>
                 </div>
             </div>
         </div>
@@ -325,41 +434,28 @@
         </div>
     </footer>
 
-    <!-- <script type="module">
-    import { initOrderConfirmation, auth, onAuthStateChanged } from './script.js';
-    document.addEventListener('DOMContentLoaded', async () => {
-        console.log("DOMContentLoaded fired on order-confirmation.html");
-        const user = await new Promise((resolve) => {
-            const unsubscribe = onAuthStateChanged(auth, (user) => {
-                unsubscribe();
-                resolve(user);
-            });
-        });
-
-        if (!user) {
-            console.error("User not authenticated, redirecting to login.");
-            localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
-            window.location.href = 'login.html';
-            return;
-        }
-
-        try {
-            await initOrderConfirmation();
-        } catch (error) {
-            console.error('Order confirmation error:', error);
-            // Show error to user
-            const confirmationCard = document.querySelector('.confirmation-card');
-            if (confirmationCard) {
-                confirmationCard.querySelector('.confirmation-icon').innerHTML = 
-                '<i class="fas fa-exclamation-circle" style="color:#F44336"></i>';
-                confirmationCard.querySelector('h2').textContent = 'Error Loading Order';
-                confirmationCard.querySelector('p').textContent = 
-                'Could not load your order details. Please contact support.';
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('orderId');
+            
+            // In a real app, you would fetch the order details from your database
+            // For now, we'll just display the order ID if it exists
+            if (orderId) {
+                document.getElementById('order-number').textContent = `FD-${orderId}`;
+                
+                // Set current date
+                const today = new Date();
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('order-date').textContent = today.toLocaleDateString('en-US', options);
+                
+                // You would populate other fields from your order data here
+                // For example:
+                // document.getElementById('customer-name').textContent = orderData.customerInfo.name;
+                // document.getElementById('customer-email').textContent = orderData.customerInfo.email;
+                // etc.
             }
-        }
-    });
-</script> -->
-
-
+        });
+    </script>
 </body>
 </html>

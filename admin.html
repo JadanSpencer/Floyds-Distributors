@@ -1206,6 +1206,38 @@
     margin-top: 3rem;
 }
 
+/* Add this to your CSS */
+.badge-ribbon {
+    position: absolute;
+    top: 15px;
+    left: 45%;
+    transform: translateX(-50%);
+    background-color: #007bff;
+    color: white;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 4px;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+    z-index: 1;
+    white-space: nowrap;
+}
+
+.order-id-cell {
+    position: relative;
+    padding-top: 15px !important; /* Make room for the ribbon */
+}
+
+.status-cell {
+    position: relative;
+    padding-left: 30px !important; /* Make room for the ribbon */
+}
+
+/* Add this to ensure the status column header aligns properly */
+.data-table th:nth-child(5) {
+    padding-left: 30px !important;
+}
+
     </style>
 </head>
 <body>

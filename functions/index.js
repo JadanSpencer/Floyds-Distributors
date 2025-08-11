@@ -34,6 +34,56 @@ setGlobalOptions({ maxInstances: 10 });
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
+const sgMail = require('@sendgrid/mail');
+const twilio = require('twilio');
+
+// Configure SendGrid and Twilio
+sgMail.setApiKey(functions.config().sendgrid.key);
+const twilioClient = twilio(
+    functions.config().twilio.sid,
+    functions.config().twilio.token
+);
+
+exports.sendEmail = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError(
+            'unauthenticated', 'Only authenticated users can send emails');
+    }
+
+    const msg = {
+        to: data.to,
+        from: 'noreply@floydsdistributors.com',
+        subject: data.subject,
+        html: data.html
+    };
+
+    try {
+        await sgMail.send(msg);
+        return { success: true };
+    } catch (error) {
+        console.error('SendGrid error:', error);
+        throw new functions.https.HttpsError('internal', 'Failed to send email');
+    }
+});
+
+exports.sendSMS = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError(
+            'unauthenticated', 'Only authenticated users can send SMS');
+    }
+
+    try {
+        await twilioClient.messages.create({
+            body: data.body,
+            to: data.to,
+            from: functions.config().twilio.number
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Twilio error:', error);
+        throw new functions.https.HttpsError('internal', 'Failed to send SMS');
+    }
+});
 
 // Auto-set role when a user doc is created in Firestore
 exports.setUserRole = functions.firestore

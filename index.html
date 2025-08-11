@@ -34,7 +34,7 @@
         padding: 0 15px;
     }
 
-    /* Header Styles */
+    /* Header Styles - Updated for horizontal alignment */
     .header {
         background: var(--white);
         box-shadow: 0 2px 15px rgba(0, 102, 102, 0.1);
@@ -50,16 +50,24 @@
         justify-content: space-between;
         align-items: center;
         padding: 0 1rem;
+        flex-wrap: nowrap;
     }
 
     .logo h1 {
         color: var(--teal);
         font-size: 1.8rem;
         font-weight: 700;
-        margin: 0;
         background: linear-gradient(to right, var(--teal), var(--dark-teal));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        white-space: nowrap;
+    }
+
+    .navbar {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+        justify-content: flex-end;
     }
 
     .nav-links {
@@ -68,11 +76,13 @@
         margin: 0;
         padding: 0;
         align-items: center;
+        flex-wrap: nowrap;
     }
 
     .nav-links li {
         margin: 0 0.8rem;
         position: relative;
+        white-space: nowrap;
     }
 
     .nav-links a {
@@ -151,10 +161,17 @@
     }
 
     /* Auth Buttons */
+    .auth-cart-container {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
+    }
+
     .auth-buttons {
         display: flex;
         gap: 0.8rem;
         margin-left: 1.5rem;
+        flex-shrink: 0;
     }
 
     .auth-btn {
@@ -163,6 +180,7 @@
         font-weight: 500;
         transition: all 0.3s ease;
         text-decoration: none;
+        white-space: nowrap;
     }
 
     .auth-btn:not(.auth-btn-primary) {
@@ -188,15 +206,6 @@
     .hamburger {
         display: none;
         visibility: hidden;
-    }
-
-    .hamburger:hover {
-        background: var(--dark-teal);
-        transform: scale(1.05);
-    }
-
-    .hamburger:active {
-        transform: scale(0.95);
     }
 
     /* Hero Section */
@@ -825,16 +834,39 @@
         .hamburger {
             display: flex;
             order: 2;
+            visibility: visible;
+            background: var(--teal);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+        }
+
+        .hamburger:hover {
+            background: var(--dark-teal);
+            transform: scale(1.05);
         }
 
         .navbar {
             display: none;
             width: 100%;
             order: 3;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
         }
 
         .navbar.active {
-            display: block;
+            max-height: 500px;
+            display: block !important;
         }
 
         .nav-links {
@@ -904,35 +936,9 @@
         }
 
         .hamburger {
-            visibility: visible;
-            background: var(--teal);
-        color: white;
-        border: none;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        font-size: 1.5rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-left: 1rem;
             width: 36px;
             height: 36px;
             font-size: 1.3rem;
-        }
-
-        /* Mobile menu animation */
-        .navbar {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .navbar.active {
-            max-height: 500px;
-            display: block !important;
         }
 
         .search-container {
@@ -942,34 +948,34 @@
     }
 
     /* Hero Section */
-.hero {
-    position: relative;
-    color: white;
-    text-align: center;
-    padding: 8rem 0 5rem;
-    margin-top: 0;
-    overflow: hidden;
-    background: linear-gradient(135deg, rgba(0, 128, 128, 0.9) 0%, rgba(0, 102, 102, 0.95) 100%);
-}
+    .hero {
+        position: relative;
+        color: white;
+        text-align: center;
+        padding: 8rem 0 5rem;
+        margin-top: 0;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(0, 128, 128, 0.9) 0%, rgba(0, 102, 102, 0.95) 100%);
+    }
 
-.hero-blob {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-}
+    .hero-blob {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
 
-.hero .container {
-    position: relative;
-    z-index: 1;
-}
+    .hero .container {
+        position: relative;
+        z-index: 1;
+    }
 
-.search-container {
-    position: relative;
-    z-index: 1;
-}
+    .search-container {
+        position: relative;
+        z-index: 1;
+    }
 </style>
 </head>
 <body>

@@ -61,7 +61,7 @@ export {
 };
 
 
-// ===== ADD THIS AUTH STATE OBSERVER RIGHT HERE =====
+// ===== AUTH STATE OBSERVER =====
 const isLoginPage = window.location.pathname.includes('login.html');
 const publicPages = ['/','/index.html', 'index.html', 'about.html', 'contact.html']; // Add any public pages
 const isPublicPage = publicPages.some(page => window.location.pathname.includes(page));

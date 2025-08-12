@@ -62,9 +62,17 @@ export {
 
 
 // ===== AUTH STATE OBSERVER =====
-const isLoginPage = window.location.pathname.includes('login.html');
-const publicPages = ['/','/index.html', 'index.html', 'about.html', 'contact.html']; // Add any public pages
-const isPublicPage = publicPages.some(page => window.location.pathname.includes(page));
+// Normalize the pathname (remove leading/trailing slashes)
+const normalizedPath = window.location.pathname
+  .replace(/^\/+|\/+$/g, '')     // remove starting/ending slashes
+  .toLowerCase();                // lowercase for consistency
+
+// List of public pages ('' means site root)
+const publicPages = ['', 'index.html', 'about.html', 'contact.html'];
+
+// Current page detection
+const isLoginPage = normalizedPath.endsWith('login.html');
+const isPublicPage = publicPages.some(page => normalizedPath.endsWith(page));
 
 console.log(`Page: ${window.location.pathname}, isLoginPage: ${isLoginPage}, isPublicPage: ${isPublicPage}`);
 

@@ -1,32 +1,3 @@
-// === DEBUG: capture uncaught errors & promise rejections ===
-window.__errors = window.__errors || [];
-window.addEventListener('error', (ev) => {
-  const e = {
-    type: 'error',
-    message: ev.message,
-    filename: ev.filename,
-    lineno: ev.lineno,
-    colno: ev.colno,
-    stack: ev.error?.stack || null,
-    time: new Date().toISOString()
-  };
-  window.__errors.push(e);
-  localStorage.setItem('__lastJsErrors', JSON.stringify(window.__errors));
-  console.error('Captured error:', e);
-});
-window.addEventListener('unhandledrejection', (ev) => {
-  const e = {
-    type: 'unhandledrejection',
-    reason: ev.reason && (ev.reason.message || String(ev.reason)),
-    stack: ev.reason?.stack || null,
-    time: new Date().toISOString()
-  };
-  window.__errors.push(e);
-  localStorage.setItem('__lastJsErrors', JSON.stringify(window.__errors));
-  console.error('Captured rejection:', e);
-});
-// === END DEBUG ===
-
 import { 
   initializeApp 
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
@@ -90,44 +61,43 @@ export {
 };
 
 
-// === SAFE auth guard (won't crash page; logs errors) ===
-(async function safeAuthGuard() {
-  try {
-    const normalizedPath = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
-    const publicPages = ['', 'index.html', 'about.html', 'contact.html', 'login.html'];
-    const isLoginPage = normalizedPath.endsWith('login.html');
-    const isPublicPage = publicPages.some(p => normalizedPath.endsWith(p));
+// ===== AUTH STATE OBSERVER =====
+// Normalize the pathname (remove leading/trailing slashes)
+const normalizedPath = window.location.pathname
+  .replace(/^\/+|\/+$/g, '')     // remove starting/ending slashes
+  .toLowerCase();                // lowercase for consistency
 
-    if (!isLoginPage && !isPublicPage) {
-      console.log('Checking protected page access (safeAuthGuard)');
-      const user = await new Promise((resolve) => {
-        const unsubscribe = onAuthStateChanged(auth, (u) => {
-          try { unsubscribe(); } catch {}
-          resolve(u);
-        });
-        // safety timeout: if onAuthStateChanged never fires, resolve null after 6s
-        setTimeout(() => resolve(null), 6000);
-      });
+// List of public pages ('' means site root)
+const publicPages = ['', 'index.html', 'about.html', 'contact.html'];
 
-      if (!user) {
-        console.log('No user — redirect to login (safeAuthGuard)');
-        localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
-        window.location.href = 'login.html';
-        return;
-      } else {
-        console.log('User present:', user.uid || user.email);
-      }
-    }
-  } catch (err) {
-    // Log and persist error but do NOT stop the rest of the script
-    console.error('safeAuthGuard caught error:', err);
-    window.__errors = window.__errors || [];
-    window.__errors.push({ type: 'authGuardError', message: String(err), stack: err.stack || null, time: new Date().toISOString() });
-    localStorage.setItem('__lastJsErrors', JSON.stringify(window.__errors));
-    // fall through as guest so page can load
+// Current page detection
+const isLoginPage = normalizedPath.endsWith('login.html');
+const isPublicPage = publicPages.some(page => normalizedPath.endsWith(page));
+
+console.log(`Page: ${window.location.pathname}, isLoginPage: ${isLoginPage}, isPublicPage: ${isPublicPage}`);
+
+// Auth state observer for protected pages
+if (!isLoginPage && !isPublicPage) {
+  console.log('Checking protected page access');
+  
+  const user = await new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe(); // Important to unsubscribe immediately
+      resolve(user);
+    });
+  });
+
+  if (!user) {
+    console.log("No user authenticated, redirecting to login...");
+    // Store current URL for post-login redirect
+    localStorage.setItem('returnUrl', window.location.pathname + window.location.search);
+    window.location.href = 'login.html';
+    // Stop execution of remaining code on this page
+    throw new Error("Redirecting to login");
   }
-})();
-// === END SAFE auth guard ===
+}
+
+// ===== END OF AUTH STATE OBSERVER =====
 
 
 // Auth Elements
@@ -2153,27 +2123,3 @@ if (window.location.pathname.includes('order-confirmation.html')) {
 
 console.log("DOM fully loaded, initializing functions...");
 initCartFunctionality();
-
-
-document.addEventListener('DOMContentLoaded', () => {
-  const raw = localStorage.getItem('__lastJsErrors');
-  if (!raw) return;
-  const errors = JSON.parse(raw);
-  if (!errors || !errors.length) return;
-
-  const box = document.createElement('pre');
-  box.style.position = 'fixed';
-  box.style.left = '6px';
-  box.style.right = '6px';
-  box.style.bottom = '6px';
-  box.style.maxHeight = '35%';
-  box.style.overflow = 'auto';
-  box.style.zIndex = 99999;
-  box.style.background = 'rgba(0,0,0,0.85)';
-  box.style.color = '#fff';
-  box.style.padding = '8px';
-  box.style.fontSize = '12px';
-  box.style.whiteSpace = 'pre-wrap';
-  box.textContent = JSON.stringify(errors.slice(-6), null, 2);
-  document.body.appendChild(box);
-});

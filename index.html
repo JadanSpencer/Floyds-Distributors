@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Floyd's Distributors | Food Packaging Solutions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <title>Floyd's Distributors | Food Packaging Solutions</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -982,6 +981,25 @@
         position: relative;
         z-index: 1;
     }
+
+    /* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* CSS specific to iOS devices */ 
+  body {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* Fix for sticky elements */
+  .header {
+    position: -webkit-sticky;
+  }
+}
+
+* {
+  animation: none !important;
+  transition: none !important;
+}
 </style>
 </head>
 <body>
